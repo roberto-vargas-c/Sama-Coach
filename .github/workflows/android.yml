@@ -20,10 +20,7 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
-
-      - uses: gradle/actions/setup-gradle@v4
-
+      # ubuntu-latest ships with the Android SDK at $ANDROID_HOME; licences are pre-accepted.
       - name: Build release APK (debug-signed, installable)
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon
