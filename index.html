@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#B45A3C">
 <meta name="description" content="Sama: alignment check, practice planner and AI coach for your yoga practice.">
+<!-- Coach server for copies of this page that are not served from the deployment itself (e.g. bundled in the Android app). Leave empty when hosted on Vercel. -->
+<meta name="sama-coach-url" content="">
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <title>Sama Yoga</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -3789,7 +3791,11 @@ function openPose(p){
 // The language model never invents poses or timings. It turns what you say into planner
 // parameters; Sama's planner builds the practice from the library; a second, independent
 // call judges the result. Requests go to /api/coach, a tiny proxy that holds the API key.
-const COACH_URL = '/api/coach';
+// Where the proxy lives. Served from Vercel the page uses its own /api/coach. A copy bundled inside the
+// Android app (or opened from a file) has no server of its own: put the deployment's address in the
+// <meta name="sama-coach-url"> tag in the head, e.g. https://sama-coach.vercel.app
+const COACH_URL = (() => { const m = document.querySelector('meta[name="sama-coach-url"]'), u = m ? m.content.trim().replace(/\/$/, '') : '';
+  if (u) return u + '/api/coach'; return /^https?:$/.test(location.protocol) ? '/api/coach' : ''; })();
 const PARAMS_DOC = '{"minutes": one of 10|20|30|45|60|90, "level": 1|2|3 (1 beginner, 2 intermediate, 3 advanced), "focus": one of ' + Object.keys(FOCUS).join('|') + ', "easy": subset of ["wrists","knees","back"] (body parts to go easy on), "goal": null or one of ' + Object.keys(GOALS).join('|') + ' (a goal pose to build toward), "include": [pose ids that must be in], "avoid": [pose ids to leave out]}';
 let coachLib = null;
 function libraryDigest(){
@@ -3798,6 +3804,7 @@ function libraryDigest(){
 }
 const LIB_LEGEND = 'Pose library, one per line: id|name|difficulty L1 gentle … L5 advanced|family|tags|typical hold|sided (done on both sides)|load (wrists or knees). Use ONLY these ids.';
 async function askCoach(messages, {json = false, signal, temperature} = {}){
+  if (!COACH_URL) throw Object.assign(new Error('This copy of Sama is not connected to a coach server. Set the deployment address in the sama-coach-url meta tag.'), {code:'no_key'});
   let r;
   try { r = await fetch(COACH_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({messages, json, temperature}), signal}); }
   catch (e){ if (e && e.name === 'AbortError') throw Object.assign(new Error('Stopped.'), {code:'cancelled'}); throw Object.assign(new Error('Could not reach the coach. Check your connection.'), {code:'network'}); }

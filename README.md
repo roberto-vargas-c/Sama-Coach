@@ -54,6 +54,16 @@ Or from the command line: `npm i -g vercel && vercel && vercel env add OPENAI_AP
 
 The function caps request size and message count, uses JSON mode for structured replies, and times out after 55 s. There is no per-user rate limit; add one (for example Vercel's `@vercel/kv` or an edge rate limiter) before opening it to the public.
 
+## Using the Coach from the Android app
+
+If the Android wrapper loads the deployed URL in its WebView, the Coach works as is. If it bundles `index.html` inside the APK, the page has no server of its own: set the deployment's address in the head of `index.html` before building the APK:
+
+```html
+<meta name="sama-coach-url" content="https://sama-coach.vercel.app">
+```
+
+The proxy already allows cross-origin requests, so a bundled page can call it.
+
 ## How the prompts are built
 
 Every call sends a compact digest of the pose library (`id|name|difficulty|family|tags|hold|sided|load`, one line per pose) so the model can only name poses that exist. Structured answers are requested as JSON (`response_format: json_object`) and parsed tolerantly on the client. The judge calls use separate system prompts and a low temperature, so a plan or review is never graded by the prompt that produced it.
