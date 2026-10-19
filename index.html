@@ -636,6 +636,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
           <div class="arow"><span>Transition</span><div class="segs" data-k="trans"><button type="button" class="seg" data-v="blob">Blob</button><button type="button" class="seg" data-v="moves">Movement</button></div></div>
           <div class="arow"><span>Movement</span><div class="segs" data-k="pace"><button type="button" class="seg" data-v="calm">Calm</button><button type="button" class="seg" data-v="flowing">Flowing</button><button type="button" class="seg" data-v="quick">Quick</button></div></div>
           <div class="arow"><span>Style</span><div class="segs" data-k="mode"><button type="button" class="seg" data-v="flat">Illustration</button><button type="button" class="seg" data-v="silhouette">Silhouette</button><button type="button" class="seg" data-v="line">Line</button><button type="button" class="seg" data-v="sketch">Sketch</button><button type="button" class="seg" data-v="avatar">My avatar</button></div></div>
+          <div class="arow"><span>Camera shows</span><div class="segs" data-k="camview"><button type="button" class="seg" data-v="avatar">Me as my figure</button><button type="button" class="seg" data-v="skeleton">Video + skeleton</button></div></div>
           <div class="arow"><span>Alignment lines on the figure</span><div class="segs" data-k="overlay"><button type="button" class="seg" data-v="on">Show</button><button type="button" class="seg" data-v="off">Hide</button></div></div>
           <div class="arow"><span>Reference while checking</span><div class="segs" data-k="inset"><button type="button" class="seg" data-v="on">Small inset</button><button type="button" class="seg" data-v="off">Hidden</button></div></div>
           <div class="aonly">
@@ -2273,6 +2274,7 @@ function transitionPath(fromId, toId, fromMir = false, toMir = false){
 // Pace: how unhurried the figure moves. Calm is the default; floor and resting families move slower still.
 const PACE = {calm:1.45, flowing:1, quick:.7};
 let showOverlay = true, showInset = true; try { showOverlay = localStorage.getItem('sama.overlay') !== 'off'; showInset = localStorage.getItem('sama.inset') !== 'off'; } catch {}
+let camView = 'avatar'; try { camView = localStorage.getItem('sama.camview') === 'skeleton' ? 'skeleton' : 'avatar'; } catch {} // what the stage shows while the camera runs: your illustrated figure, or the video with the skeleton
 let transStyle = 'blob'; try { const v = localStorage.getItem('sama.trans'); if (v==='blob' || v==='moves') transStyle = v; } catch {}
 let pace = 'calm'; try { const v = localStorage.getItem('sama.pace'); if (PACE[v]) pace = v; } catch {}
 const RESTFUL = new Set(['supine','seated','child','prone','kneel','kneelup','shoulder','squat']);
@@ -2330,17 +2332,17 @@ function silTorso(g, R, SIL = SIL_BASE){
 }
 function silhouetteParts(R, SIL = SIL_BASE){
   const k = R.kp, P = i => k[i], s = R.scale, parts = [];
-  const tag = (fn, part, side) => { fn.part = part; fn.side = side; return fn; };
+  const tag = (fn, part, side, ks) => { fn.part = part; fn.side = side; fn.ks = ks; return fn; };
   const cS = {x:(P(5).x+P(6).x)/2, y:(P(5).y+P(6).y)/2}, cH = {x:(P(11).x+P(12).x)/2, y:(P(11).y+P(12).y)/2};
   for (const sd of ['l','r']){
     const o = sd==='l'?0:1, sh=5+o, el=7+o, wr=9+o, hp=11+o, kn=13+o, an=15+o, ix=19+o, he=23+o, ft=25+o;
     const footLen = Math.hypot(P(ft).x-P(he).x, P(ft).y-P(he).y), flat = footLen < SIL.foot*s*1.5;
-    parts.push(tag(g => taperPath(g, P(hp), P(kn), SIL.thigh[0]*s, SIL.thigh[1]*s), 'thigh', sd));
-    parts.push(tag(g => taperPath(g, P(kn), P(an), SIL.shin[0]*s, SIL.shin[1]*s), 'shin', sd));
-    parts.push(tag(g => silFootPath(g, P(he), P(ft), P(an), SIL.foot*s, flat), 'foot', sd));
-    parts.push(tag(g => taperPath(g, P(sh), P(el), SIL.upper[0]*s, SIL.upper[1]*s), 'upper', sd));
-    parts.push(tag(g => taperPath(g, P(el), P(wr), SIL.fore[0]*s, SIL.fore[1]*s), 'fore', sd));
-    parts.push(tag(g => { const dx = P(ix).x-P(wr).x, dy = P(ix).y-P(wr).y, L = Math.hypot(dx,dy)||1, tip = {x:P(wr).x+dx/L*(L*.6+SIL.hand*s*.5), y:P(wr).y+dy/L*(L*.6+SIL.hand*s*.5)}; taperPath(g, P(wr), tip, SIL.hand*s, SIL.hand*s*.9); }, 'hand', sd));
+    parts.push(tag(g => taperPath(g, P(hp), P(kn), SIL.thigh[0]*s, SIL.thigh[1]*s), 'thigh', sd, [hp,kn]));
+    parts.push(tag(g => taperPath(g, P(kn), P(an), SIL.shin[0]*s, SIL.shin[1]*s), 'shin', sd, [kn,an]));
+    parts.push(tag(g => silFootPath(g, P(he), P(ft), P(an), SIL.foot*s, flat), 'foot', sd, [an]));
+    parts.push(tag(g => taperPath(g, P(sh), P(el), SIL.upper[0]*s, SIL.upper[1]*s), 'upper', sd, [sh,el]));
+    parts.push(tag(g => taperPath(g, P(el), P(wr), SIL.fore[0]*s, SIL.fore[1]*s), 'fore', sd, [el,wr]));
+    parts.push(tag(g => { const dx = P(ix).x-P(wr).x, dy = P(ix).y-P(wr).y, L = Math.hypot(dx,dy)||1, tip = {x:P(wr).x+dx/L*(L*.6+SIL.hand*s*.5), y:P(wr).y+dy/L*(L*.6+SIL.hand*s*.5)}; taperPath(g, P(wr), tip, SIL.hand*s, SIL.hand*s*.9); }, 'hand', sd, [wr]));
   }
   parts.push(tag(g => taperPath(g, P(11), P(12), SIL.hip*s, SIL.hip*s), 'hips'));
   parts.push(tag(g => taperPath(g, cH, cS, SIL.hip*s*.95, SIL.shoulder*s*1.1), 'torso')); // body volume for profile views
@@ -2497,9 +2499,11 @@ function drawFlatFigure(g, R, av){
   for (const p of [...parts].sort((a,b) => order(a)-order(b))){
     if (p.part === 'head') continue;
     const isFar = !!(p.side && p.side === far);
+    const unseen = R.live && p.ks && p.ks.some(i => R.kp[i].s < VIS); if (unseen) g.globalAlpha *= .35; // a limb the camera did not find is only a hint
     g.fillStyle = flatColor(av, p.part, isFar); p(g); g.fill();
     const clothed = p.part === 'torso' || p.part === 'shoulders' || (p.part === 'upper' && av.sleeves !== 'none') || (p.part === 'fore' && av.sleeves === 'long');
     if (clothed) flatPattern(g, av.pattern, isFar ? shade(av.patternColor, .86) : av.patternColor, s, p);
+    if (unseen) g.globalAlpha /= .35;
   }
   drawFlatHead(g, R, av);
 }
@@ -2779,8 +2783,98 @@ function thumbDraw(id, size = 64, mirrored = false){
   return c;
 }
 function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+// ---------- you as your figure: the detected joints dressed as the illustrated avatar ----------
+let liveScale = null; // smoothed body scale, so the figure does not breathe with detection noise
+function liveRef(K, W, H){
+  const f = 720/Math.max(W, H), S = 720, k0 = K.map(p => ({x:p.x*f, y:p.y*f, s:p.s, w:p.w}));
+  const P = i => k0[i], vis = i => k0[i].s >= VIS, mid = (a,b) => ({x:(a.x+b.x)/2, y:(a.y+b.y)/2}), d = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+  // body scale: pixels per model unit, from whichever bone is least foreshortened
+  const cands = [];
+  if (vis(5)&&vis(6)&&vis(11)&&vis(12)) cands.push(d(mid(P(5),P(6)), mid(P(11),P(12)))/.5);
+  if (vis(5)&&vis(6)) cands.push(d(P(5),P(6))/.38);
+  if (vis(11)&&vis(12)) cands.push(d(P(11),P(12))/.22);
+  for (const [a,b,l] of [[11,13,.44],[12,14,.44],[13,15,.42],[14,16,.42],[5,7,.28],[6,8,.28],[7,9,.26],[8,10,.26]]) if (vis(a)&&vis(b)) cands.push(d(P(a),P(b))/l);
+  let k = cands.length ? Math.max(...cands) : S*.3; k = Math.max(S*.12, Math.min(S*.6, k));
+  liveScale = liveScale == null || mode !== 'live' ? k : liveScale + (k - liveScale)*.15; k = liveScale;
+  // head: from the ears when seen, else the nose; always a sensible distance above the shoulders
+  const sc = mid(P(5), P(6)), hc = vis(3)&&vis(4) ? mid(P(3),P(4)) : vis(3) ? P(3) : vis(4) ? P(4) : P(0);
+  let hx = hc.x - sc.x, hy = hc.y - sc.y, hl = Math.hypot(hx, hy) || 1; hx /= hl; hy /= hl;
+  if (!vis(0) && !vis(3) && !vis(4)){ hx = 0; hy = -1; hl = .21*k; }
+  const hd = Math.max(.16*k, Math.min(.27*k, hl)), head = {x:sc.x + hx*hd, y:sc.y + hy*hd};
+  const neck = {x:sc.x + hx*.07*k, y:sc.y + hy*.07*k}, crown = {x:head.x + hx*.13*k, y:head.y + hy*.13*k};
+  // where the face points: the nose drifts from the head centre as the head turns
+  let fx = 0, fy = 0, m = 0;
+  if (vis(0) && (vis(3) || vis(4))){ fx = P(0).x - head.x; fy = P(0).y - head.y; const L = Math.hypot(fx, fy) || 1; m = Math.min(1, L/(.1*k)); fx /= L; fy /= L; }
+  const face3 = [fx*m, fy*m, -Math.sqrt(Math.max(0, 1 - m*m))];
+  // hands and feet the person finder does not report: sketch them from the nearest joints
+  const kp = k0.map(p => ({...p}));
+  for (const o of [0,1]){
+    const wr = 9+o, el = 7+o, an = 15+o, kn = 13+o;
+    if (kp[wr].s >= VIS) for (const i of [17+o, 19+o, 21+o]) if (kp[i].s < VIS){ const dx = kp[wr].x - kp[el].x, dy = kp[wr].y - kp[el].y, L = Math.hypot(dx, dy) || 1; kp[i] = {x:kp[wr].x + dx/L*.1*k, y:kp[wr].y + dy/L*.1*k, s:kp[wr].s, w:null}; }
+    if (kp[an].s >= VIS){
+      const dx = kp[an].x - kp[kn].x, dy = kp[an].y - kp[kn].y, L = Math.hypot(dx, dy) || 1, side = (fx*m) || (o ? -1 : 1); // the foot points the way the face does
+      const upright = dy > Math.abs(dx);
+      if (kp[23+o].s < VIS) kp[23+o] = {x:kp[an].x - dx/L*.02*k, y:kp[an].y + (upright ? .05*k : 0), s:kp[an].s, w:null};
+      if (kp[25+o].s < VIS) kp[25+o] = upright ? {x:kp[an].x + side*.12*k, y:kp[an].y + .05*k, s:kp[an].s, w:null} : {x:kp[an].x + dx/L*.12*k, y:kp[an].y + dy/L*.12*k, s:kp[an].s, w:null};
+    }
+  }
+  let floor = 0; for (let i = 11; i < 27; i++) if (kp[i].s >= VIS) floor = Math.max(floor, kp[i].y); floor = Math.min(H*f - 8, Math.max(floor, S*.3));
+  return {kp, S, live:true, mirrored:false, head, neck, crown, ls:kp[5], rs:kp[6], lh:kp[11], rh:kp[12], face3, up3:[hx, hy, 0], headR:.12*k, floor, scale:k, f};
+}
+// Corrections drawn on the figure itself: a soft ring on the joint to adjust and a short tag, instead of angles and numbers.
+function drawFriendlyChecks(K, u, t){
+  const colors = {near:css('--near'), off:css('--off'), good:css('--good')};
+  const vis = last.checks.filter(x => x.s !== null && x.status !== 'good' && x.status !== 'hidden').sort((a,b) => a.s - b.s).slice(0, 4);
+  const pulse = mode === 'live' ? .8 + .2*Math.sin(t/260) : 1;
+  const spots = [];
+  for (const x of vis){
+    const P = x.names.map(n => pt(K, n)), three = ['angle','line','angle3'].includes(x.c.t);
+    const at = three ? P[1] : x.c.t==='fdir' ? {x:(P[2].x+P[3].x)/2, y:(P[2].y+P[3].y)/2} : {x:(P[0].x+P[1].x)/2, y:(P[0].y+P[1].y)/2};
+    if (!isFinite(at.x) || !isFinite(at.y)) continue;
+    spots.push({x, at});
+    const r = (x.status === 'off' ? 26 : 20)*u*pulse, c = colors[x.status];
+    const g = ctx.createRadialGradient(at.x, at.y, r*.2, at.x, at.y, r*1.6); g.addColorStop(0, c + 'AA'); g.addColorStop(1, c + '00');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(at.x, at.y, r*1.6, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = c; ctx.lineWidth = 3*u; ctx.beginPath(); ctx.arc(at.x, at.y, r, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.2*u; ctx.beginPath(); ctx.arc(at.x, at.y, r*.62, 0, Math.PI*2); ctx.stroke();
+  }
+  // tags: the name of the check, kept clear of each other and of the edges
+  ctx.font = `600 ${12.5*u}px Figtree, system-ui, sans-serif`; ctx.textBaseline = 'middle';
+  const placed = [];
+  for (const {x, at} of spots){
+    const txt = x.c.l + (x.c.sides && x.side ? ` · ${x.side==='l' ? 'left' : 'right'}` : ''), tw = ctx.measureText(txt).width + 18*u, th = 24*u;
+    let lx = at.x + 30*u, ly = at.y - 28*u;
+    if (lx + tw > cv.width - 6) lx = at.x - 30*u - tw;
+    lx = Math.min(Math.max(lx, 6), cv.width - tw - 6); ly = Math.min(Math.max(ly, th/2 + 6), cv.height - th/2 - 6);
+    for (let n = 0; n < 6 && placed.some(b => Math.abs(b.x - lx) < (b.w + tw)/2 + 4 && Math.abs(b.y - ly) < th + 4); n++) ly += th + 6*u; // step down when boxes collide
+    ly = Math.min(ly, cv.height - th/2 - 6); placed.push({x:lx, y:ly, w:tw});
+    ctx.strokeStyle = colors[x.status]; ctx.lineWidth = 1.5*u; ctx.setLineDash([3*u, 3*u]); ctx.beginPath(); ctx.moveTo(at.x, at.y); ctx.lineTo(lx + (lx > at.x ? 0 : tw), ly); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,255,255,.94)'; roundRect(lx, ly - th/2, tw, th, th/2); ctx.fill();
+    ctx.fillStyle = colors[x.status]; ctx.beginPath(); ctx.arc(lx + 10*u, ly, 4*u, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#2D2622'; ctx.fillText(txt, lx + 18*u, ly);
+  }
+  // all in line: a few sparkles around the head to say so
+  if (!vis.length && last.score != null && last.score >= 80){
+    const h = pt(K, 'nose'); if (h.s >= VIS){ ctx.fillStyle = colors.good; for (let i = 0; i < 5; i++){ const a = -Math.PI/2 + (i - 2)*.55 + Math.sin(t/700 + i)*.08, rr = 44*u + 6*u*Math.sin(t/300 + i*2); const sx = h.x + Math.cos(a)*rr, sy = h.y + Math.sin(a)*rr, q = (3 + (i%2))*u; ctx.beginPath(); ctx.moveTo(sx, sy - q); ctx.quadraticCurveTo(sx, sy, sx + q, sy); ctx.quadraticCurveTo(sx, sy, sx, sy + q); ctx.quadraticCurveTo(sx, sy, sx - q, sy); ctx.quadraticCurveTo(sx, sy, sx, sy - q); ctx.fill(); } }
+  }
+}
+function renderAvatarStage(){
+  const sc = cv.width / mw, mir = mirror();
+  ctx.fillStyle = css('--figbg'); ctx.fillRect(0, 0, cv.width, cv.height);
+  if (kp){
+    const K = kp.map(p => ({x: mir ? cv.width - p.x*sc : p.x*sc, y:p.y*sc, s:p.s, w:p.w}));
+    const R = liveRef(K, cv.width, cv.height), f = R.f;
+    ctx.save(); ctx.scale(1/f, 1/f);
+    drawFlatMat(ctx, R, avatar.mat || '#E9B93A');
+    if (avatar.mode === 'flat') drawFlatFigure(ctx, R, avatar); else if (avatar.mode === 'avatar') drawAvatar(ctx, R, avatar); else drawSilhouette(ctx, R, css('--fig'));
+    ctx.restore();
+    if (last && showOverlay) drawFriendlyChecks(K, Math.max(cv.width, cv.height)/700, performance.now());
+  }
+  drawInset();
+}
 function render(){
   const sc = cv.width / mw;
+  if (mode !== 'sample' && camView === 'avatar'){ renderAvatarStage(); return; }
   if (mode==='sample') drawSampleScene();
   else if (mirror()){ ctx.save(); ctx.translate(cv.width,0); ctx.scale(-1,1); ctx.drawImage(media, 0, 0, cv.width, cv.height); ctx.restore(); ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(0,0,cv.width,cv.height); }
   else { ctx.drawImage(media, 0, 0, cv.width, cv.height); ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(0,0,cv.width,cv.height); }
@@ -3037,7 +3131,7 @@ let stream = null, facing = 'user', wake = null;
 const mirror = () => mode==='live' && facing==='user';
 function notice(head, text){ $('noticeHead').textContent = head; $('noticeText').textContent = text; $('notice').hidden = !head; }
 async function startLive(){
-  notice('');
+  notice(''); liveScale = null;
   if (mode==='video' && !vid.paused) vid.pause();
   const framed = (() => { try { return window.self !== window.top; } catch { return true; } })();
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
@@ -4687,7 +4781,7 @@ for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', (
 // ---------- boot ----------
 renderRail(); renderHist(); showReference();
 if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !profile.onboarded && !(() => { try { return localStorage.getItem('sama.welcomed'); } catch { return null; } })()) showWelcome();
-window.__sama = {get plan(){ return plan; }, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, selfTest: () => selfTestResult};
+window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, selfTest: () => selfTestResult};
 function retheme(){
   for (const k in THUMBS) delete THUMBS[k];
   if (lib.built && lib.pose && $('poseDlg').open) drawPd();
@@ -4703,7 +4797,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
   for (const sw of box.querySelectorAll('.swatches')){ const k = sw.dataset.k; for (const c of AVATAR_CHOICES[k]){ const b = document.createElement('button'); b.type = 'button'; b.style.background = c; b.dataset.v = c; b.setAttribute('aria-label', k + ' ' + c); sw.appendChild(b); } }
   for (const grp of box.querySelectorAll('.segs[data-k]')) dropdownify(grp, {right:true});
   const sync = () => {
-    for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===cur)); }
+    for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='camview' ? camView : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===cur)); }
     only.hidden = avatar.mode !== 'avatar' && avatar.mode !== 'flat'; for (const r of box.querySelectorAll('.flatonly')) r.hidden = avatar.mode !== 'flat'; for (const r of box.querySelectorAll('.avonly')) r.hidden = avatar.mode !== 'avatar';
     $('avatarSum').textContent = avatar.mode==='flat' ? 'Illustration' : avatar.mode==='avatar' ? 'My avatar' : avatar.mode==='line' ? 'Line' : avatar.mode==='sketch' ? 'Sketch' : 'Silhouette';
   };
@@ -4714,6 +4808,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
     if (k==='trans'){ transStyle = b.dataset.v; try { localStorage.setItem('sama.trans', transStyle); } catch {} sync(); return; }
     if (k==='overlay'){ showOverlay = b.dataset.v==='on'; try { localStorage.setItem('sama.overlay', b.dataset.v); } catch {} sync(); render(); return; }
     if (k==='inset'){ showInset = b.dataset.v==='on'; try { localStorage.setItem('sama.inset', b.dataset.v); } catch {} sync(); render(); return; }
+    if (k==='camview'){ camView = b.dataset.v; try { localStorage.setItem('sama.camview', camView); } catch {} sync(); render(); return; }
     avatar[k] = b.dataset.v;
     try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {}
     sync(); retheme();
