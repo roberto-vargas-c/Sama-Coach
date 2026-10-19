@@ -177,6 +177,10 @@ public class MainActivity extends AppCompatActivity {
             try { Intent i = new Intent(Settings.ACTION_CAST_SETTINGS); i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); startActivity(i); return true; }
             catch (ActivityNotFoundException e) { return false; }
         }
+        @JavascriptInterface public void openUrl(String url) {
+            // sign-in pages that refuse embedded WebViews (Google) open in the system browser
+            try { if (url != null && url.startsWith("https://")) startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); } catch (ActivityNotFoundException ignored) {}
+        }
         @JavascriptInterface public String version() { return BuildConfig.VERSION_NAME + " (" + Build.VERSION.SDK_INT + ")"; }
     }
 }

@@ -424,10 +424,130 @@ body:not(.practice) .sess{order:0}
 .cerr{border-left:3px solid var(--off);padding:10px 14px;background:var(--surface);border-radius:10px;font-size:14px;color:var(--muted)}
 .cerr b{color:var(--ink);display:block;margin-bottom:2px}
 body.tv #viewCoach{display:none!important}
+/* ---------- welcome, guide, onboarding, profile ---------- */
+.welcome{position:fixed;inset:0;z-index:50;background:var(--bg);background-image:radial-gradient(900px 500px at 50% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%);overflow:auto;display:flex;align-items:center;justify-content:center;padding:max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom))}
+.winner{display:flex;flex-direction:column;align-items:center;gap:18px;width:min(100%, 420px);text-align:center}
+.wlogo{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--accent)}
+.wmark{width:96px;height:96px}
+.wmark .w1{stroke-dasharray:110;stroke-dashoffset:110;animation:wdraw .7s ease-out .2s forwards}
+.wmark .w2{stroke-dasharray:260;stroke-dashoffset:260;animation:wdraw 1.1s ease-in-out .5s forwards}
+.wmark .w3{transform-origin:66px 24px;transform:scale(0);animation:wpop .5s cubic-bezier(.3,1.6,.5,1) 1.4s forwards}
+@keyframes wdraw{to{stroke-dashoffset:0}}
+@keyframes wpop{to{transform:scale(1)}}
+.wname{font-family:var(--f-display);font-weight:400;font-size:56px;line-height:1;margin:4px 0 0;color:var(--ink);letter-spacing:-.01em;display:flex}
+.wname span{opacity:0;transform:translateY(10px);animation:wrise .6s ease-out forwards}
+.wname span:nth-child(1){animation-delay:1.6s}.wname span:nth-child(2){animation-delay:1.72s}.wname span:nth-child(3){animation-delay:1.84s}.wname span:nth-child(4){animation-delay:1.96s}
+@keyframes wrise{to{opacity:1;transform:none}}
+.wtag{margin:0;color:var(--muted);font-size:15px;opacity:0;animation:wrise .8s ease-out 2.3s forwards}
+.wfig{width:min(62vw, 240px);height:auto;border-radius:24px;opacity:0;animation:wrise .8s ease-out 1.2s forwards}
+.wbtns{display:flex;flex-direction:column;gap:8px;width:100%;opacity:0;animation:wrise .7s ease-out 2.7s forwards}
+.wbtns .btn{min-height:48px;font-size:15px}
+.wauth{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:10px;margin-top:4px}
+.wfoot{margin:0;font-size:12.5px;color:var(--muted);opacity:0;animation:wrise .8s ease-out 3.1s forwards}
+@media (prefers-reduced-motion: reduce){.welcome *{animation-duration:.01s!important;animation-delay:0s!important}}
+.welcome.leaving{animation:wfade .45s ease-in forwards}
+@keyframes wfade{to{opacity:0;transform:scale(1.02)}}
+/* the guide: figure + speech bubble + answer controls */
+.guide{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px 14px;align-items:start}
+.guide .gfig{width:120px;height:120px;border-radius:22px;display:block;background:var(--figbg);box-shadow:var(--shadow)}
+.guide .gbubble{position:relative;background:var(--bg);border:1px solid var(--line);border-radius:18px;border-top-left-radius:6px;padding:12px 15px;font-size:15.5px;line-height:1.45;min-height:48px}
+.guide .gbubble::before{content:"";position:absolute;left:-7px;top:14px;width:12px;height:12px;background:var(--bg);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg)}
+.guide .gbubble.think{color:var(--muted);font-style:italic}
+.guide .gbubble.think::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.2s steps(4,end) infinite}
+.guide .gbubble .gname{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:3px}
+.guide .gctl{grid-column:1/-1;display:flex;flex-direction:column;gap:8px}
+.guide .gchips{display:flex;gap:6px;flex-wrap:wrap}
+.guide .gchips:empty{display:none}
+.guide .gchips .seg[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.guide .ginput{display:flex;gap:8px}
+.guide .ginput[hidden]{display:none}
+.guide .ginput input{flex:1;min-width:0;font:inherit;font-size:15px;padding:10px 14px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink)}
+.guide .ginput input:focus{outline:none;border-color:var(--accent)}
+.guide .ginput .btn{min-height:42px;padding:6px 16px;border-radius:999px}
+@media (min-width:560px){.guide{grid-template-columns:150px minmax(0,1fr)}.guide .gfig{width:150px;height:150px}}
+.clog{border-top:1px solid var(--line);padding-top:8px}
+.clog summary{list-style:none;cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;align-items:center}
+.clog summary::-webkit-details-marker{display:none}
+.clog summary::after{content:"";margin-left:auto;width:7px;height:7px;border-right:1.8px solid var(--muted);border-bottom:1.8px solid var(--muted);transform:rotate(45deg)}
+.clog[open] summary::after{transform:rotate(-135deg)}
+.clog ul{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.clog li{display:grid;grid-template-columns:minmax(0,1fr);gap:1px}
+.clog li i{font-style:normal;color:var(--muted);font-size:12.5px}
+/* onboarding: the guide alone on the welcome background */
+.onboard{position:fixed;inset:0;z-index:49;background:var(--bg);overflow:auto;padding:max(24px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom))}
+.oinner{width:min(100%, 620px);margin:0 auto;display:flex;flex-direction:column;gap:16px;min-height:100%;justify-content:center}
+.oprog{height:4px;background:var(--line);border-radius:4px;overflow:hidden}
+.oprog span{display:block;height:100%;width:0;background:var(--accent);transition:width .4s ease}
+.oinner .guide{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:16px}
+.olater{align-self:center;color:var(--muted);border-color:transparent;background:none}
+/* profile */
+.pbtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--accent-soft);color:var(--accent);font:inherit;font-weight:700;font-size:14px;cursor:pointer;display:grid;place-items:center;box-shadow:var(--shadow);overflow:hidden;padding:0}
+.pbtn canvas{width:34px;height:34px;display:block}
+.pbtn[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
+.pgrid{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:860px){.pgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}}
+.pcol{display:flex;flex-direction:column;gap:16px;min-width:0}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:12px}
+.pcard h2{font-family:var(--f-display);font-weight:400;font-size:21px;margin:0}
+.pcard h4{margin:6px 0 0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pcard .hint{margin:0;font-size:13.5px;color:var(--muted)}
+.pcard textarea{font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);width:100%;resize:vertical;line-height:1.45}
+.pcard textarea:focus{outline:none;border-color:var(--accent)}
+.pcard .label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.pid{flex-direction:row;align-items:center;gap:16px;flex-wrap:wrap}
+.pid canvas{width:120px;height:120px;border-radius:22px;background:var(--figbg);flex:0 0 auto}
+.pwho{flex:1;min-width:200px;display:flex;flex-direction:column;gap:8px}
+.pname{font-family:var(--f-display);font-size:26px;border:none;border-bottom:1px dashed var(--line);background:none;color:var(--ink);padding:2px 0;width:100%;min-width:0}
+.pname:focus{outline:none;border-bottom-color:var(--accent)}
+.ptiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.ptile{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.ptile b{display:block;font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.ptile span{font-size:12px;color:var(--muted)}
+.btn.danger{color:var(--off);border-color:color-mix(in srgb, var(--off) 40%, var(--line))}
+.lad{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.lad .lh{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.lad .lh b{color:var(--ink);font-weight:600}
+.lad ol{list-style:none;margin:0;padding:0;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.lad li{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;color:var(--muted);width:64px;text-align:center}
+.lad li canvas{border-radius:12px;border:2px solid transparent}
+.lad li.done canvas{border-color:var(--good)}
+.lad li.cur canvas{border-color:var(--accent)}
+.lad li b{font-family:var(--f-mono);font-weight:500;color:var(--ink);font-size:11.5px}
+body.tv #viewProfile, body.practice #viewProfile{display:none!important}
 </style>
 <script>try{const t=localStorage.getItem('sama.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch{}</script>
 </head>
 <body>
+<div class="welcome" id="welcome" hidden>
+  <div class="winner">
+    <div class="wlogo">
+      <svg class="wmark" viewBox="0 0 132 132" aria-hidden="true">
+        <line class="w1" x1="66" y1="14" x2="66" y2="118" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.4"/>
+        <path class="w2" d="M18 112 C18 60, 50 46, 66 24 C82 46, 114 60, 114 112" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+        <circle class="w3" cx="66" cy="24" r="12" fill="currentColor"/>
+      </svg>
+      <h1 class="wname" aria-label="Sama"><span>S</span><span>a</span><span>m</span><span>a</span></h1>
+      <p class="wtag">Your alignment, your practice, your coach.</p>
+    </div>
+    <canvas class="wfig" id="wFig" width="520" height="520" aria-hidden="true"></canvas>
+    <div class="wbtns" id="wBtns">
+      <button class="btn primary" type="button" id="wStart">Get started</button>
+      <button class="btn" type="button" id="wSkip">I've used Sama before</button>
+      <div class="wauth" id="wAuth" hidden>
+        <button class="btn" type="button" data-auth="google"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.7-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1C3.3 21.3 7.3 24 12 24z"/><path fill="#FBBC05" d="M5.3 14.3c-.5-1.5-.5-3.1 0-4.6V6.6H1.3c-1.7 3.4-1.7 7.4 0 10.8l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0 7.3 0 3.3 2.7 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9z"/></svg>Continue with Google</button>
+        <button class="btn" type="button" data-auth="email">Continue with email</button>
+      </div>
+    </div>
+    <p class="wfoot">Photos and clips stay on your device. The coach only ever reads text.</p>
+  </div>
+</div>
+<div class="onboard" id="onboard" hidden>
+  <div class="oinner">
+    <div class="oprog"><span id="oBar"></span></div>
+    <div id="oGuide"></div>
+    <button class="btn small olater" type="button" id="oSkip">Skip for now</button>
+  </div>
+</div>
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -607,9 +727,8 @@ body.tv #viewCoach{display:none!important}
     <div class="cmode" id="cmPlan">
       <div class="cgrid">
         <div class="chat">
-          <div class="cmsgs" id="cMsgs" aria-live="polite"></div>
-          <div class="cchips" id="cChips"></div>
-          <form class="cinput" id="cForm"><input id="cText" placeholder="Type your answer…" autocomplete="off" aria-label="Your answer"><button class="btn primary" type="submit" id="cSend">Send</button></form>
+          <div id="cGuide"></div>
+          <details class="clog" id="cLogBox" hidden><summary>What you told me</summary><ul id="cLog"></ul></details>
           <div class="crow"><button class="btn small" id="cRestart" type="button">Start over</button><button class="btn small" id="cStop" type="button" hidden>Stop</button></div>
         </div>
         <div class="copts" id="cOpts"><p class="cempty">Answer a few questions and three practices will appear here, each scored by an independent judge.</p></div>
@@ -653,6 +772,52 @@ Savasana, 3 min"></textarea>
         <div class="crow"><button class="btn primary" id="rmRun" type="button">Build my roadmap</button></div>
       </div>
       <div class="cout" id="rmOut"></div>
+    </div>
+  </section>
+  <section id="viewProfile" class="profile" hidden>
+    <div class="pgrid">
+      <div class="pcol">
+        <div class="pcard pid">
+          <canvas id="pfFig" width="360" height="360" aria-label="Your figure"></canvas>
+          <div class="pwho">
+            <input id="pfName" class="pname" placeholder="Your name" aria-label="Your name" autocomplete="off">
+            <p class="hint" id="pfSince"></p>
+            <div class="crow"><button class="btn small" id="pfLook" type="button">Change my look</button><button class="btn small" id="pfWelcome" type="button">Replay the welcome</button></div>
+          </div>
+        </div>
+        <div class="pcard">
+          <h2>Account</h2>
+          <p class="hint" id="pfAuthText">Your data is kept on this device. Sign in to keep it across your phone, laptop and the app.</p>
+          <div class="crow" id="pfAuthBtns"></div>
+        </div>
+        <div class="pcard">
+          <h2>My practice</h2>
+          <div class="crow"><span class="label">Experience</span><div class="segs" id="pfLevel"></div></div>
+          <div class="crow"><span class="label">Gentle with</span><div class="segs" id="pfBody"></div></div>
+          <div class="crow"><span class="label">Goal pose</span><div class="segs" id="pfGoal"></div></div>
+          <div class="crow"><span class="label">A week</span><div class="segs" id="pfDays"></div></div>
+          <label class="label" for="pfNotes">What the coach should know</label>
+          <textarea id="pfNotes" rows="3" placeholder="e.g. I sit all day, my left shoulder was operated on in 2024, I practise in the morning before work…"></textarea>
+        </div>
+      </div>
+      <div class="pcol">
+        <div class="pcard">
+          <h2>Progress</h2>
+          <div class="ptiles" id="pfTiles"></div>
+          <div id="pfLadder"></div>
+          <h4>Recent checks</h4>
+          <ul class="hist" id="pfHist"></ul>
+        </div>
+        <div class="pcard">
+          <h2>Saved practices</h2>
+          <ul class="saved" id="pfSaved"></ul>
+        </div>
+        <div class="pcard">
+          <h2>Your data</h2>
+          <p class="hint">Everything Sama knows about you, as one file; or wipe it from this device.</p>
+          <div class="crow"><button class="btn small" id="pfExport" type="button">Download my data</button><button class="btn small danger" id="pfDelete" type="button">Delete my data</button></div>
+        </div>
+      </div>
     </div>
   </section>
   <dialog class="pdlg" id="poseDlg">
@@ -2654,7 +2819,7 @@ function refresh(){
 // ---------- history ----------
 const HK = 'plumb.history.v1';
 function getHist(){ try { return JSON.parse(localStorage.getItem(HK)||'[]'); } catch { return []; } }
-function addHist(e){ const h = [e, ...getHist()].slice(0,20); try { localStorage.setItem(HK, JSON.stringify(h)); } catch {} renderHist(h); }
+function addHist(e){ const h = [e, ...getHist()].slice(0,20); try { localStorage.setItem(HK, JSON.stringify(h)); } catch {} renderHist(h); cloudPush(); }
 function renderHist(h = getHist()){
   const ul = $('hist'); ul.textContent = '';
   if (!h.length){ const li = document.createElement('li'); li.innerHTML = '<span class="d">Checks you run are kept on this device and listed here.</span>'; ul.appendChild(li); return; }
@@ -3412,7 +3577,7 @@ $('planShuffle').addEventListener('click', () => { planOpts.seed = (planOpts.see
 $('planSave').addEventListener('click', () => {
   const name = `${FOCUS[plan.opts.focus].label} · ${fmtMin(plan.total)} · ${new Date().toLocaleDateString(undefined,{month:'short', day:'numeric'})}`;
   const a = [{name, plan}, ...getSaved()].slice(0, 12); try { localStorage.setItem(SK, JSON.stringify(a)); } catch {}
-  renderSaved(); $('planSave').textContent = 'Saved'; setTimeout(() => $('planSave').textContent = 'Save', 1500);
+  renderSaved(); cloudPush(); $('planSave').textContent = 'Saved'; setTimeout(() => $('planSave').textContent = 'Save', 1500);
 });
 $('planStart').addEventListener('click', () => startSession(plan));
 
@@ -3850,7 +4015,7 @@ const planMeta = P => `${fmtMin(P.total)} · ${new Set(P.items.map(x => x.id)).s
 function openInPlanner(P){ plan = P; planOpts = {...planOpts, ...P.opts}; renderPlannerForm(); renderPlan(); switchView('plan'); window.scrollTo({top:0, behavior:'smooth'}); }
 function savePlanAs(P, name, btn){
   const a = [{name, plan:P}, ...getSaved()].slice(0, 12); try { localStorage.setItem(SK, JSON.stringify(a)); } catch {}
-  renderSaved(); if (btn){ btn.textContent = 'Saved'; setTimeout(() => btn.textContent = 'Save', 1500); }
+  renderSaved(); cloudPush(); if (btn){ btn.textContent = 'Saved'; setTimeout(() => btn.textContent = 'Save', 1500); }
 }
 function stripOf(P, n = 10){
   const strip = document.createElement('div'); strip.className = 'ostrip'; const seen = [];
@@ -3906,19 +4071,22 @@ function renderCoach(){
   initIntake(); initChecks(); initRoutine(); initRoadmap();
 }
 
-// ---- 1. plan with me: one question at a time, then three options ----
-const INTAKE_OPEN = 'What do you want to work on today?';
-const INTAKE_CHIPS = ['Wake me up, 20 minutes', 'Wind down before bed', 'Work toward headstand', 'My hips are tight', 'Just plan something for me'];
-let intake = null, intakeCtl = null;
+// ---- 1. plan with me: the guide asks one question at a time, then shows three options ----
+const INTAKE_CHIPS = ['Wake me up, 20 minutes', 'Wind down before bed', 'Work toward my goal pose', 'My hips are tight', 'Just plan something for me'];
+const INTAKE_POSES = ['mountain', 'tree', 'warrior2', 'triangle', 'dog', 'dancer', 'child', 'halfmoon'];
+let intake = null, intakeCtl = null, intakeGuide = null;
+function intakeOpening(){ return (profile.name ? `Hi ${profile.name}. ` : '') + 'What do you want to work on today?'; }
 function intakeSys(){
-  return `You are the coach inside Sama, a yoga alignment app. You talk like a warm, experienced teacher: short sentences, no jargon, no emoji.
+  return `You are Sama, the guide inside a yoga alignment app. You talk like a warm, experienced teacher: short sentences, no jargon, no emoji.
 Your job is to understand what the person needs today and then hand three practice options to Sama's planner.
+What you already know about this person (from their profile; do not ask these again, but do ask how they feel today):
+${profileSummary()}
 Rules for the conversation:
 - Ask exactly ONE question per turn, in one or two sentences. Never list several questions.
-- Cover, in a natural order and only what you do not know yet: what they want to work on (a focus or a goal pose), how much time they have, their experience, how their body feels today and anything to go easy on (wrists, knees, back, injuries), and whether they are building toward a specific pose.
+- Cover, in a natural order and only what you do not know yet: what they want to work on today, how much time they have, how their body feels today and anything to go easy on, and whether to work toward their goal pose today.
 - Ask a follow-up when an answer is vague ("my back hurts" → where, and is it pain or stiffness?) or raises a safety concern.
-- Usually 3 to 5 questions are enough. If the person says to just plan it, propose at once with sensible defaults.
-- When you propose, make the three options genuinely different: for example one that goes straight at the goal, one gentler or shorter, one in a different style (vinyasa, yin, ashtanga). Prefer "easy" flags and a lower level whenever pain or injury is mentioned; never put an inversion or deep backbend in a plan for someone with neck or back pain.
+- Usually 2 to 4 questions are enough. If the person says to just plan it, propose at once with sensible defaults from the profile.
+- When you propose, make the three options genuinely different: for example one that goes straight at the goal, one gentler or shorter, one in a different style (vinyasa, yin, ashtanga). Respect the profile's "gentle with" list and today's answers with the "easy" flags and a lower level whenever pain or injury is mentioned; never put an inversion or deep backbend in a plan for someone with neck or back pain.
 Always reply with JSON only, no prose outside it:
 - while asking: {"done": false, "question": "..."}
 - when ready: {"done": true, "summary": "one or two sentences on what you understood", "options": [{"title": "short name", "why": "one sentence on why this fits", "params": PARAMS}, {…}, {…}]}
@@ -3926,45 +4094,49 @@ PARAMS = ${PARAMS_DOC}
 ${LIB_LEGEND}
 ${libraryDigest()}`;
 }
-function cBubble(cls, text){ const d = document.createElement('div'); d.className = 'cmsg ' + cls; d.textContent = text; $('cMsgs').appendChild(d); $('cMsgs').scrollTop = $('cMsgs').scrollHeight; return d; }
-function setChips(list){ const c = $('cChips'); c.textContent = ''; for (const t of list){ const b = document.createElement('button'); b.type = 'button'; b.className = 'seg'; b.textContent = t; b.addEventListener('click', () => intakeSend(t)); c.appendChild(b); } }
+function logTurn(q, a){ const li = document.createElement('li'); li.innerHTML = '<i></i><span></span>'; li.querySelector('i').textContent = q; li.querySelector('span').textContent = a; $('cLog').appendChild(li); $('cLogBox').hidden = false; }
 function intakeReset(){
   if (intakeCtl) intakeCtl.abort();
-  intake = {turns:[{role:'assistant', content: INTAKE_OPEN}], done:false, busy:false};
-  $('cMsgs').textContent = ''; cBubble('coach', INTAKE_OPEN); setChips(INTAKE_CHIPS);
+  if (!intakeGuide) intakeGuide = makeGuide($('cGuide'));
+  intake = {turns:[{role:'assistant', content: intakeOpening()}], done:false, busy:false, n:0};
+  $('cLog').textContent = ''; $('cLogBox').hidden = true; $('cLogBox').open = false;
   $('cOpts').innerHTML = '<p class="cempty">Answer a few questions and three practices will appear here, each scored by an independent judge.</p>';
-  $('cText').disabled = false; $('cSend').disabled = false; $('cStop').hidden = true; $('cText').value = '';
+  $('cStop').hidden = true;
+  intakeAsk(intakeOpening(), INTAKE_CHIPS, 'mountain');
+}
+async function intakeAsk(question, chips, poseId){
+  const a = await intakeGuide.ask({text: question, chips, pose: poseId, input:true, placeholder:'Type your answer…'});
+  if (a != null) intakeSend(a, question);
 }
 function initIntake(){
   intakeReset();
-  $('cForm').addEventListener('submit', e => { e.preventDefault(); const t = $('cText').value.trim(); if (t) intakeSend(t); });
   $('cRestart').addEventListener('click', intakeReset);
   $('cStop').addEventListener('click', () => { if (intakeCtl) intakeCtl.abort(); });
 }
-async function intakeSend(text){
+async function intakeSend(text, question){
   if (!intake || intake.busy) return;
   intake.done = false; // after the options, a reply ("shorter", "gentler") continues the same conversation
-  intake.turns.push({role:'user', content:text}); cBubble('me', text); $('cText').value = ''; setChips([]);
-  intake.busy = true; $('cText').disabled = true; $('cSend').disabled = true; $('cStop').hidden = false;
-  const th = thinking(); $('cMsgs').appendChild(th); $('cMsgs').scrollTop = $('cMsgs').scrollHeight;
+  intake.turns.push({role:'user', content:text}); logTurn(question || '…', text);
+  intake.busy = true; $('cStop').hidden = false; intakeGuide.think();
   intakeCtl = new AbortController();
   try {
     const out = await askCoach([{role:'system', content: intakeSys()}, ...intake.turns], {json:true, signal: intakeCtl.signal});
-    th.remove();
+    intake.n++;
+    const nextPose = INTAKE_POSES[intake.n % INTAKE_POSES.length];
     if (!out.done){
-      const q = String(out.question || 'Tell me a little more.'); intake.turns.push({role:'assistant', content: q}); cBubble('coach', q);
-      if (intake.turns.length >= 4) setChips(['Just plan it now']);
+      const q = String(out.question || 'Tell me a little more.'); intake.turns.push({role:'assistant', content: q});
+      intakeAsk(q, intake.n >= 2 ? ['Just plan it now'] : [], nextPose);
     } else {
       intake.done = true; intake.turns.push({role:'assistant', content: JSON.stringify(out)});
-      cBubble('coach', (out.summary ? out.summary + '\n\n' : '') + 'Here are three practices for you. Pick one, or tell me what to change.');
-      setChips(['Shorter', 'Gentler', 'Something different']);
-      await renderOptions(out, text);
+      const said = (out.summary ? out.summary + ' ' : '') + 'Here are three practices for you. Pick one, or tell me what to change.';
+      intakeAsk(said, ['Shorter', 'Gentler', 'Something different'], 'upsalute');
+      await renderOptions(out);
     }
   } catch (e){
-    th.remove();
-    if (e.code !== 'cancelled'){ const last = intake.turns.pop(); const d = cBubble('err', e.message); const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small'; b.textContent = 'Try again'; b.addEventListener('click', () => { d.remove(); $('cMsgs').lastElementChild && $('cMsgs').lastElementChild.classList.contains('me') && $('cMsgs').lastElementChild.remove(); intakeSend(last.content); }); d.appendChild(b); }
-    else { intake.turns.pop(); const m = $('cMsgs').lastElementChild; if (m && m.classList.contains('me')) m.remove(); }
-  } finally { intake.busy = false; $('cText').disabled = false; $('cSend').disabled = false; $('cStop').hidden = true; intakeCtl = null; $('cText').focus(); }
+    const last = intake.turns.pop(); const li = $('cLog').lastElementChild; if (li) li.remove(); if (!$('cLog').children.length) $('cLogBox').hidden = true;
+    if (e.code === 'cancelled') intakeAsk(question || intakeOpening(), [], null);
+    else { const a = await intakeGuide.ask({text: e.message, chips:['Try again'], input:false}); if (a === 'Try again') intakeSend(last.content, question); }
+  } finally { intake.busy = false; $('cStop').hidden = true; intakeCtl = null; }
 }
 async function renderOptions(out){
   const box = $('cOpts'); box.textContent = '';
@@ -4128,11 +4300,299 @@ async function runRoadmap(){
   finally { $('rmRun').disabled = false; }
 }
 
+// ---------- profile: who is practising ----------
+const PK = 'sama.profile';
+const PROFILE_DEFAULT = {name:'', level:1, body:[], goal:null, days:3, notes:'', look:'silhouette', onboarded:false, createdAt:0};
+let profile = {...PROFILE_DEFAULT};
+try { const p = JSON.parse(localStorage.getItem(PK) || 'null'); if (p) profile = {...PROFILE_DEFAULT, ...p}; } catch {}
+function saveProfile(patch){
+  Object.assign(profile, patch || {}); if (!profile.createdAt) profile.createdAt = Date.now();
+  try { localStorage.setItem(PK, JSON.stringify(profile)); } catch {}
+  // the planner follows the profile
+  planOpts.level = profile.level; planOpts.easy = profile.body.filter(b => ['wrists','knees','back'].includes(b)); planOpts.goal = profile.goal;
+  try { localStorage.setItem('plumb.planOpts', JSON.stringify(planOpts)); } catch {}
+  if (plan && !plan.edited) { plan = buildPlan(planOpts); if (!$('viewPlan').hidden){ renderPlannerForm(); renderPlan(); } }
+  const pb = $('pBtn'); if (pb) pb.title = profile.name ? profile.name : 'Profile';
+  cloudPush();
+}
+const BODY_OPTS = [['wrists','Wrists'],['knees','Knees'],['back','Back'],['neck','Neck'],['shoulders','Shoulders'],['hips','Hips']];
+function profileSummary(){
+  const lv = ['', 'beginner', 'intermediate', 'advanced'][profile.level] || 'beginner';
+  return [profile.name ? `name: ${profile.name}` : null, `experience: ${lv} (planner level ${profile.level})`, profile.body.length ? `gentle with: ${profile.body.join(', ')}` : 'no body limitations given', profile.goal && GOALS[profile.goal] ? `goal pose: ${GOALS[profile.goal].label} (${profile.goal})` : 'no goal pose yet', `wants to practise ${profile.days} times a week`, profile.notes ? `notes: ${profile.notes.slice(0, 600)}` : null].filter(Boolean).join('\n');
+}
+
+// ---------- the figure that talks: Sama's own reference figure, animated ----------
+// It breathes while idle and melts into a blob and grows back out when it changes pose.
+function figureAnimator(cv){
+  const g = cv.getContext('2d'); let cur = null, anim = null, raf = 0; const t0 = performance.now();
+  const ez = u => u*u*u*(u*(u*6-15)+10);
+  const reduce = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; } })();
+  function frame(now){
+    raf = requestAnimationFrame(frame);
+    if (document.hidden || !cv.getClientRects().length) return;
+    let R = cur;
+    if (anim){
+      const u = Math.min(1, (now - anim.t0)/anim.dur);
+      if (!anim.from) R = blobRef(anim.to, 1 - ez(u), blobRef(anim.to, 1).head.x);
+      else if (u < .45) R = blobRef(anim.from, ez(u/.45), blobRef(anim.from, 1).head.x);
+      else R = blobRef(anim.to, 1 - ez((u - .45)/.55), blobRef(anim.to, 1).head.x);
+      if (u >= 1){ anim = null; R = cur; }
+    }
+    if (!R) return;
+    const sc = cv.width / R.S, br = reduce ? 1 : 1 + .012*Math.sin((now - t0)/1900);
+    g.setTransform(1,0,0,1,0,0); g.clearRect(0, 0, cv.width, cv.height);
+    g.setTransform(sc*br, 0, 0, sc*br, cv.width*(1 - br)/2, cv.height*(1 - br));
+    drawScene(g, R);
+  }
+  raf = requestAnimationFrame(frame);
+  return {
+    setPose(id, mirrored = false){ if (!REF_SPECS[id]) id = 'mountain'; const to = refFor(id, mirrored, 0); if (reduce){ cur = to; anim = null; return; } anim = {from: cur, to, t0: performance.now(), dur: cur ? 1150 : 900}; cur = to; },
+    get pose(){ return cur ? cur.poseId : null; },
+    stop(){ cancelAnimationFrame(raf); },
+  };
+}
+// A guide panel: the figure, a speech bubble, and chips or a text box to answer with.
+function makeGuide(host){
+  host.innerHTML = '<div class="guide"><canvas class="gfig" width="360" height="360" aria-hidden="true"></canvas><div class="gbubble"><span class="gname">Sama</span><span class="gtext"></span></div><div class="gctl"><div class="gchips"></div><form class="ginput" hidden><input autocomplete="off" aria-label="Your answer"><button class="btn primary" type="submit">Send</button></form></div></div>';
+  const cv = host.querySelector('.gfig'), bubble = host.querySelector('.gbubble'), text = host.querySelector('.gtext'), chips = host.querySelector('.gchips'), form = host.querySelector('.ginput'), input = form.querySelector('input'), send = form.querySelector('button');
+  const fig = figureAnimator(cv);
+  let pending = null;
+  const settle = v => { const p = pending; pending = null; chips.textContent = ''; form.hidden = true; if (p) p(v); };
+  form.addEventListener('submit', e => { e.preventDefault(); const v = input.value.trim(); if (!v || !pending) return; input.value = ''; settle(v); });
+  const G = {
+    fig,
+    tell(t, pose){ bubble.classList.remove('think'); text.textContent = t; if (pose) fig.setPose(pose); },
+    think(t = 'Thinking'){ bubble.classList.add('think'); text.textContent = t; },
+    // ask returns a promise: a string (chip label, chip value or typed text), an array for multi, or null when cancelled
+    ask({text: t, pose, chips: list = [], multi = false, input: withInput = true, placeholder = 'Type your answer…', send: sendLabel = 'Send', value = ''} = {}){
+      G.cancel(); G.tell(t, pose);
+      return new Promise(resolve => {
+        pending = resolve; chips.textContent = '';
+        const picked = new Set();
+        const noneValue = (list.find(z => z && z.none) || {}).value; let doneBtn = null;
+        const paint = () => { for (const x of chips.children) if (x !== doneBtn) x.setAttribute('aria-pressed', String(picked.has(x.dataset.v))); };
+        for (const c of list){
+          const o = typeof c === 'string' ? {label: c, value: c} : c;
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'seg'; b.textContent = o.label; b.dataset.v = String(o.value);
+          if (multi){ b.setAttribute('aria-pressed', 'false'); b.addEventListener('click', () => {
+            if (o.none){ picked.clear(); picked.add(String(o.value)); }
+            else { picked.delete(String(noneValue)); if (picked.has(String(o.value))) picked.delete(String(o.value)); else picked.add(String(o.value)); }
+            paint(); }); }
+          else b.addEventListener('click', () => settle(o.value));
+          chips.appendChild(b);
+        }
+        if (multi){ doneBtn = document.createElement('button'); doneBtn.type = 'button'; doneBtn.className = 'seg'; doneBtn.style.fontWeight = '700'; doneBtn.textContent = sendLabel === 'Send' ? 'Continue' : sendLabel; doneBtn.addEventListener('click', () => settle([...picked].filter(v => v !== String(noneValue)))); chips.appendChild(doneBtn); }
+        form.hidden = !withInput; input.placeholder = placeholder; input.value = value; send.textContent = sendLabel;
+        if (withInput && matchMedia('(min-width: 700px)').matches) setTimeout(() => input.focus(), 50);
+      });
+    },
+    cancel(){ if (pending){ const p = pending; pending = null; chips.textContent = ''; form.hidden = true; p(null); } },
+    busy(on){ input.disabled = on; send.disabled = on; for (const b of chips.children) b.disabled = on; },
+    destroy(){ G.cancel(); fig.stop(); host.innerHTML = ''; },
+  };
+  return G;
+}
+
+// ---------- welcome ----------
+let welcomeFig = null;
+function showWelcome(){
+  const w = $('welcome'); w.hidden = false; w.classList.remove('leaving'); document.body.style.overflow = 'hidden';
+  $('wAuth').hidden = !AUTH.available;
+  if (!welcomeFig){ welcomeFig = figureAnimator($('wFig')); }
+  const tour = ['mountain','tree','warrior2','dancer','child'];
+  let i = 0; setTimeout(() => welcomeFig.setPose(tour[0]), 1200);
+  clearInterval(w._tour); w._tour = setInterval(() => { if (w.hidden) return; i = (i + 1) % tour.length; welcomeFig.setPose(tour[i], i % 2 === 1); }, 4200);
+}
+function hideWelcome(then){
+  const w = $('welcome'); if (w.hidden) return then && then();
+  w.classList.add('leaving'); try { localStorage.setItem('sama.welcomed', '1'); } catch {}
+  setTimeout(() => { w.hidden = true; w.classList.remove('leaving'); clearInterval(w._tour); document.body.style.overflow = ''; then && then(); }, 420);
+}
+$('wStart').addEventListener('click', () => hideWelcome(startOnboarding));
+$('wSkip').addEventListener('click', () => hideWelcome(() => { if (!profile.onboarded) saveProfile({onboarded:true}); }));
+for (const b of document.querySelectorAll('#wAuth [data-auth]')) b.addEventListener('click', () => authSignIn(b.dataset.auth));
+
+// ---------- onboarding: the guide asks a few things once ----------
+let onboardGuide = null;
+async function startOnboarding(){
+  const box = $('onboard'); box.hidden = false; document.body.style.overflow = 'hidden';
+  if (onboardGuide) onboardGuide.destroy(); onboardGuide = makeGuide($('oGuide'));
+  const G = onboardGuide, total = 6, prog = n => { $('oBar').style.width = `${n/total*100}%`; };
+  const stop = () => { box.hidden = true; document.body.style.overflow = ''; G.destroy(); onboardGuide = null; };
+  $('oSkip').onclick = () => { G.cancel(); saveProfile({onboarded:true}); stop(); };
+  const answers = {};
+  prog(0);
+  let a = await G.ask({text: profile.name ? `Welcome back. Is it still ${profile.name}?` : "Hi, I'm Sama. I'll be your guide here. What should I call you?", pose:'mountain', chips: profile.name ? [profile.name] : [], placeholder:'Your name'}); if (a == null) return;
+  answers.name = String(a).slice(0, 40); prog(1);
+  a = await G.ask({text:`Nice to meet you, ${answers.name}. How long have you been practising yoga?`, pose:'tree', input:false, chips:[{label:'I’m new to it', value:1}, {label:'A few months', value:1}, {label:'A year or two', value:2}, {label:'Many years', value:3}]}); if (a == null) return;
+  answers.level = +a; prog(2);
+  a = await G.ask({text:'Is there anything I should be gentle with? Pick all that apply.', pose:'child', input:false, multi:true, chips:[...BODY_OPTS.map(([v, l]) => ({label:l, value:v})), {label:'Nothing in particular', value:'none', none:true}]}); if (a == null) return;
+  answers.body = a; prog(3);
+  a = await G.ask({text:'Is there a pose you dream of? I can build a road toward it.', pose:'warrior2', input:false, chips:[...Object.entries(GOALS).map(([k, g]) => ({label:g.label, value:k})), {label:'Not yet', value:''}]}); if (a == null) return;
+  answers.goal = a || null; if (answers.goal) { G.tell(`${GOALS[answers.goal].label}. Lovely. We’ll get there step by step.`, answers.goal); await new Promise(r => setTimeout(r, 1600)); } prog(4);
+  a = await G.ask({text:'How often would you like to practise?', pose:'dog', input:false, chips:[{label:'Twice a week', value:2}, {label:'Three times', value:3}, {label:'Four times', value:4}, {label:'Most days', value:5}]}); if (a == null) return;
+  answers.days = +a; prog(5);
+  a = await G.ask({text:'One more thing: should I look like you? You can give me your hair, skin and clothes, or keep me as a silhouette.', pose:'upsalute', input:false, chips:[{label:'Make it look like me', value:'avatar'}, {label:'Keep the silhouette', value:'silhouette'}]}); if (a == null) return;
+  prog(6);
+  saveProfile({...answers, look: a, onboarded:true});
+  if (a === 'avatar'){ avatar.mode = 'avatar'; try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {} retheme(); }
+  const next = await G.ask({text:`All set, ${answers.name}. ${a === 'avatar' ? 'You can dress me up under “Figure” on the alignment page. ' : ''}Where shall we start?`, pose:'mountain', input:false, chips:[{label:'Plan my first practice', value:'coach'}, {label:'Check my alignment', value:'check'}, {label:'Browse the poses', value:'lib'}]});
+  stop();
+  if (next === 'coach'){ switchView('coach'); setCoachMode('plan'); }
+  else if (next === 'lib') switchView('lib');
+  else if (next === 'check' && a === 'avatar'){ switchView('check'); $('avatarBox').open = true; $('avatarBox').scrollIntoView({behavior:'smooth', block:'start'}); }
+  else switchView('check');
+}
+
+// ---------- profile view ----------
+let pfBuilt = false, pfFig = null;
+function initial(){ return (profile.name || '').trim().charAt(0).toUpperCase() || '·'; }
+function renderProfile(){
+  if (!pfBuilt){
+    pfBuilt = true; pfFig = figureAnimator($('pfFig'));
+    $('pfName').addEventListener('change', () => saveProfile({name: $('pfName').value.trim().slice(0, 40)}));
+    $('pfNotes').addEventListener('change', () => saveProfile({notes: $('pfNotes').value.slice(0, 1200)}));
+    $('pfLook').addEventListener('click', () => { switchView('check'); $('avatarBox').open = true; $('avatarBox').scrollIntoView({behavior:'smooth', block:'start'}); });
+    $('pfWelcome').addEventListener('click', () => { showWelcome(); });
+    $('pfExport').addEventListener('click', () => {
+      const data = {exportedAt: new Date().toISOString(), profile, history: getHist(), saved: getSaved(), avatar, planOpts};
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:'application/json'})); a.download = `sama-${(profile.name || 'me').toLowerCase().replace(/\W+/g, '-')}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    });
+    $('pfDelete').addEventListener('click', () => {
+      if (!confirm('Delete your profile, checks and saved practices from this device?')) return;
+      for (const k of [PK, HK, SK, 'plumb.planOpts', 'sama.avatar', 'sama.welcomed']) { try { localStorage.removeItem(k); } catch {} }
+      if (AUTH.user) authDeleteRemote().catch(() => {});
+      location.reload();
+    });
+  }
+  pfFig.setPose(profile.goal && REF_SPECS[profile.goal] ? profile.goal : 'mountain');
+  $('pfName').value = profile.name; $('pfNotes').value = profile.notes;
+  $('pfSince').textContent = profile.createdAt ? `Practising with Sama since ${new Date(profile.createdAt).toLocaleDateString(undefined, {month:'long', year:'numeric'})}` : 'New here';
+  segmented($('pfLevel'), [[1,'Beginner'],[2,'Intermediate'],[3,'Advanced']], profile.level, v => { saveProfile({level:v}); renderProfile(); });
+  segmented($('pfBody'), BODY_OPTS, profile.body, v => { saveProfile({body: profile.body.includes(v) ? profile.body.filter(x => x !== v) : [...profile.body, v]}); renderProfile(); }, true);
+  segmented($('pfGoal'), [[null,'No goal'], ...Object.entries(GOALS).map(([k, g]) => [k, g.label])], profile.goal, v => { saveProfile({goal:v}); renderProfile(); });
+  segmented($('pfDays'), [[2,'2 times'],[3,'3 times'],[4,'4 times'],[5,'Most days']], profile.days, v => { saveProfile({days:v}); renderProfile(); });
+  // progress
+  const h = getHist(), checks = h.filter(e => e.pose !== 'practice' && e.score != null), best = checks.length ? Math.max(...checks.map(e => e.score)) : null;
+  const minutes = Math.round(h.filter(e => e.pose === 'practice').reduce((a, e) => a + (e.hold || 0), 0) / 60);
+  const days = new Set(h.map(e => new Date(e.at).toDateString())).size;
+  const inLine = checks.filter(e => e.score >= 80).length;
+  $('pfTiles').innerHTML = '';
+  for (const [v, l] of [[checks.length, 'checks'], [best == null ? '–' : best, 'best score'], [inLine, 'in line (80+)'], [minutes, 'minutes practised'], [days, 'active days']]){ const t = document.createElement('div'); t.className = 'ptile'; t.innerHTML = '<b></b><span></span>'; t.querySelector('b').textContent = v; t.querySelector('span').textContent = l; $('pfTiles').appendChild(t); }
+  const lad = $('pfLadder'); lad.innerHTML = '';
+  if (profile.goal && GOALS[profile.goal]){
+    const g = GOALS[profile.goal], bestOf = id => { const s = checks.filter(e => e.pose === id).map(e => e.score); return s.length ? Math.max(...s) : null; };
+    const wrap = document.createElement('div'); wrap.className = 'lad';
+    const steps = g.steps.map(([id]) => ({id, best: bestOf(id)})), done = steps.filter(s => s.best != null && s.best >= 80).length, cur = steps.findIndex(s => !(s.best != null && s.best >= 80));
+    wrap.innerHTML = `<div class="lh"><b>The road to ${g.label}</b><span>${done} of ${steps.length} steps in line</span></div>`;
+    const ol = document.createElement('ol');
+    steps.forEach((s, i) => { const li = document.createElement('li'); if (s.best != null && s.best >= 80) li.classList.add('done'); if (i === cur) li.classList.add('cur'); li.appendChild(thumb(s.id, 56)); const n = document.createElement('span'); n.textContent = poseName(s.id); li.appendChild(n); const b = document.createElement('b'); b.textContent = s.best == null ? 'not checked' : `${s.best}/100`; li.appendChild(b); li.addEventListener('click', () => { switchView('check'); pose = POSES.find(p => p.id === s.id); renderRail(); showReference(false); }); ol.appendChild(li); });
+    wrap.appendChild(ol); lad.appendChild(wrap);
+  }
+  const ul = $('pfHist'); ul.textContent = '';
+  if (!h.length){ const li = document.createElement('li'); li.innerHTML = '<span class="d">No checks yet.</span>'; ul.appendChild(li); }
+  for (const e of h.slice(0, 6)){
+    const li = document.createElement('li'); const d = new Date(e.at).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+    li.innerHTML = '<span><span class="pn"></span> <span class="d"></span></span><span class="sc"></span>';
+    li.querySelector('.pn').textContent = e.label || poseName(e.pose); li.querySelector('.d').textContent = `· ${d}`;
+    li.querySelector('.sc').textContent = e.pose === 'practice' ? `${Math.round(e.hold/60)} min done` : `${e.score ?? '–'}/100`;
+    li.querySelector('.sc').style.color = e.pose === 'practice' ? 'var(--accent)' : e.score >= 80 ? 'var(--good)' : e.score >= 60 ? 'var(--near)' : 'var(--off)';
+    ul.appendChild(li);
+  }
+  const sv = $('pfSaved'), all = getSaved(); sv.textContent = '';
+  if (!all.length){ const li = document.createElement('li'); li.className = 'd'; li.textContent = 'Nothing saved yet. The coach and the planner can both save practices here.'; sv.appendChild(li); }
+  all.forEach(s => { const li = document.createElement('li'); li.innerHTML = '<button type="button" class="linkish"></button><span class="d"></span>'; li.querySelector('.linkish').textContent = s.name; li.querySelector('.d').textContent = fmtMin(s.plan.total); li.querySelector('.linkish').addEventListener('click', () => openInPlanner(s.plan)); sv.appendChild(li); });
+  renderAuthUI();
+}
+// header button
+(function(){
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'pbtn'; b.id = 'pBtn'; b.setAttribute('aria-label', 'Profile'); b.title = profile.name || 'Profile';
+  b.appendChild(thumb('mountain', 34)); b.addEventListener('click', () => switchView($('viewProfile').hidden ? 'profile' : 'check'));
+  document.querySelector('.topr').appendChild(b);
+})();
+
+// ---------- sign-in (Firebase): switched on by pasting the project's web config below ----------
+// 1. console.firebase.google.com → create a project → add a Web app → copy the firebaseConfig object here.
+// 2. Authentication → Sign-in method: enable Google and Email link. Firestore → create a database (production mode).
+// 3. Firestore rules: allow read, write: if request.auth != null && request.auth.uid == resource.id (users/{uid}).
+const FIREBASE_CONFIG = null; // e.g. {apiKey:"…", authDomain:"…", projectId:"…", appId:"…"}
+const AUTH = {available: !!FIREBASE_CONFIG, user:null, fb:null, db:null, ready:false};
+function loadScript(src){ return new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => no(new Error('load ' + src)); document.head.appendChild(s); }); }
+async function authInit(){
+  if (!AUTH.available) return;
+  try {
+    const v = '10.14.1';
+    await loadScript(`https://www.gstatic.com/firebasejs/${v}/firebase-app-compat.js`);
+    await Promise.all([loadScript(`https://www.gstatic.com/firebasejs/${v}/firebase-auth-compat.js`), loadScript(`https://www.gstatic.com/firebasejs/${v}/firebase-firestore-compat.js`)]);
+    const fb = window.firebase; fb.initializeApp(FIREBASE_CONFIG); AUTH.fb = fb; AUTH.db = fb.firestore();
+    if (fb.auth().isSignInWithEmailLink(location.href)){
+      let email = ''; try { email = localStorage.getItem('sama.emailForSignIn') || ''; } catch {}
+      if (!email) email = prompt('Confirm your email to finish signing in') || '';
+      if (email) await fb.auth().signInWithEmailLink(email, location.href).catch(e => notice('Sign-in failed', e.message));
+      history.replaceState(null, '', location.pathname);
+    }
+    await fb.auth().getRedirectResult().catch(() => {});
+    fb.auth().onAuthStateChanged(async u => { AUTH.user = u; AUTH.ready = true; if (u) await cloudPull(); renderAuthUI(); });
+  } catch (e){ console.warn('auth', e); AUTH.available = false; renderAuthUI(); }
+}
+async function authSignIn(kind){
+  if (!AUTH.fb) return notice('Sign-in is not set up', 'Add the Firebase web config to index.html to enable it.');
+  const fb = AUTH.fb;
+  try {
+    if (kind === 'google'){
+      const p = new fb.auth.GoogleAuthProvider();
+      // Google refuses to sign in inside an embedded WebView: the Android app opens the sign-in in the browser instead
+      if (window.SamaNative && window.SamaNative.openUrl){ window.SamaNative.openUrl(location.origin + location.pathname + '?signin=google'); return; }
+      if (matchMedia('(max-width: 700px)').matches) await fb.auth().signInWithRedirect(p); else await fb.auth().signInWithPopup(p);
+    } else {
+      const email = prompt('Your email address. We’ll send you a sign-in link.'); if (!email) return;
+      await fb.auth().sendSignInLinkToEmail(email, {url: location.origin + location.pathname, handleCodeInApp:true});
+      try { localStorage.setItem('sama.emailForSignIn', email); } catch {}
+      notice('Check your inbox', `A sign-in link is on its way to ${email}. Open it on this device.`);
+    }
+  } catch (e){ notice('Sign-in failed', e && e.message || String(e)); }
+}
+async function authSignOut(){ if (AUTH.fb) await AUTH.fb.auth().signOut(); AUTH.user = null; renderAuthUI(); }
+function userDoc(){ return AUTH.db && AUTH.user ? AUTH.db.collection('users').doc(AUTH.user.uid) : null; }
+let pushTimer = 0;
+function cloudPush(){
+  const d = userDoc(); if (!d) return;
+  clearTimeout(pushTimer); pushTimer = setTimeout(() => { d.set({profile, history:getHist(), saved:getSaved(), avatar, updatedAt: Date.now()}, {merge:true}).catch(e => console.warn('sync', e)); }, 800);
+}
+async function cloudPull(){
+  const d = userDoc(); if (!d) return;
+  try {
+    const snap = await d.get(); if (!snap.exists){ cloudPush(); return; }
+    const r = snap.data() || {};
+    // the newer side wins per record; checks are merged by time
+    if (r.profile && (!profile.createdAt || (r.profile.createdAt || 0) <= profile.createdAt)) Object.assign(profile, r.profile);
+    const hist = [...getHist(), ...(r.history || [])]; const seen = new Set(); const merged = hist.filter(e => { const k = e.at + ':' + e.pose; if (seen.has(k)) return false; seen.add(k); return true; }).sort((a, b) => b.at - a.at).slice(0, 50);
+    try { localStorage.setItem(HK, JSON.stringify(merged)); } catch {}
+    if (r.saved && r.saved.length){ const names = new Set(getSaved().map(s => s.name)); const all = [...getSaved(), ...r.saved.filter(s => !names.has(s.name))].slice(0, 12); try { localStorage.setItem(SK, JSON.stringify(all)); } catch {} }
+    if (r.avatar){ Object.assign(avatar, r.avatar); try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {} retheme(); }
+    if (!profile.name && AUTH.user.displayName) profile.name = AUTH.user.displayName.split(' ')[0];
+    saveProfile({}); renderHist(); renderSaved(); if (!$('viewProfile').hidden) renderProfile();
+  } catch (e){ console.warn('pull', e); }
+}
+async function authDeleteRemote(){ const d = userDoc(); if (d) await d.delete(); }
+function renderAuthUI(){
+  const box = $('pfAuthBtns'), txt = $('pfAuthText'); if (!box) return; box.textContent = '';
+  const mk = (label, cls, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small ' + cls; b.textContent = label; b.addEventListener('click', fn); box.appendChild(b); };
+  if (!AUTH.available){ txt.textContent = 'Your data is kept on this device. Sign-in (Google, email) switches on once the Firebase project is connected.'; return; }
+  if (AUTH.user){ txt.textContent = `Signed in as ${AUTH.user.displayName || AUTH.user.email}. Your checks, saved practices and profile sync to your account.`; mk('Sign out', '', authSignOut); }
+  else { txt.textContent = 'Sign in to keep your data across your phone, laptop and the app.'; mk('Continue with Google', 'primary', () => authSignIn('google')); mk('Email me a link', '', () => authSignIn('email')); }
+  $('wAuth').hidden = !AUTH.available;
+}
+if (new URLSearchParams(location.search).get('signin') === 'google'){ /* opened from the Android app: sign in here, then come back */ }
+authInit();
+
 // ---------- views ----------
 function switchView(v){
   for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', b.dataset.view===v);
-  $('viewCheck').hidden = v!=='check'; $('viewPlan').hidden = v!=='plan'; $('viewLib').hidden = v!=='lib'; $('viewCoach').hidden = v!=='coach';
+  $('viewCheck').hidden = v!=='check'; $('viewPlan').hidden = v!=='plan'; $('viewLib').hidden = v!=='lib'; $('viewCoach').hidden = v!=='coach'; $('viewProfile').hidden = v!=='profile';
+  $('pBtn').setAttribute('aria-pressed', String(v==='profile'));
   if (v==='coach') renderCoach();
+  if (v==='profile') renderProfile();
   if (v==='plan' && !plan) makePlan();
   if (v==='lib') renderLib();
 }
@@ -4140,6 +4600,7 @@ for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', (
 
 // ---------- boot ----------
 renderRail(); renderHist(); showReference();
+if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !profile.onboarded && !(() => { try { return localStorage.getItem('sama.welcomed'); } catch { return null; } })()) showWelcome();
 window.__sama = {get plan(){ return plan; }, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, selfTest: () => selfTestResult};
 function retheme(){
   for (const k in THUMBS) delete THUMBS[k];
