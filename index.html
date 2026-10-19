@@ -2704,6 +2704,20 @@ function browseSteps(fromId, toId, fromMir, toMir){
           const down = rise(toId).reverse().map(st => ({...st, kind:'move'})), c = postureOf(toId);
           steps.push(...down, {id:toId, kind: (c==='dog' || c==='plank') ? 'jump' : 'move', mir:toMir}); }
         return steps.filter((st,i) => !i || st.id !== steps[i-1].id || st.mir !== steps[i-1].mir); }
+// The legs of a movement transition: one tween per step of the path, with its length and any hop.
+function routeSegments(from, path, target, targetId, mirrored, guided){
+  const segs = []; let prevR = from;
+  const isAsym = id => { const q = POSES.find(x => x.id===id); return !!(q && q.asym); };
+  for (const st of path){
+    let R = st.id===targetId && (st.mir ?? mirrored)===mirrored ? target : refFor(st.id, st.mir ?? mirrored);
+    if (!isAsym(st.id)){ // a symmetric pose can face either way: keep the head on the same side as before, otherwise take the nearer one
+      const alt = refFor(st.id, !R.mirrored), side = Q => { const d = Q.P.head[0] - (Q.P.lh[0]+Q.P.rh[0])/2; return Math.abs(d) > .15 ? Math.sign(d) : 0; }, sp = side(prevR);
+      if (sp && side(R) === -sp && side(alt) === sp) R = alt; else if (moveAmount(prevR, alt) < moveAmount(prevR, R) - .02) R = alt; }
+    const stone = !guided && st.id !== targetId && st.id !== 'mountain';
+    segs.push({from:prevR, to:R, dur:Math.round(segmentDuration(prevR, R, st.kind) * (st.quick ? .55 : stone ? .75 : 1)), hop: st.kind==='jump' ? .13 : 0}); prevR = R;
+  }
+  return segs;
+}
 function showReference(mirrored = refMirror){
   stopVideo(); refMirror = mirrored;
   const target = refFor(pose.id, mirrored), from = mode==='sample' && curRef ? curRef : null;
@@ -2736,16 +2750,7 @@ function showReference(mirrored = refMirror){
   const path = !from.poseId ? [{id:pose.id, kind:'move'}]
     : sess ? transitionPath(from.poseId, pose.id, from.mirrored, mirrored)
     : browseSteps(from.poseId, pose.id, from.mirrored, mirrored);
-  const segs = []; let prevR = from;
-  const isAsym = id => { const q = POSES.find(x => x.id===id); return !!(q && q.asym); };
-  for (const st of path){
-    let R = st.id===pose.id && (st.mir ?? mirrored)===mirrored ? target : refFor(st.id, st.mir ?? mirrored);
-    if (!isAsym(st.id)){ // a symmetric pose can face either way: keep the head on the same side as before, otherwise take the nearer one
-      const alt = refFor(st.id, !R.mirrored), side = Q => { const d = Q.P.head[0] - (Q.P.lh[0]+Q.P.rh[0])/2; return Math.abs(d) > .15 ? Math.sign(d) : 0; }, sp = side(prevR);
-      if (sp && side(R) === -sp && side(alt) === sp) R = alt; else if (moveAmount(prevR, alt) < moveAmount(prevR, R) - .02) R = alt; }
-    const stone = !sess && st.id !== pose.id && st.id !== 'mountain';
-    segs.push({from:prevR, to:R, dur:Math.round(segmentDuration(prevR, R, st.kind) * (st.quick ? .55 : stone ? .75 : 1)), hop: st.kind==='jump' ? .13 : 0}); prevR = R;
-  }
+  const segs = routeSegments(from, path, target, pose.id, mirrored, !!sess);
   const finalR = segs[segs.length-1].to;
   tween = {raf:0};
   if (!sess && segs.length > 1){
@@ -4784,7 +4789,7 @@ for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', (
 // ---------- boot ----------
 renderRail(); renderHist(); showReference();
 if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !profile.onboarded && !(() => { try { return localStorage.getItem('sama.welcomed'); } catch { return null; } })()) showWelcome();
-window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, selfTest: () => selfTestResult};
+window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, routeSegments, browseSteps, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, selfTest: () => selfTestResult};
 function retheme(){
   for (const k in THUMBS) delete THUMBS[k];
   if (lib.built && lib.pose && $('poseDlg').open) drawPd();
