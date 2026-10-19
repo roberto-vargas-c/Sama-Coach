@@ -635,7 +635,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
           <div class="arow"><span>Pose engine</span><div class="segs" data-k="engine"><button type="button" class="seg" data-v="auto">Auto</button><button type="button" class="seg" data-v="wasm">WebAssembly</button><button type="button" class="seg" data-v="gpu">GPU</button><button type="button" class="seg" data-v="cpu">CPU</button></div></div>
           <div class="arow"><span>Transition</span><div class="segs" data-k="trans"><button type="button" class="seg" data-v="blob">Blob</button><button type="button" class="seg" data-v="moves">Movement</button></div></div>
           <div class="arow"><span>Movement</span><div class="segs" data-k="pace"><button type="button" class="seg" data-v="calm">Calm</button><button type="button" class="seg" data-v="flowing">Flowing</button><button type="button" class="seg" data-v="quick">Quick</button></div></div>
-          <div class="arow"><span>Style</span><div class="segs" data-k="mode"><button type="button" class="seg" data-v="silhouette">Silhouette</button><button type="button" class="seg" data-v="line">Line</button><button type="button" class="seg" data-v="sketch">Sketch</button><button type="button" class="seg" data-v="avatar">My avatar</button></div></div>
+          <div class="arow"><span>Style</span><div class="segs" data-k="mode"><button type="button" class="seg" data-v="flat">Illustration</button><button type="button" class="seg" data-v="silhouette">Silhouette</button><button type="button" class="seg" data-v="line">Line</button><button type="button" class="seg" data-v="sketch">Sketch</button><button type="button" class="seg" data-v="avatar">My avatar</button></div></div>
           <div class="arow"><span>Alignment lines on the figure</span><div class="segs" data-k="overlay"><button type="button" class="seg" data-v="on">Show</button><button type="button" class="seg" data-v="off">Hide</button></div></div>
           <div class="arow"><span>Reference while checking</span><div class="segs" data-k="inset"><button type="button" class="seg" data-v="on">Small inset</button><button type="button" class="seg" data-v="off">Hidden</button></div></div>
           <div class="aonly">
@@ -643,8 +643,14 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
             <div class="arow"><span>Hair</span><div class="segs" data-k="hair"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="bun">Bun</button><button type="button" class="seg" data-v="ponytail">Ponytail</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="curly">Curly</button><button type="button" class="seg" data-v="none">None</button></div></div>
             <div class="arow"><span>Hair colour</span><div class="swatches" data-k="hairColor"></div></div>
             <div class="arow"><span>Build</span><div class="segs" data-k="build"><button type="button" class="seg" data-v="slim">Slim</button><button type="button" class="seg" data-v="regular">Regular</button><button type="button" class="seg" data-v="soft">Soft</button><button type="button" class="seg" data-v="strong">Strong</button></div></div>
-            <div class="arow"><span>Top</span><div class="segs" data-k="top"><button type="button" class="seg" data-v="tank">Tank</button><button type="button" class="seg" data-v="tee">Tee</button><button type="button" class="seg" data-v="bare">None</button></div><div class="swatches" data-k="topColor"></div></div>
-            <div class="arow"><span>Bottom</span><div class="segs" data-k="bottom"><button type="button" class="seg" data-v="leggings">Leggings</button><button type="button" class="seg" data-v="shorts">Shorts</button></div><div class="swatches" data-k="bottomColor"></div></div>
+            <div class="arow avonly"><span>Top</span><div class="segs" data-k="top"><button type="button" class="seg" data-v="tank">Tank</button><button type="button" class="seg" data-v="tee">Tee</button><button type="button" class="seg" data-v="bare">None</button></div></div>
+            <div class="arow flatonly"><span>Sleeves</span><div class="segs" data-k="sleeves"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="none">Sleeveless</button></div></div>
+            <div class="arow"><span>Top colour</span><div class="swatches" data-k="topColor"></div></div>
+            <div class="arow flatonly"><span>Pattern</span><div class="segs" data-k="pattern"><button type="button" class="seg" data-v="none">Plain</button><button type="button" class="seg" data-v="dots">Dots</button><button type="button" class="seg" data-v="stripes">Stripes</button><button type="button" class="seg" data-v="zigzag">Zigzag</button><button type="button" class="seg" data-v="checks">Checks</button></div></div>
+            <div class="arow flatonly"><span>Pattern colour</span><div class="swatches" data-k="patternColor"></div></div>
+            <div class="arow"><span>Bottom</span><div class="segs" data-k="bottom"><button type="button" class="seg" data-v="leggings">Trousers</button><button type="button" class="seg" data-v="shorts">Shorts</button></div><div class="swatches" data-k="bottomColor"></div></div>
+            <div class="arow flatonly"><span>Beard</span><div class="segs" data-k="beard"><button type="button" class="seg" data-v="no">No</button><button type="button" class="seg" data-v="yes">Yes</button></div></div>
+            <div class="arow flatonly"><span>Mat</span><div class="swatches" data-k="mat"></div></div>
           </div>
         </div>
       </details>
@@ -2356,16 +2362,18 @@ function drawSilhouetteScene(g, R, bg, ink, matColor){
 }
 
 // ---------- avatar: the same figure, but coloured and dressed the way the user chose ----------
-const AVATAR_DEFAULT = {mode:'silhouette', skin:'#C68B62', hair:'short', hairColor:'#2B1D16', build:'regular', top:'tank', topColor:'#B45A3C', bottom:'leggings', bottomColor:'#2D2622'};
+const AVATAR_DEFAULT = {v:2, mode:'flat', skin:'#C68B62', hair:'short', hairColor:'#2B1D16', build:'regular', top:'tank', topColor:'#3FC9B4', bottom:'leggings', bottomColor:'#214D4A', sleeves:'short', pattern:'dots', patternColor:'#1C2B2A', beard:'no', mat:'#E9B93A'};
 const AVATAR_CHOICES = {
   skin:['#F6D7C3','#E8B99A','#C68B62','#9E6240','#6E4330','#3E2A21'],
   hairColor:['#2B1D16','#5A3825','#A8703E','#D9B36B','#8C8C8C','#B23A2E'],
-  topColor:['#B45A3C','#0E6B63','#D9A441','#6B3F6E','#7B9E73','#2F3E6E','#F1E6D6','#2D2622'],
-  bottomColor:['#2D2622','#4B4B55','#2F3E6E','#6B3F6E','#C8B08F','#0E6B63','#B45A3C'],
+  topColor:['#3FC9B4','#F2C8BC','#EFE6D8','#F3B21E','#6B3F6E','#2F3E6E','#B45A3C','#0E6B63','#E04A4A','#2D2622'],
+  bottomColor:['#214D4A','#2A47C9','#F0532B','#F1E6D6','#C8B08F','#2D2622','#4B4B55','#6B3F6E','#B45A3C'],
+  patternColor:['#1C2B2A','#F1E6D6','#E04A4A','#F6D889','#D9A441','#2A47C9','#3FC9B4','#F2C8BC'],
+  mat:['#E9B93A','#D9A5A0','#E8502A','#5ED1C2','#7B9E73','#B45A3C','#2F3E6E','#D9B58E'],
 };
 const BUILD = {slim:{all:.9}, regular:{all:1}, soft:{all:1.06, hip:1.2, thigh:1.14, torso:1.06}, strong:{all:1.14, shoulder:1.25, upper:1.2, fore:1.1}};
 let avatar = {...AVATAR_DEFAULT};
-try { const a = JSON.parse(localStorage.getItem('sama.avatar')||'null'); if (a) avatar = {...AVATAR_DEFAULT, ...a}; } catch {}
+try { const a = JSON.parse(localStorage.getItem('sama.avatar')||'null'); if (a){ avatar = {...AVATAR_DEFAULT, ...a}; if (!a.v){ avatar.v = 2; if (a.mode === 'silhouette' || !a.mode) avatar.mode = 'flat'; if (a.mode === 'avatar'){ avatar.sleeves = a.top === 'tee' ? 'short' : 'none'; avatar.pattern = 'none'; } } } } catch {}
 function silFor(av){
   const b = BUILD[av.build] || BUILD.regular, f = k => (b[k] || 1) * b.all, out = {};
   for (const [k,v] of Object.entries(SIL_BASE)) out[k] = Array.isArray(v) ? v.map(x => x*f(k)) : k==='head' || k==='neck' || k==='foot' || k==='hand' ? v : v*f(k);
@@ -2415,9 +2423,89 @@ function drawAvatar(g, R, av){
   for (const p of [...parts].sort((a,b) => order(a)-order(b))){ g.fillStyle = avatarColor(av, p.part, p.side ? (p.side===far ? 'r' : 'l') : null); p(g); g.fill(); }
   drawHair(g, R, av, 'front');
 }
+
+// ---------- illustration: flat colours, no outlines, patterned clothes, a face, a mat in perspective ----------
+function flatPattern(g, kind, color, s, part){
+  if (!kind || kind === 'none') return;
+  g.save(); part(g); g.clip(); g.fillStyle = color; g.strokeStyle = color; g.lineWidth = Math.max(1.5, s*.012);
+  const step = s*.055, S = 720;
+  if (kind === 'dots'){ for (let y = -step; y < S + step; y += step) for (let x = ((y/step)|0) % 2 ? step/2 : 0; x < S + step; x += step){ g.beginPath(); g.arc(x, y, s*.012, 0, Math.PI*2); g.fill(); } }
+  else if (kind === 'stripes'){ for (let y = -step; y < S + step; y += step*.9) g.fillRect(-10, y, S + 20, step*.38); }
+  else if (kind === 'zigzag'){ g.beginPath(); for (let y = -step; y < S + step; y += step*1.1){ g.moveTo(-10, y); for (let x = 0; x <= S + step; x += step*.5) g.lineTo(x, y + (((x/(step*.5))|0) % 2 ? step*.3 : 0)); } g.stroke(); }
+  else if (kind === 'checks'){ for (let y = -step; y < S + step; y += step) for (let x = ((y/step)|0) % 2 ? step : 0; x < S + step; x += step*2) g.fillRect(x, y, step, step); }
+  g.restore();
+}
+function flatColor(av, part, far){
+  const dim = far ? .86 : 1, c = v => shade(v, dim);
+  if (part === 'thigh' || part === 'hips') return c(av.bottomColor);
+  if (part === 'shin') return av.bottom === 'shorts' ? c(av.skin) : c(av.bottomColor);
+  if (part === 'torso' || part === 'shoulders') return c(av.topColor);
+  if (part === 'upper') return av.sleeves === 'none' ? c(av.skin) : c(av.topColor);
+  if (part === 'fore') return av.sleeves === 'long' ? c(av.topColor) : c(av.skin);
+  return c(av.skin);
+}
+function flatHeadR(R){ return faceFrame(R).r*1.28; }
+function drawFlatMat(g, R, color){
+  const S = R.S, y = R.floor + 2, h = S*.07, skew = S*.05;
+  g.fillStyle = shade(color, .82); g.beginPath(); g.moveTo(S*.08 + skew, y); g.lineTo(S*.92 + skew, y); g.lineTo(S*.92, y + h); g.lineTo(S*.08, y + h); g.closePath(); g.fill();
+  g.fillStyle = color; g.beginPath(); g.moveTo(S*.08 + skew, y); g.lineTo(S*.92 + skew, y); g.lineTo(S*.92, y + h*.8); g.lineTo(S*.08, y + h*.8); g.closePath(); g.fill();
+}
+function drawFlatBackHair(g, R, av){
+  if (av.hair !== 'long' && av.hair !== 'ponytail') return;
+  const F = faceFrame(R), r = flatHeadR(R), h = F.h, c = Math.cos(F.rot), sn = Math.sin(F.rot), sgn = F.lx > .25 ? 1 : F.lx < -.25 ? -1 : 0;
+  g.fillStyle = av.hairColor;
+  const strands = av.hair === 'long' ? [[-1, .6], [1, .6]] : [[-sgn || -1, .35]];
+  for (const [sx, off] of strands){ // the strands start beside the head (head frame) and hang straight down on screen
+    const ax = h.x + (sx*r*off)*c - (-r*.1)*sn, ay = h.y + (sx*r*off)*sn + (-r*.1)*c;
+    taperPath(g, {x: ax, y: ay}, {x: ax + sx*r*.1, y: ay + r*(av.hair === 'long' ? 1.7 : 1.4)}, r*(av.hair === 'long' ? .4 : .28), r*.22); g.fill();
+  }
+}
+function drawFlatHead(g, R, av){
+  const F = faceFrame(R), r = flatHeadR(R), h = F.h, s = R.scale, sgn = F.lx > .25 ? 1 : F.lx < -.25 ? -1 : 0, toward = F.toward;
+  g.save(); g.translate(h.x, h.y); g.rotate(F.rot);
+  if (av.hair === 'bun'){ g.fillStyle = av.hairColor; g.beginPath(); g.arc(-sgn*r*.35, -r*1.05, r*.42, 0, Math.PI*2); g.fill(); }
+  g.fillStyle = av.skin; g.beginPath(); g.ellipse(0, 0, r*.92, r, 0, 0, Math.PI*2); g.fill();
+  if (av.hair !== 'none'){
+    g.save(); g.beginPath(); g.ellipse(0, 0, r*.92*1.06, r*1.06, 0, 0, Math.PI*2); g.clip(); g.fillStyle = av.hairColor;
+    const yF = sgn ? -r*.45 : -r*.2, yB = sgn ? r*.35 : -r*.2;
+    g.beginPath(); if (sgn){ g.moveTo(sgn*r*1.3, yF); g.lineTo(-sgn*r*1.3, yB); g.lineTo(-sgn*r*1.3, -r*1.3); g.lineTo(sgn*r*1.3, -r*1.3); } else g.rect(-r*1.3, -r*1.3, r*2.6, r*1.3 + yB); g.closePath(); g.fill();
+    if (av.hair === 'curly'){ for (let i = 0; i < 9; i++){ const a = -Math.PI*(.05 + .9*i/8); g.beginPath(); g.arc(Math.cos(a)*r, Math.sin(a)*r + r*.05, r*.28, 0, Math.PI*2); g.fill(); } }
+    g.restore();
+  }
+  const fx = sgn ? sgn*r*.45 : 0, line = Math.max(1.2, s*.01);
+  g.strokeStyle = shade(av.skin, .55); g.lineWidth = line; g.lineCap = 'round';
+  const eye = (x, y) => { g.beginPath(); g.moveTo(x - r*.12, y); g.quadraticCurveTo(x, y + r*.1, x + r*.12, y); g.stroke(); };
+  if (!sgn || toward > -.3){
+    eye(fx - r*.3 + (sgn ? sgn*r*.12 : 0), r*.02); eye(fx + r*.3 + (sgn ? sgn*r*.12 : 0), r*.02);
+    g.beginPath(); g.moveTo(fx, r*.08); g.lineTo(fx + (sgn || 1)*r*.08, r*.3); g.stroke();
+    g.beginPath(); g.moveTo(fx - r*.14, r*.5); g.quadraticCurveTo(fx, r*.6, fx + r*.14, r*.5); g.stroke();
+  } else {
+    eye(sgn*r*.45, r*.02); g.beginPath(); g.moveTo(sgn*r*.85, r*.15); g.lineTo(sgn*r*.98, r*.32); g.lineTo(sgn*r*.82, r*.38); g.stroke();
+    g.beginPath(); g.moveTo(sgn*r*.6, r*.55); g.lineTo(sgn*r*.82, r*.55); g.stroke();
+  }
+  if (av.beard === 'yes'){ g.fillStyle = av.hairColor; g.beginPath(); g.moveTo(fx - r*.55, r*.35); g.quadraticCurveTo(fx, r*1.45, fx + r*.55, r*.35); g.quadraticCurveTo(fx, r*.75, fx - r*.55, r*.35); g.closePath(); g.fill(); }
+  g.restore();
+}
+function drawFlatFigure(g, R, av){
+  const sil = silFor(av); for (const k of ['thigh','shin','upper','fore']) sil[k] = sil[k].map(v => v*1.22); sil.hand *= 1.15; sil.foot *= 1.1; sil.neck *= 1.3;
+  const parts = silhouetteParts(R, sil);
+  const zs = R.kp[5].w ? R.kp[5].w[2] : 0, zr = R.kp[6].w ? R.kp[6].w[2] : 0, far = zs > zr + .02 ? 'l' : zr > zs + .02 ? 'r' : null;
+  const order = p => p.part==='head' || p.part==='neck' ? 3 : (p.side && p.side===far) ? 0 : p.side ? 2 : 1;
+  const s = R.scale; g.lineJoin = 'round';
+  drawFlatBackHair(g, R, av);
+  for (const p of [...parts].sort((a,b) => order(a)-order(b))){
+    if (p.part === 'head') continue;
+    const isFar = !!(p.side && p.side === far);
+    g.fillStyle = flatColor(av, p.part, isFar); p(g); g.fill();
+    const clothed = p.part === 'torso' || p.part === 'shoulders' || (p.part === 'upper' && av.sleeves !== 'none') || (p.part === 'fore' && av.sleeves === 'long');
+    if (clothed) flatPattern(g, av.pattern, isFar ? shade(av.patternColor, .86) : av.patternColor, s, p);
+  }
+  drawFlatHead(g, R, av);
+}
 function drawFigureScene(g, R, bg, ink, matColor){
   const S = R.S;
   g.fillStyle = bg; g.fillRect(0,0,S,S);
+  if (avatar.mode==='flat'){ drawFlatMat(g, R, avatar.mat || '#E9B93A'); drawFlatFigure(g, R, avatar); return; }
   g.fillStyle = matColor; roundRectOn(g, S*.07, R.floor-4, S*.86, 12, 6); g.fill();
   if (avatar.mode==='avatar') drawAvatar(g, R, avatar); else if (avatar.mode==='line') drawLineFigure(g, R, ink); else if (avatar.mode==='sketch') drawSketchFigure(g, R, ink); else drawSilhouette(g, R, ink);
 }
@@ -4302,7 +4390,7 @@ async function runRoadmap(){
 
 // ---------- profile: who is practising ----------
 const PK = 'sama.profile';
-const PROFILE_DEFAULT = {name:'', level:1, body:[], goal:null, days:3, notes:'', look:'silhouette', onboarded:false, createdAt:0};
+const PROFILE_DEFAULT = {name:'', level:1, body:[], goal:null, days:3, notes:'', look:'flat', onboarded:false, createdAt:0};
 let profile = {...PROFILE_DEFAULT};
 try { const p = JSON.parse(localStorage.getItem(PK) || 'null'); if (p) profile = {...PROFILE_DEFAULT, ...p}; } catch {}
 function saveProfile(patch){
@@ -4432,15 +4520,14 @@ async function startOnboarding(){
   answers.goal = a || null; if (answers.goal) { G.tell(`${GOALS[answers.goal].label}. Lovely. We’ll get there step by step.`, answers.goal); await new Promise(r => setTimeout(r, 1600)); } prog(4);
   a = await G.ask({text:'How often would you like to practise?', pose:'dog', input:false, chips:[{label:'Twice a week', value:2}, {label:'Three times', value:3}, {label:'Four times', value:4}, {label:'Most days', value:5}]}); if (a == null) return;
   answers.days = +a; prog(5);
-  a = await G.ask({text:'One more thing: should I look like you? You can give me your hair, skin and clothes, or keep me as a silhouette.', pose:'upsalute', input:false, chips:[{label:'Make it look like me', value:'avatar'}, {label:'Keep the silhouette', value:'silhouette'}]}); if (a == null) return;
+  a = await G.ask({text:'One more thing: shall I look like you? You can give me your skin, hair, clothes and patterns.', pose:'upsalute', input:false, chips:[{label:'Yes, dress me up', value:'avatar'}, {label:'Maybe later', value:'flat'}]}); if (a == null) return;
   prog(6);
   saveProfile({...answers, look: a, onboarded:true});
-  if (a === 'avatar'){ avatar.mode = 'avatar'; try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {} retheme(); }
-  const next = await G.ask({text:`All set, ${answers.name}. ${a === 'avatar' ? 'You can dress me up under “Figure” on the alignment page. ' : ''}Where shall we start?`, pose:'mountain', input:false, chips:[{label:'Plan my first practice', value:'coach'}, {label:'Check my alignment', value:'check'}, {label:'Browse the poses', value:'lib'}]});
+  const next = await G.ask({text:`All set, ${answers.name}. ${a === 'avatar' ? 'My wardrobe is under “Figure” on the alignment page. ' : ''}Where shall we start?`, pose:'mountain', input:false, chips:a === 'avatar' ? [{label:'Dress the figure', value:'dress'}, {label:'Plan my first practice', value:'coach'}, {label:'Check my alignment', value:'check'}] : [{label:'Plan my first practice', value:'coach'}, {label:'Check my alignment', value:'check'}, {label:'Browse the poses', value:'lib'}]});
   stop();
   if (next === 'coach'){ switchView('coach'); setCoachMode('plan'); }
   else if (next === 'lib') switchView('lib');
-  else if (next === 'check' && a === 'avatar'){ switchView('check'); $('avatarBox').open = true; $('avatarBox').scrollIntoView({behavior:'smooth', block:'start'}); }
+  else if (next === 'dress'){ switchView('check'); $('avatarBox').open = true; setTimeout(() => $('avatarBox').scrollIntoView({behavior:'smooth', block:'start'}), 100); }
   else switchView('check');
 }
 
@@ -4616,7 +4703,8 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
   for (const grp of box.querySelectorAll('.segs[data-k]')) dropdownify(grp, {right:true});
   const sync = () => {
     for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===cur)); }
-    only.hidden = avatar.mode !== 'avatar'; $('avatarSum').textContent = avatar.mode==='avatar' ? 'My avatar' : avatar.mode==='line' ? 'Line' : avatar.mode==='sketch' ? 'Sketch' : 'Silhouette';
+    only.hidden = avatar.mode !== 'avatar' && avatar.mode !== 'flat'; for (const r of box.querySelectorAll('.flatonly')) r.hidden = avatar.mode !== 'flat'; for (const r of box.querySelectorAll('.avonly')) r.hidden = avatar.mode !== 'avatar';
+    $('avatarSum').textContent = avatar.mode==='flat' ? 'Illustration' : avatar.mode==='avatar' ? 'My avatar' : avatar.mode==='line' ? 'Line' : avatar.mode==='sketch' ? 'Sketch' : 'Silhouette';
   };
   box.addEventListener('click', e => {
     const b = e.target.closest('button[data-v]'); if (!b) return; const k = b.closest('[data-k]').dataset.k;
