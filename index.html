@@ -2472,6 +2472,7 @@ function drawFlatHead(g, R, av){
     if (av.hair === 'curly'){ for (let i = 0; i < 9; i++){ const a = -Math.PI*(.05 + .9*i/8); g.beginPath(); g.arc(Math.cos(a)*r, Math.sin(a)*r + r*.05, r*.28, 0, Math.PI*2); g.fill(); } }
     g.restore();
   }
+  if (R.blob > 0){ g.restore(); return; } // no face while the figure melts and regrows between poses
   const fx = sgn ? sgn*r*.45 : 0, line = Math.max(1.2, s*.01);
   g.strokeStyle = shade(av.skin, .55); g.lineWidth = line; g.lineCap = 'round';
   const eye = (x, y) => { g.beginPath(); g.moveTo(x - r*.12, y); g.quadraticCurveTo(x, y + r*.1, x + r*.12, y); g.stroke(); };
