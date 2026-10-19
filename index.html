@@ -4515,7 +4515,7 @@ function renderProfile(){
 // 1. console.firebase.google.com → create a project → add a Web app → copy the firebaseConfig object here.
 // 2. Authentication → Sign-in method: enable Google and Email link. Firestore → create a database (production mode).
 // 3. Firestore rules: allow read, write: if request.auth != null && request.auth.uid == resource.id (users/{uid}).
-const FIREBASE_CONFIG = null; // e.g. {apiKey:"…", authDomain:"…", projectId:"…", appId:"…"}
+const FIREBASE_CONFIG = {apiKey:"AIzaSyAV5OGxdOG7Q4wnmNRYS0esamwI5uBeU6U", authDomain:"sama-coach-ef83b.firebaseapp.com", projectId:"sama-coach-ef83b", storageBucket:"sama-coach-ef83b.firebasestorage.app", messagingSenderId:"1090152739769", appId:"1:1090152739769:web:af4d5bfed4300079ddfc68"};
 const AUTH = {available: !!FIREBASE_CONFIG, user:null, fb:null, db:null, ready:false};
 function loadScript(src){ return new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => no(new Error('load ' + src)); document.head.appendChild(s); }); }
 async function authInit(){
@@ -4540,10 +4540,9 @@ async function authSignIn(kind){
   const fb = AUTH.fb;
   try {
     if (kind === 'google'){
-      const p = new fb.auth.GoogleAuthProvider();
-      // Google refuses to sign in inside an embedded WebView: the Android app opens the sign-in in the browser instead
-      if (window.SamaNative && window.SamaNative.openUrl){ window.SamaNative.openUrl(location.origin + location.pathname + '?signin=google'); return; }
-      if (matchMedia('(max-width: 700px)').matches) await fb.auth().signInWithRedirect(p); else await fb.auth().signInWithPopup(p);
+      const p = new fb.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:'select_account'});
+      // Browsers: a popup (works on phones too and avoids third-party-cookie trouble). The Android app has no popup, so it redirects.
+      if (window.SamaNative) await fb.auth().signInWithRedirect(p); else await fb.auth().signInWithPopup(p);
     } else {
       const email = prompt('Your email address. We’ll send you a sign-in link.'); if (!email) return;
       await fb.auth().sendSignInLinkToEmail(email, {url: location.origin + location.pathname, handleCodeInApp:true});
@@ -4583,7 +4582,6 @@ function renderAuthUI(){
   else { txt.textContent = 'Sign in to keep your data across your phone, laptop and the app.'; mk('Continue with Google', 'primary', () => authSignIn('google')); mk('Email me a link', '', () => authSignIn('email')); }
   $('wAuth').hidden = !AUTH.available;
 }
-if (new URLSearchParams(location.search).get('signin') === 'google'){ /* opened from the Android app: sign in here, then come back */ }
 authInit();
 
 // ---------- views ----------

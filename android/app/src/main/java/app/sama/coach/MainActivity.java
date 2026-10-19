@@ -72,10 +72,12 @@ public class MainActivity extends AppCompatActivity {
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
+        android.webkit.CookieManager.getInstance().setAcceptThirdPartyCookies(web, true); // the Firebase auth handler lives on firebaseapp.com
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setAllowFileAccess(false);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
-        s.setUserAgentString(s.getUserAgentString() + " SamaApp/1.0");
+        // Google's sign-in page refuses embedded WebViews; presenting as plain mobile Chrome lets the Firebase redirect flow through
+        s.setUserAgentString(s.getUserAgentString().replace("; wv", "").replaceAll("Version/\\d+\\.\\d+ ", "") + " SamaApp/1.0");
         web.addJavascriptInterface(new SamaNative(), "SamaNative");
         web.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
