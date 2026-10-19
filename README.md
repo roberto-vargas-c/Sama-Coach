@@ -54,6 +54,14 @@ Or from the command line: `npm i -g vercel && vercel && vercel env add OPENAI_AP
 
 The function caps request size and message count, uses JSON mode for structured replies, and times out after 55 s. There is no per-user rate limit; add one (for example Vercel's `@vercel/kv` or an edge rate limiter) before opening it to the public.
 
+## Android app (APK)
+
+`android/` is a small native wrapper: a full-screen WebView around the deployed site that gives the page the camera (live alignment checks), the photo and clip pickers, keep-awake and immersive mode during a guided practice, and a shortcut to the cast settings (`window.SamaNative`).
+
+GitHub Actions builds it on every push that touches `android/` and attaches the APK to the **"latest" release**: https://github.com/roberto-vargas-c/Sama-Coach/releases/tag/latest. On the phone, download `sama.apk`, open it and allow installing from that source. It is signed with a debug key, which is fine for installing by hand; for the Play Store add your own keystore in `android/app/build.gradle`.
+
+To point the app at another address: `./gradlew assembleRelease -PsamaUrl=https://your-deployment`.
+
 ## Using the Coach from the Android app
 
 If the Android wrapper loads the deployed URL in its WebView, the Coach works as is. If it bundles `index.html` inside the APK, the page has no server of its own: set the deployment's address in the head of `index.html` before building the APK:
