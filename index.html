@@ -2063,12 +2063,14 @@ function lowestSurface(P){
   const names = Object.keys(KI);
   return Math.max(...names.map(n => P[n][1] + (/(he|ft)$/.test(n) ? RAD.foot : /(ix|pi|th|w)$/.test(n) ? RAD.hand : /k$/.test(n) ? RAD.shin[0] : /a$/.test(n) ? RAD.shin[1] : /h$/.test(n) ? RAD.hip : /(nose|eye|ear)$/.test(n) ? -1 : RAD.shoulder)), P.head[1] + RAD.head);
 }
+const BODY_FILL = 281/720; // Mountain's natural fit: every figure is drawn at this size unless it would not fit
 function fitParams(P, S){
   const names = Object.keys(KI), lowest = lowestSurface(P);
   const pts = [...names.map(n => P[n]), P.head, P.crown];
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
   const minX = Math.min(...xs) - RAD.head, maxX = Math.max(...xs) + RAD.head, minY = Math.min(...ys) - RAD.head;
-  const k = Math.min((S*.86)/(maxX-minX), (S*.74)/(lowest-minY));
+  // one body size for every pose (a standing person fills the frame); only a pose too big for the frame at that size is shrunk to fit
+  const kFit = Math.min((S*.86)/(maxX-minX), (S*.74)/(lowest-minY)), k = Math.min(kFit, S*BODY_FILL);
   return {k, cx:(minX+maxX)/2, lowest};
 }
 function projectWith(P, S, fit, mirror){
