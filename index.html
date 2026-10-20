@@ -3804,6 +3804,7 @@ function beep(f = 660, d = .15){ try { audio = audio || new (window.AudioContext
   o.connect(g).connect(audio.destination); o.start(); o.stop(audio.currentTime+d+.02); } catch {} }
 // ---------- the recorded voice guide: Aum and welcome, one script per pose, the other side, closing words and Aum ----------
 const VOICE_DIR = 'voice/';
+const VOICE_AGAIN = new Set(["cat", "chair", "chairtwist", "chaturanga", "cow", "cowface", "crescentmoon", "deer", "dog", "eagle", "figurefour", "firelog", "forwardfold", "garland", "gate", "goddess", "halflift", "halfmoon", "halfsplits", "headtoknee", "highlunge", "humblewarrior", "kneetonose", "lizard", "lowlunge", "lungetwist", "mountain", "pigeon", "plank", "pyramid", "reclinedbigtoeside", "reclinedpigeon", "reversewarrior", "revtriangle", "savasana", "sideangle", "sidebend", "skandasana", "sleepingpigeon", "standingsplit", "star", "supinetwist", "threadneedle", "threeleggeddog", "toestand", "triangle", "updog", "upsalute", "warrior1", "warrior2", "warrior3", "widefold", "widefoldtwist"]); // poses that come back within a practice have a short 'back to …' line
 let voiceOn = true; try { voiceOn = localStorage.getItem('sama.voice') !== 'off'; } catch {}
 const voiceEl = new Audio(); voiceEl.preload = 'auto';
 const voice = {queue: [], playing: false, done: null, said: new Set()};
@@ -3880,7 +3881,7 @@ function voiceForItem(){
   if (!voiceOn || !sess || sess.remote) return;
   const x = sess.P.items[sess.i], prev = sess.P.items[sess.i - 1];
   if (prev && prev.id === x.id && prev.side && x.side && prev.side !== x.side) return voicePlay(['clip_otherside']);
-  if (voice.said.has(x.id)) return voiceStop(); // a pose already explained in this practice (flows repeat poses) stays quiet
+  if (voice.said.has(x.id)) return VOICE_AGAIN.has(x.id) ? voicePlay(['again_' + x.id]) : voiceStop(); // a pose coming back gets its short line, not the whole script
   voice.said.add(x.id); voicePlay([x.id]);
 }
 function enterItemRemote(i){ sess.i = i; const x = sess.P.items[i]; pose = POSES.find(q => q.id===x.id); renderRail(); showReference(x.side==='left'); }
@@ -4885,7 +4886,7 @@ for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', (
 // ---------- boot ----------
 renderRail(); renderHist(); showReference();
 if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !profile.onboarded && !(() => { try { return localStorage.getItem('sama.welcomed'); } catch { return null; } })()) showWelcome();
-window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, routeSegments, browseSteps, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, selfTest: () => selfTestResult};
+window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, buildPlan, FOCUS, routeSegments, browseSteps, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, selfTest: () => selfTestResult};
 function retheme(){
   for (const k in THUMBS) delete THUMBS[k];
   if (lib.built && lib.pose && $('poseDlg').open) drawPd();
