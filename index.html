@@ -2427,14 +2427,18 @@ function drawAvatar(g, R, av){
 }
 
 // ---------- illustration: flat colours, no outlines, patterned clothes, a face, a mat in perspective ----------
-function flatPattern(g, kind, color, s, part){
+// The print is pinned to the body: drawn in the frame of the part it sits on (torso or arm bone), so it moves with the figure instead of sliding under it.
+function flatPattern(g, kind, color, s, part, frame){
   if (!kind || kind === 'none') return;
-  g.save(); part(g); g.clip(); g.fillStyle = color; g.strokeStyle = color; g.lineWidth = Math.max(1.5, s*.012);
-  const step = s*.055, S = 720;
-  if (kind === 'dots'){ for (let y = -step; y < S + step; y += step) for (let x = ((y/step)|0) % 2 ? step/2 : 0; x < S + step; x += step){ g.beginPath(); g.arc(x, y, s*.012, 0, Math.PI*2); g.fill(); } }
-  else if (kind === 'stripes'){ for (let y = -step; y < S + step; y += step*.9) g.fillRect(-10, y, S + 20, step*.38); }
-  else if (kind === 'zigzag'){ g.beginPath(); for (let y = -step; y < S + step; y += step*1.1){ g.moveTo(-10, y); for (let x = 0; x <= S + step; x += step*.5) g.lineTo(x, y + (((x/(step*.5))|0) % 2 ? step*.3 : 0)); } g.stroke(); }
-  else if (kind === 'checks'){ for (let y = -step; y < S + step; y += step) for (let x = ((y/step)|0) % 2 ? step : 0; x < S + step; x += step*2) g.fillRect(x, y, step, step); }
+  g.save(); part(g); g.clip();
+  if (frame){ g.translate(frame.x, frame.y); g.rotate(frame.a); }
+  g.fillStyle = color; g.strokeStyle = color; g.lineWidth = Math.max(1.5, s*.012);
+  const step = s*.055, E = frame ? s*.8 : 720, x0 = frame ? -E : 0, y0 = frame ? -E : 0;
+  const rows = (fn) => { for (let r = Math.floor(y0/step) - 1; r*step < y0 + 2*E + step; r++) fn(r*step, r); };
+  if (kind === 'dots') rows((y, r) => { for (let x = Math.floor(x0/step)*step - step + (r & 1 ? step/2 : 0); x < x0 + 2*E + step; x += step){ g.beginPath(); g.arc(x, y, s*.012, 0, Math.PI*2); g.fill(); } });
+  else if (kind === 'stripes') rows((y, r) => { if (r % 1 === 0) g.fillRect(x0 - step, y*.9, 2*E + 2*step, step*.38); });
+  else if (kind === 'zigzag'){ g.beginPath(); rows((y, r) => { const yy = y*1.1; g.moveTo(x0 - step, yy); for (let x = Math.floor(x0/(step*.5))*(step*.5) - step; x <= x0 + 2*E + step; x += step*.5) g.lineTo(x, yy + ((Math.round(x/(step*.5)) & 1) ? step*.3 : 0)); }); g.stroke(); }
+  else if (kind === 'checks') rows((y, r) => { for (let x = Math.floor(x0/(2*step))*2*step - 2*step + (r & 1 ? step : 0); x < x0 + 2*E + step; x += step*2) g.fillRect(x, y, step, step); });
   g.restore();
 }
 function flatColor(av, part, far){
@@ -2495,6 +2499,8 @@ function drawFlatFigure(g, R, av){
   const zs = R.kp[5].w ? R.kp[5].w[2] : 0, zr = R.kp[6].w ? R.kp[6].w[2] : 0, far = zs > zr + .02 ? 'l' : zr > zs + .02 ? 'r' : null;
   const order = p => p.part==='head' || p.part==='neck' ? 3 : (p.side && p.side===far) ? 0 : p.side ? 2 : 1;
   const s = R.scale; g.lineJoin = 'round';
+  const K0 = R.kp, hx = (K0[11].x + K0[12].x)/2, hy = (K0[11].y + K0[12].y)/2, sx = (K0[5].x + K0[6].x)/2, sy = (K0[5].y + K0[6].y)/2;
+  const torsoFrame = {x: hx, y: hy, a: Math.atan2(sy - hy, sx - hx) + Math.PI/2}; // the torso's own up, from the hips to the shoulders
   drawFlatBackHair(g, R, av);
   for (const p of [...parts].sort((a,b) => order(a)-order(b))){
     if (p.part === 'head') continue;
@@ -2502,7 +2508,10 @@ function drawFlatFigure(g, R, av){
     const unseen = R.live && p.ks && p.ks.some(i => R.kp[i].s < VIS); if (unseen) g.globalAlpha *= .35; // a limb the camera did not find is only a hint
     g.fillStyle = flatColor(av, p.part, isFar); p(g); g.fill();
     const clothed = p.part === 'torso' || p.part === 'shoulders' || (p.part === 'upper' && av.sleeves !== 'none') || (p.part === 'fore' && av.sleeves === 'long');
-    if (clothed) flatPattern(g, av.pattern, isFar ? shade(av.patternColor, .86) : av.patternColor, s, p);
+    if (clothed){
+      const K = R.kp, frame = p.ks && p.ks.length > 1 ? {x: K[p.ks[0]].x, y: K[p.ks[0]].y, a: Math.atan2(K[p.ks[1]].y - K[p.ks[0]].y, K[p.ks[1]].x - K[p.ks[0]].x) - Math.PI/2} : torsoFrame;
+      flatPattern(g, av.pattern, isFar ? shade(av.patternColor, .86) : av.patternColor, s, p, frame);
+    }
     if (unseen) g.globalAlpha /= .35;
   }
   drawFlatHead(g, R, av);
@@ -3793,9 +3802,8 @@ function enterItem(){
   const x = sess.P.items[sess.i]; pose = POSES.find(q => q.id===x.id); renderRail();
   if (mode==='sample' || mode==='photo' || mode==='idle') showReference(x.side==='left'); else refresh();
   sess.phase = 'prep'; sess.left = sess.i===0 ? 5 : (sess.P.flow ? 2 : sess.P.yin ? 15 : TRANSITION); renderSess();
-  say(`${x.side ? x.side + ' side, ' : ''}${pose.name}`);
 }
-function enterItemRemote(i){ sess.i = i; const x = sess.P.items[i]; pose = POSES.find(q => q.id===x.id); renderRail(); showReference(x.side==='left'); say(`${x.side ? x.side + ' side, ' : ''}${pose.name}`); }
+function enterItemRemote(i){ sess.i = i; const x = sess.P.items[i]; pose = POSES.find(q => q.id===x.id); renderRail(); showReference(x.side==='left'); }
 function tick(){
   const now = performance.now(), dt = (now - sess.last)/1000; sess.last = now;
   if (sess.paused || sess.remote) return;
