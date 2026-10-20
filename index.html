@@ -4997,7 +4997,7 @@ async function startOnboarding(){
     else saveCycle({adapt:false});
   }
   if (a === 'woman'){ saveProfile({gender:'woman'}); }
-  if (a !== 'open'){ Object.assign(avatar, a === 'woman' ? {hair:'long', build:'slim'} : {hair:'short', build:'regular'}); try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {} try { window.__syncLook && window.__syncLook(); } catch {} retheme(); }
+  if (a !== 'open'){ Object.assign(avatar, a === 'woman' ? {hair:'long', build:'slim'} : {hair:'short', build:'regular'}); saveAvatar(); try { window.__syncLook && window.__syncLook(); } catch {} retheme(); }
   a = await G.ask({text:'How long have you been practising yoga?', pose:'tree', input:false, chips:[{label:'I’m new to it', value:1}, {label:'A few months', value:1}, {label:'A year or two', value:2}, {label:'Many years', value:3}]}); if (a == null) return;
   answers.level = +a; prog(3);
   a = await G.ask({text:'Is there anything I should be gentle with? Pick all that apply.', pose:'child', input:false, multi:true, chips:[...BODY_OPTS.map(([v, l]) => ({label:l, value:v})), {label:'Nothing in particular', value:'none', none:true}]}); if (a == null) return;
@@ -5391,6 +5391,7 @@ async function authSignIn(kind){
 async function authSignOut(){ if (AUTH.fb) await AUTH.fb.auth().signOut(); AUTH.user = null; renderAuthUI(); }
 function userDoc(){ return AUTH.db && AUTH.user ? AUTH.db.collection('users').doc(AUTH.user.uid) : null; }
 let pushTimer = 0;
+function saveAvatar(){ avatar.updatedAt = Date.now(); try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {} cloudPush(); }
 function cloudPush(){
   const d = userDoc(); if (!d) return;
   clearTimeout(pushTimer); pushTimer = setTimeout(() => { d.set({profile, history:getHist(), saved:getSaved(), avatar, updatedAt: Date.now()}, {merge:true}).catch(e => console.warn('sync', e)); }, 800);
@@ -5405,7 +5406,10 @@ async function cloudPull(){
     const hist = [...getHist(), ...(r.history || [])]; const seen = new Set(); const merged = hist.filter(e => { const k = e.at + ':' + e.pose; if (seen.has(k)) return false; seen.add(k); return true; }).sort((a, b) => b.at - a.at).slice(0, 50);
     try { localStorage.setItem(HK, JSON.stringify(merged)); } catch {}
     if (r.saved && r.saved.length){ const names = new Set(getSaved().map(s => s.name)); const all = [...getSaved(), ...r.saved.filter(s => !names.has(s.name))].slice(0, 12); try { localStorage.setItem(SK, JSON.stringify(all)); } catch {} }
-    if (r.avatar){ Object.assign(avatar, r.avatar); try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {} retheme(); }
+    // the look: whichever side changed it last wins (an account look from before the stamp only fills in a fresh device)
+    const cloudT = (r.avatar && r.avatar.updatedAt) || 0, localT = avatar.updatedAt || 0;
+    if (r.avatar && (cloudT > localT || (!cloudT && !localT && !localStorage.getItem('sama.avatar')))){ Object.assign(avatar, r.avatar); try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {} retheme(); try { window.__syncLook && window.__syncLook(); } catch {} }
+    else cloudPush(); // this device's look is the newer one: put it in the account
     if (!profile.name && AUTH.user.displayName) profile.name = AUTH.user.displayName.split(' ')[0];
     saveProfile({}); renderHist(); renderSaved(); if (!$('viewProfile').hidden) renderProfile();
   } catch (e){ console.warn('pull', e); }
@@ -5468,7 +5472,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
     if (k==='musicset'){ setMusic(b.dataset.v === 'on'); sync(); return; }
     if (k==='camview'){ camView = b.dataset.v; try { localStorage.setItem('sama.camview', camView); } catch {} sync(); render(); return; }
     avatar[k] = b.dataset.v;
-    try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {}
+    saveAvatar();
     sync(); retheme();
   };
   for (const h of hosts) h.addEventListener('click', onClick);
