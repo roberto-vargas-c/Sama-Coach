@@ -2607,7 +2607,11 @@ function drawFlatFigure(g, R, av){
   const order = p => p.part==='head' || p.part==='neck' ? 9 : p.front ? 4 : (p.side && p.side===far) ? SUB[p.part] || 0
     : p.part==='upper' ? 1 : p.part==='torso' || p.part==='shoulders' ? 2 : p.part==='shin' || p.part==='foot' || p.part==='thigh' ? 3 + SUB[p.part] : p.part==='hips' || p.part==='seat' ? 3.5 : 4 + (SUB[p.part] || 0);
   const Kw = R.kp, hz = Kw[0] && Kw[0].w ? Kw[0].w[2] : null, nearSide = far === 'l' ? 'r' : far === 'r' ? 'l' : null;
-  const armFront = !(R.blob > 0) && hz != null && nearSide && [nearSide === 'l' ? 7 : 8, nearSide === 'l' ? 9 : 10].some(i => Kw[i].w && Kw[i].w[2] < hz - .04);
+  // ...except an arm reaching straight up past the ear (Warrior I): there it stays behind, or its sleeve would cover the face
+  const along = (() => { if (!nearSide) return 0; const sI = nearSide === 'l' ? 5 : 6, wI = nearSide === 'l' ? 9 : 10, ax = Kw[wI].x - Kw[sI].x, ay = Kw[wI].y - Kw[sI].y, hx = R.crown.x - R.neck.x, hy = R.crown.y - R.neck.y;
+    return (ax*hx + ay*hy) / ((Math.hypot(ax, ay) || 1)*(Math.hypot(hx, hy) || 1)); })();
+  const armUp = nearSide && along > .9 && Kw[nearSide === 'l' ? 9 : 10].y < Kw[nearSide === 'l' ? 5 : 6].y - R.scale*.15; // reaching up past the ear
+  const armFront = !(R.blob > 0) && !armUp && hz != null && nearSide && [nearSide === 'l' ? 7 : 8, nearSide === 'l' ? 9 : 10].some(i => Kw[i].w && Kw[i].w[2] < hz - .04);
   const order0 = order;
   // the arm passes the side of the head, never across the face: keep a window around the face clear of it
   const faceHole = null; // the nearer arm simply lies over the head, as it does from the side
