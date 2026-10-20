@@ -524,6 +524,7 @@ body.tv #viewCoach{display:none!important}
 .fold .chev{width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0;flex:0 0 auto}
 .fold[open] .chev{transform:rotate(-135deg);margin-bottom:-4px}
 .fold[open]>summary{margin-bottom:4px}
+#cmCalendar .pcard{max-width:680px;margin:0 auto;cursor:default}
 .cal{display:flex;flex-direction:column;gap:8px}
 .calhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .calhead b{font-size:15px}
@@ -551,7 +552,7 @@ body.tv #viewCoach{display:none!important}
 .calsched input[type=time],.cyc input[type=date],.cyc input[type=number]{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 .cyc input[type=number]{width:64px}
 .cyctoday{background:color-mix(in srgb,var(--period) 12%,var(--bg));border:1px solid color-mix(in srgb,var(--period) 35%,var(--line));border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
-#viewProfile .pcard p,.cyctoday p{display:block;-webkit-line-clamp:unset;overflow:visible}
+#viewProfile .pcard p,#viewCoach .pcard p,.cyctoday p{display:block;-webkit-line-clamp:unset;overflow:visible}
 .cyctoday b{font-size:15px}.cyctoday p{margin:0;font-size:13.5px;color:var(--ink);line-height:1.45}
 .cyctip{grid-column:1/-1;margin:0 0 4px}
 .ptiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
@@ -773,6 +774,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
       <button class="seg" type="button" role="tab" data-cm="checks" aria-pressed="false">Review my checks</button>
       <button class="seg" type="button" role="tab" data-cm="routine" aria-pressed="false">Review a routine</button>
       <button class="seg" type="button" role="tab" data-cm="roadmap" aria-pressed="false">Roadmap</button>
+      <button class="seg" type="button" role="tab" data-cm="calendar" aria-pressed="false">Calendar</button>
     </div>
     <p class="cnote">The coach only reads text: your answers, your scores and the corrections Sama found. Photos and clips never leave your device.</p>
 
@@ -812,6 +814,23 @@ Savasana, 3 min"></textarea>
         <div class="crow"><button class="btn primary" id="rtRun" type="button">Review this routine</button></div>
       </div>
       <div class="cout" id="rtOut"></div>
+    </div>
+
+    <div class="cmode" id="cmCalendar" hidden>
+    <div class="pcard" id="calCard">
+      <h2>Calendar</h2>
+      <div class="cal">
+        <div class="calhead"><button type="button" id="calPrev" aria-label="Previous month">‹</button><b id="calMonth"></b><button type="button" id="calNext" aria-label="Next month">›</button></div>
+        <div class="calgrid" id="calGrid"></div>
+        <div class="callegend" id="calLegend"></div>
+        <div class="calday" id="calDay"></div>
+      </div>
+      <h4>Practice days</h4>
+      <div class="calsched"><div class="segs" id="calDays"></div><label class="calsched">at <input type="time" id="calTime" value="07:30"></label><div class="segs" id="calLen"></div></div>
+      <h4>Google Calendar</h4>
+      <p class="hint" id="gcalText">Put your practice days in Google Calendar, with a reminder.</p>
+      <div class="crow" id="gcalBtns"></div>
+    </div>
     </div>
 
     <div class="cmode" id="cmRoadmap" hidden>
@@ -874,20 +893,6 @@ Savasana, 3 min"></textarea>
         </div>
       </div>
       <div class="pcol">
-        <div class="pcard" id="calCard">
-          <h2>Calendar</h2>
-          <div class="cal">
-            <div class="calhead"><button type="button" id="calPrev" aria-label="Previous month">‹</button><b id="calMonth"></b><button type="button" id="calNext" aria-label="Next month">›</button></div>
-            <div class="calgrid" id="calGrid"></div>
-            <div class="callegend" id="calLegend"></div>
-            <div class="calday" id="calDay"></div>
-          </div>
-          <h4>Practice days</h4>
-          <div class="calsched"><div class="segs" id="calDays"></div><label class="calsched">at <input type="time" id="calTime" value="07:30"></label><div class="segs" id="calLen"></div></div>
-          <h4>Google Calendar</h4>
-          <p class="hint" id="gcalText">Put your practice days in Google Calendar, with a reminder.</p>
-          <div class="crow" id="gcalBtns"></div>
-        </div>
         <div class="pcard cyc" id="cycleCard" hidden>
           <h2>Your cycle</h2>
           <p class="hint">Sama can shape your practice around your cycle: softer on your period, stronger when your energy is up. This stays on this device only; it isn't synced or shared with the coach.</p>
@@ -4553,10 +4558,12 @@ async function judgePlans(brief, plans, signal){
 
 // ---- mode switching ----
 let coachMode = 'plan', coachBuilt = false;
+let calBuilt = false;
 function setCoachMode(m){
   coachMode = m;
   for (const b of $('coachModes').querySelectorAll('[data-cm]')) b.setAttribute('aria-pressed', String(b.dataset.cm === m));
-  $('cmPlan').hidden = m !== 'plan'; $('cmChecks').hidden = m !== 'checks'; $('cmRoutine').hidden = m !== 'routine'; $('cmRoadmap').hidden = m !== 'roadmap';
+  $('cmPlan').hidden = m !== 'plan'; $('cmChecks').hidden = m !== 'checks'; $('cmRoutine').hidden = m !== 'routine'; $('cmRoadmap').hidden = m !== 'roadmap'; $('cmCalendar').hidden = m !== 'calendar';
+  if (m === 'calendar'){ if (!calBuilt){ calBuilt = true; initCalendarUI(); } renderCalendar(); }
   if (m === 'checks') $('ckCount').textContent = `${getHist().length} checks on this device`;
   if (m === 'routine') renderRoutineSources();
 }
@@ -5206,7 +5213,6 @@ function renderProfile(){
     $('pfNotes').addEventListener('change', () => saveProfile({notes: $('pfNotes').value.slice(0, 1200)}));
     $('pfLook').addEventListener('click', () => { $('lookCard').open = true; $('lookCard').scrollIntoView({behavior:'smooth', block:'start'}); });
     $('pfWelcome').addEventListener('click', () => { showWelcome(); });
-    initCalendarUI();
     $('pfExport').addEventListener('click', () => {
       const data = {exportedAt: new Date().toISOString(), profile, history: getHist(), saved: getSaved(), avatar, planOpts, cycle};
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:'application/json'})); a.download = `sama-${(profile.name || 'me').toLowerCase().replace(/\W+/g, '-')}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
@@ -5257,7 +5263,7 @@ function renderProfile(){
   if (!all.length){ const li = document.createElement('li'); li.className = 'd'; li.textContent = 'Nothing saved yet. The coach and the planner can both save practices here.'; sv.appendChild(li); }
   all.forEach(s => { const li = document.createElement('li'); li.innerHTML = '<button type="button" class="linkish"></button><span class="d"></span>'; li.querySelector('.linkish').textContent = s.name; li.querySelector('.d').textContent = fmtMin(s.plan.total); li.querySelector('.linkish').addEventListener('click', () => openInPlanner(s.plan)); sv.appendChild(li); });
   { const fc = document.querySelector('#lookCard .foldfig'), t = thumb('mountain', 96), g = fc.getContext('2d'); g.clearRect(0, 0, 96, 96); g.drawImage(t, 0, 0); }
-  renderCalendar(); renderCycle();
+  renderCycle();
   renderAuthUI();
 }
 // header button
