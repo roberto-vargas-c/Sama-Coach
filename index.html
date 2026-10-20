@@ -4058,12 +4058,35 @@ function breathLight(){
   const inhale = Math.floor(performance.now()/5000) % 2 === 0;
   if (el.classList.contains('in') !== inhale || !el.lastChild.textContent){ el.classList.toggle('in', inhale); el.lastChild.textContent = inhale ? 'Breathe in' : 'Breathe out'; }
 }
+// lead-ins before a new pose. Each ends where the pose's own script begins with its name ("…prepare for" + "Warrior Two. Step the feet…").
+// Only clips that exist (voice/index.json) are used, so a line plays as soon as its recording is added.
+let VOICE_HAVE = new Set();
+fetch(VOICE_DIR + 'index.json').then(r => r.ok ? r.json() : []).then(a => { VOICE_HAVE = new Set(a); }).catch(() => {});
+const LEAD_GENERIC = ['clip_to_continue', 'clip_to_prepare', 'clip_to_next_breath', 'clip_to_make_way', 'clip_to_take_time'];
+const LEAD_POSTURE = {stand:'clip_to_stand', fold:'clip_to_stand', lungeh:'clip_to_stand', seated:'clip_to_seat', squat:'clip_to_seat', supine:'clip_to_back', bridge:'clip_to_back', shoulder:'clip_to_back', prone:'clip_to_belly', kneel:'clip_to_knees', kneelup:'clip_to_knees', child:'clip_to_knees', lunge:'clip_to_knees', plank:'clip_to_hands', dog:'clip_to_hands'};
+const POSTURE_GROUP = {stand:'stand', fold:'stand', lungeh:'stand', seated:'seat', squat:'seat', supine:'back', bridge:'back', shoulder:'back', prone:'belly', kneel:'knees', kneelup:'knees', child:'knees', lunge:'knees', plank:'hands', dog:'hands', arm:'hands', head:'head'};
+const LEAD_ADV = ['clip_adv_challenge', 'clip_adv_patience', 'clip_adv_trust'];
+const ADV_INVERSION = new Set(['headstand','tripodheadstand','forearmstand','handstand','headstandsplit','scorpion']);
+const ADV_ARM = new Set(['crow','crane','sidecrow','eightangle','flyingpigeon','firefly','koundinya1','flyingsplits','lsit','tolasana','peacock']);
+function leadFor(x, prev){
+  const have = id => VOICE_HAVE.has(id), m = META[x.id] || {lvl:1}, lvl = (sess.P.opts && sess.P.opts.level) || profile.level || 1;
+  const pickFrom = list => { const ok = list.filter(have).filter(id => id !== voice.lastLead); if (!ok.length) return null; const id = ok[Math.floor(Math.random()*ok.length)]; voice.lastLead = id; return id; };
+  // a pose above the usual level: a few words to arrive mentally first
+  if (m.lvl >= 3 || m.lvl > lvl){
+    const special = ADV_INVERSION.has(x.id) ? 'clip_adv_inversion' : ADV_ARM.has(x.id) ? 'clip_adv_armbalance' : m.lvl >= 3 && (m.tags.includes('backbend') || m.tags.includes('flex')) && Math.random() < .5 ? 'clip_adv_deep' : null;
+    if (special && have(special)) return special; const a = pickFrom(LEAD_ADV); if (a) return a;
+  }
+  if (!prev || sess.P.flow) return null; // flows move breath by breath: no time for a lead-in
+  let from = null, to = null; try { from = postureOf(prev.id); to = postureOf(x.id); } catch {}
+  if (to && POSTURE_GROUP[from] !== POSTURE_GROUP[to] && LEAD_POSTURE[to] && have(LEAD_POSTURE[to])) return LEAD_POSTURE[to];
+  return pickFrom(LEAD_GENERIC);
+}
 function voiceForItem(){
   if (!voiceOn || !sess || sess.remote) return;
   const x = sess.P.items[sess.i], prev = sess.P.items[sess.i - 1];
   if (prev && prev.id === x.id && prev.side && x.side && prev.side !== x.side) return voicePlay(['clip_otherside']);
   if (voice.said.has(x.id)) return VOICE_AGAIN.has(x.id) ? voicePlay(['again_' + x.id]) : voiceStop(); // a pose coming back gets its short line, not the whole script
-  voice.said.add(x.id); voicePlay([x.id]);
+  voice.said.add(x.id); const lead = leadFor(x, prev); voicePlay(lead ? [lead, x.id] : [x.id]);
 }
 function enterItemRemote(i){ sess.i = i; const x = sess.P.items[i]; pose = POSES.find(q => q.id===x.id); renderRail(); showReference(x.side==='left'); }
 function tick(){
