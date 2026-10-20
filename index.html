@@ -2301,7 +2301,7 @@ function moveAmount(A, B){
 function blobRef(R, b, cxTarget){
   const s = R.scale, pts = [...R.kp.map(p => p), R.head], n = pts.length;
   const c0 = {x: pts.reduce((a,p) => a + p.x, 0)/n, y: pts.reduce((a,p) => a + p.y, 0)/n};
-  const grow = 1 + 2.3*b, rad = SIL_BASE.head*s*grow; // the blob's radius comes from the grown head
+  const grow = 1 + 1.9*b, rad = SIL_BASE.head*s*grow; // the blob's radius comes from the grown head
   const ct = {x: cxTarget ?? c0.x, y: R.floor - rad - 2};                   // where the blob rests: on the mat
   const c = {x: c0.x + (ct.x - c0.x)*b, y: c0.y + (ct.y - c0.y)*b};
   const mv = p => ({...p, x: p.x + (c.x - p.x)*b, y: p.y + (c.y - p.y)*b});
@@ -2544,9 +2544,9 @@ function drawFlatBackHair(g, R, av){
 function drawFlatHead(g, R, av){
   const F = faceFrame(R), r = flatHeadR(R), h = F.h, s = R.scale, sgn = F.lx > .25 ? 1 : F.lx < -.25 ? -1 : 0, toward = F.toward;
   g.save(); g.translate(h.x, h.y); g.rotate(F.rot);
-  if (av.hair === 'bun'){ g.fillStyle = av.hairColor; g.beginPath(); g.arc(-sgn*r*.35, -r*1.05, r*.42, 0, Math.PI*2); g.fill(); }
+  if (av.hair === 'bun' && !(R.blob > .25)){ g.fillStyle = av.hairColor; g.beginPath(); g.arc(-sgn*r*.35, -r*1.05, r*.42, 0, Math.PI*2); g.fill(); }
   g.fillStyle = av.skin; g.beginPath(); g.ellipse(0, 0, r*.92, r, 0, 0, Math.PI*2); g.fill();
-  if (av.hair !== 'none'){
+  if (av.hair !== 'none' && !(R.blob > .25)){ // the hair fades out of the blob (no dark half-moon on it)
     g.save(); g.beginPath(); g.ellipse(0, 0, r*.92*1.06, r*1.06, 0, 0, Math.PI*2); g.clip(); g.fillStyle = av.hairColor;
     const yF = sgn ? -r*.45 : -r*.2, yB = sgn ? r*.35 : -r*.2;
     g.beginPath(); if (sgn){ g.moveTo(sgn*r*1.3, yF); g.lineTo(-sgn*r*1.3, yB); g.lineTo(-sgn*r*1.3, -r*1.3); g.lineTo(sgn*r*1.3, -r*1.3); } else g.rect(-r*1.3, -r*1.3, r*2.6, r*1.3 + yB); g.closePath(); g.fill();
@@ -2607,11 +2607,10 @@ function drawFlatFigure(g, R, av){
   const order = p => p.part==='head' || p.part==='neck' ? 9 : p.front ? 4 : (p.side && p.side===far) ? SUB[p.part] || 0
     : p.part==='upper' ? 1 : p.part==='torso' || p.part==='shoulders' ? 2 : p.part==='shin' || p.part==='foot' || p.part==='thigh' ? 3 + SUB[p.part] : p.part==='hips' || p.part==='seat' ? 3.5 : 4 + (SUB[p.part] || 0);
   const Kw = R.kp, hz = Kw[0] && Kw[0].w ? Kw[0].w[2] : null, nearSide = far === 'l' ? 'r' : far === 'r' ? 'l' : null;
-  const armFront = hz != null && nearSide && [nearSide === 'l' ? 7 : 8, nearSide === 'l' ? 9 : 10].some(i => Kw[i].w && Kw[i].w[2] < hz - .04);
+  const armFront = !(R.blob > 0) && hz != null && nearSide && [nearSide === 'l' ? 7 : 8, nearSide === 'l' ? 9 : 10].some(i => Kw[i].w && Kw[i].w[2] < hz - .04);
   const order0 = order;
   // the arm passes the side of the head, never across the face: keep a window around the face clear of it
-  const faceHole = (() => { if (!armFront) return null; const F = faceFrame(R), r = flatHeadR(R), sg = F.lx > .25 ? 1 : F.lx < -.25 ? -1 : 0;
-    const lx = sg*r*.42, ly = r*.12, c = Math.cos(F.rot), sn = Math.sin(F.rot); return {x: F.h.x + lx*c - ly*sn, y: F.h.y + lx*sn + ly*c, r: r*(sg ? .78 : .95)}; })();
+  const faceHole = null; // the nearer arm simply lies over the head, as it does from the side
   const orderF = p => armFront && p.side === nearSide && (p.part === 'upper' || p.part === 'fore' || p.part === 'hand') ? 9.5 : order0(p);
   for (const p of [...parts]) if (p.part === 'upper' && !(p.side && p.side === far)){ // second pass of the near upper arm, with a hole where the shoulder joint is
     const K = R.kp, sh = K[p.ks[0]], rr = sil.shoulder*R.scale*1.25;
@@ -2620,7 +2619,9 @@ function drawFlatFigure(g, R, av){
   const s = R.scale; g.lineJoin = 'round';
   const K0 = R.kp, hx = (K0[11].x + K0[12].x)/2, hy = (K0[11].y + K0[12].y)/2, sx = (K0[5].x + K0[6].x)/2, sy = (K0[5].y + K0[6].y)/2;
   const torsoFrame = {x: hx, y: hy, a: Math.atan2(sy - hy, sx - hx) + Math.PI/2}; // the torso's own up, from the hips to the shoulders
-  drawFlatBackHair(g, R, av);
+  const blobbing = R.blob > 0;
+  const clipBlob = blobbing && R.blob > .5; if (clipBlob){ const hr = flatHeadR(R), k = 1 + (1 - R.blob)*6; g.save(); g.beginPath(); g.arc(R.head.x, R.head.y, hr*k, 0, Math.PI*2); g.clip(); }
+  if (!blobbing || R.blob < .25) drawFlatBackHair(g, R, av);
   // a flat waistband: cut the round tops of the trousers along a line just above the hips. It fades out as the hips turn
   // edge-on (side views keep their rounded seat): the cut narrows to nothing as the hips close up on screen.
   // the same flat cut for the top of the shirt, along a line just above the shoulders
@@ -2629,7 +2630,7 @@ function drawFlatFigure(g, R, av){
     if (p.part === 'head'){ drawFlatHead(g, R, av); headDone = true; continue; }
     const isFar = !!(p.side && p.side === far);
     if (p.hole){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.arc(p.hole.x, p.hole.y, p.hole.r, 0, Math.PI*2, true); g.clip(); }
-    const overHead = faceHole && orderF(p) === 9.5; if (overHead){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.arc(faceHole.x, faceHole.y, faceHole.r, 0, Math.PI*2, true); g.clip(); }
+    const overHead = faceHole && orderF(p) === 9.5; if (overHead){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.moveTo(...faceHole[0]); for (const q of faceHole.slice(1)) g.lineTo(...q); g.closePath(); g.clip('evenodd'); }
     const unseen = R.live && p.ks && p.ks.some(i => R.kp[i].s < VIS); if (unseen) g.globalAlpha *= .35; // a limb the camera did not find is only a hint
     g.fillStyle = flatColor(av, p.part, isFar); p(g); g.fill();
     const clothed = p.part === 'torso' || p.part === 'shoulders' || (p.part === 'fore' && av.sleeves === 'long');
@@ -2646,6 +2647,7 @@ function drawFlatFigure(g, R, av){
     if (p.hole) g.restore();
   }
   if (!headDone) drawFlatHead(g, R, av);
+  if (clipBlob) g.restore();
 }
 function drawFigureScene(g, R, bg, ink, matColor){
   const S = R.S;
@@ -5460,7 +5462,7 @@ for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', (
 // ---------- boot ----------
 renderRail(); renderHist(); showReference();
 if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !profile.onboarded && !(() => { try { return localStorage.getItem('sama.welcomed'); } catch { return null; } })()) showWelcome();
-window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, browseSteps, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, selfTest: () => selfTestResult};
+window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, browseSteps, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, selfTest: () => selfTestResult};
 function retheme(){
   for (const k in THUMBS) delete THUMBS[k];
   if (lib.built && lib.pose && $('poseDlg').open) drawPd();
