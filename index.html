@@ -812,6 +812,7 @@ Savasana, 3 min"></textarea>
             <div class="arow flatonly"><span>Pattern</span><div class="segs" data-k="pattern"><button type="button" class="seg" data-v="none">Plain</button><button type="button" class="seg" data-v="dots">Dots</button><button type="button" class="seg" data-v="stripes">Stripes</button><button type="button" class="seg" data-v="zigzag">Zigzag</button><button type="button" class="seg" data-v="checks">Checks</button></div></div>
             <div class="arow flatonly"><span>Pattern colour</span><div class="swatches" data-k="patternColor"></div></div>
             <div class="arow"><span>Bottom</span><div class="segs" data-k="bottom"><button type="button" class="seg" data-v="leggings">Trousers</button><button type="button" class="seg" data-v="shorts">Shorts</button></div><div class="swatches" data-k="bottomColor"></div></div>
+            <div class="arow"><span>Trouser fit</span><div class="segs" data-k="fit"><button type="button" class="seg" data-v="fitted">Fitted</button><button type="button" class="seg" data-v="relaxed">Relaxed</button><button type="button" class="seg" data-v="wide">Wide</button></div></div>
             <div class="arow flatonly"><span>Beard</span><div class="segs" data-k="beard"><button type="button" class="seg" data-v="no">No</button><button type="button" class="seg" data-v="yes">Yes</button></div></div>
             <div class="arow flatonly"><span>Mat</span><div class="swatches" data-k="mat"></div></div>
           </div>
@@ -2392,7 +2393,7 @@ function drawSilhouetteScene(g, R, bg, ink, matColor){
 }
 
 // ---------- avatar: the same figure, but coloured and dressed the way the user chose ----------
-const AVATAR_DEFAULT = {v:2, mode:'flat', skin:'#C68B62', hair:'short', hairColor:'#2B1D16', build:'regular', top:'tank', topColor:'#3FC9B4', bottom:'leggings', bottomColor:'#214D4A', sleeves:'short', pattern:'dots', patternColor:'#1C2B2A', beard:'no', mat:'#E9B93A'};
+const AVATAR_DEFAULT = {v:2, mode:'flat', fit:'fitted', skin:'#C68B62', hair:'short', hairColor:'#2B1D16', build:'regular', top:'tank', topColor:'#3FC9B4', bottom:'leggings', bottomColor:'#214D4A', sleeves:'short', pattern:'dots', patternColor:'#1C2B2A', beard:'no', mat:'#E9B93A'};
 const AVATAR_CHOICES = {
   skin:['#F6D7C3','#E8B99A','#C68B62','#9E6240','#6E4330','#3E2A21'],
   hairColor:['#2B1D16','#5A3825','#A8703E','#D9B36B','#8C8C8C','#B23A2E'],
@@ -2428,7 +2429,7 @@ function flatPattern(g, kind, color, s, part, frame){
 }
 function flatColor(av, part, far){
   const dim = far ? .86 : 1, c = v => shade(v, dim);
-  if (part === 'thigh' || part === 'hips') return c(av.bottomColor);
+  if (part === 'thigh' || part === 'hips' || part === 'seat') return c(av.bottomColor);
   if (part === 'shin') return av.bottom === 'shorts' ? c(av.skin) : c(av.bottomColor);
   if (part === 'torso' || part === 'shoulders') return c(av.topColor);
   if (part === 'upper') return av.sleeves === 'long' ? c(av.topColor) : c(av.skin);
@@ -2480,11 +2481,25 @@ function drawFlatHead(g, R, av){
 }
 function drawFlatFigure(g, R, av){
   const sil = silFor(av); for (const k of ['thigh','shin','upper','fore']) sil[k] = sil[k].map(v => v*1.22); sil.hand *= 1.15; sil.foot *= 1.1; sil.neck *= 1.3;
+  // trouser fit: fuller legs, the feet untouched (shorts only widen the thigh)
+  const FIT = {fitted:[[1, 1], [1, 1]], relaxed:[[1.16, 1.22], [1.22, 1.3]], wide:[[1.3, 1.45], [1.5, 2.05]]}[av.fit] || [[1, 1], [1, 1]];
+  sil.thigh = sil.thigh.map((v, i) => v*FIT[0][i]); if (av.bottom !== 'shorts') sil.shin = sil.shin.map((v, i) => v*FIT[1][i]);
   const parts = silhouetteParts(R, sil);
+  { // the seat: trousers are one garment, so the tops of the legs join under the hips (less of it as the legs open, so no webbing)
+    const K = R.kp, s0 = R.scale, along = (h, k, f) => ({x: K[h].x + (K[k].x - K[h].x)*f, y: K[h].y + (K[k].y - K[h].y)*f});
+    const vL = [K[13].x - K[11].x, K[13].y - K[11].y], vR = [K[14].x - K[12].x, K[14].y - K[12].y];
+    const cosA = (vL[0]*vR[0] + vL[1]*vR[1]) / ((Math.hypot(...vL) || 1)*(Math.hypot(...vR) || 1)), spread = Math.acos(Math.max(-1, Math.min(1, cosA)))*180/Math.PI;
+    const f = Math.max(.05, Math.min(.34, .34 - spread/180*.42));
+    const seat = gg => { const a = along(11, 13, f), b = along(12, 14, f), c = {x: (a.x + b.x)/2, y: (a.y + b.y)/2}, hipC = {x: (K[11].x + K[12].x)/2, y: (K[11].y + K[12].y)/2};
+      const cr = {x: c.x + (c.x - hipC.x)*.12, y: c.y + (c.y - hipC.y)*.12}; // the crotch sits just below the line between the thighs
+      gg.beginPath(); gg.moveTo(K[11].x, K[11].y); gg.lineTo(a.x, a.y); gg.quadraticCurveTo(cr.x, cr.y, b.x, b.y); gg.lineTo(K[12].x, K[12].y); gg.closePath();
+      const r = sil.thigh[0]*s0*.9; gg.moveTo(a.x + r, a.y); gg.arc(a.x, a.y, r, 0, Math.PI*2); gg.moveTo(b.x + r, b.y); gg.arc(b.x, b.y, r, 0, Math.PI*2); };
+    seat.part = 'seat'; parts.push(seat);
+  }
   const zs = R.kp[5].w ? R.kp[5].w[2] : 0, zr = R.kp[6].w ? R.kp[6].w[2] : 0, far = zs > zr + .02 ? 'l' : zr > zs + .02 ? 'r' : null;
   // back to front: far limbs, near leg, hips and torso (the shirt sits over the legs), near arm, head
   const LEG = new Set(['thigh','shin','foot']), ARM = new Set(['upper','fore','hand']);
-  const order = p => p.part==='head' || p.part==='neck' ? 6 : (p.side && p.side===far) ? 0 : LEG.has(p.part) ? 1 : p.part==='hips' ? 2 : ARM.has(p.part) ? 4 : 3;
+  const order = p => p.part==='head' || p.part==='neck' ? 6 : (p.side && p.side===far) ? 0 : LEG.has(p.part) ? 1 : p.part==='hips' || p.part==='seat' ? 2 : ARM.has(p.part) ? 4 : 3;
   const s = R.scale; g.lineJoin = 'round';
   const K0 = R.kp, hx = (K0[11].x + K0[12].x)/2, hy = (K0[11].y + K0[12].y)/2, sx = (K0[5].x + K0[6].x)/2, sy = (K0[5].y + K0[6].y)/2;
   const torsoFrame = {x: hx, y: hy, a: Math.atan2(sy - hy, sx - hx) + Math.PI/2}; // the torso's own up, from the hips to the shoulders
