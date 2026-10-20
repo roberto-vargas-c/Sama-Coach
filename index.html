@@ -2511,7 +2511,7 @@ function drawSilhouetteScene(g, R, bg, ink, matColor){
 }
 
 // ---------- avatar: the same figure, but coloured and dressed the way the user chose ----------
-const AVATAR_DEFAULT = {v:2, mode:'flat', fit:'fitted', skin:'#C68B62', hair:'short', hairColor:'#2B1D16', build:'regular', top:'tank', topColor:'#F7F5F0', bottom:'leggings', bottomColor:'#2F4A8A', sleeves:'short', pattern:'stripes', patternColor:'#2F5BD3', beard:'no', mat:'#EE7A2E'}; // the main character: white shirt with blue stripes, blue trousers, orange mat
+const AVATAR_DEFAULT = {v:3, mode:'flat', fit:'fitted', skin:'#C68B62', hair:'short', hairColor:'#2B1D16', build:'regular', top:'tank', topColor:'#F7F5F0', bottom:'leggings', bottomColor:'#2F4A8A', sleeves:'short', pattern:'stripes', patternColor:'#2F5BD3', beard:'no', mat:'#EE7A2E'}; // the main character: white shirt with blue stripes, blue trousers, orange mat
 const AVATAR_CHOICES = {
   skin:['#F6D7C3','#E8B99A','#C68B62','#9E6240','#6E4330','#3E2A21'],
   hairColor:['#2B1D16','#5A3825','#A8703E','#D9B36B','#8C8C8C','#B23A2E'],
@@ -2523,6 +2523,11 @@ const AVATAR_CHOICES = {
 const BUILD = {slim:{all:.9}, regular:{all:1}, soft:{all:1.06, hip:1.2, thigh:1.14, torso:1.06}, strong:{all:1.14, shoulder:1.25, upper:1.2, fore:1.1}};
 let avatar = {...AVATAR_DEFAULT};
 try { const a = JSON.parse(localStorage.getItem('sama.avatar')||'null'); if (a){ avatar = {...AVATAR_DEFAULT, ...a}; if (!a.v){ avatar.v = 2; if (a.mode === 'silhouette' || !a.mode) avatar.mode = 'flat'; if (a.mode === 'avatar'){ avatar.sleeves = a.top === 'tee' ? 'short' : 'none'; avatar.pattern = 'none'; } } } } catch {}
+// version 3: everyone moves to the new main character's clothes (white shirt with blue stripes, blue trousers, orange mat);
+// skin, hair, build, fit and sleeves stay as chosen
+const NEW_LOOK = {topColor:'#F7F5F0', pattern:'stripes', patternColor:'#2F5BD3', bottomColor:'#2F4A8A', mat:'#EE7A2E', bottom:'leggings'};
+function migrateAvatar(a, stamp = true){ if ((a.v || 0) >= 3) return false; Object.assign(a, NEW_LOOK, {v:3}); if (stamp) a.updatedAt = Date.now(); return true; }
+if (migrateAvatar(avatar)) try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {}
 avatar.mode = 'flat'; // the illustration is the only figure style
 function silFor(av){
   const b = BUILD[av.build] || BUILD.regular, f = k => (b[k] || 1) * b.all, out = {};
@@ -5480,7 +5485,8 @@ async function cloudPull(){
     if (r.saved && r.saved.length){ const names = new Set(getSaved().map(s => s.name)); const all = [...getSaved(), ...r.saved.filter(s => !names.has(s.name))].slice(0, 12); try { localStorage.setItem(SK, JSON.stringify(all)); } catch {} }
     // the look: whichever side changed it last wins (an account look from before the stamp only fills in a fresh device)
     const cloudT = (r.avatar && r.avatar.updatedAt) || 0, localT = avatar.updatedAt || 0;
-    if (r.avatar && (cloudT > localT || (!cloudT && !localT && !localStorage.getItem('sama.avatar')))){ Object.assign(avatar, r.avatar); try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {} retheme(); try { window.__syncLook && window.__syncLook(); } catch {} }
+    if (r.avatar && (r.avatar.v || 0) < 3) migrateAvatar(r.avatar, false); // an older look in the account moves to the new clothes too (keeping its date, so a newer look here still wins)
+    if (r.avatar && (cloudT > localT || (!cloudT && !localT && !localStorage.getItem('sama.avatar')))){ Object.assign(avatar, r.avatar); migrateAvatar(avatar); try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {} retheme(); try { window.__syncLook && window.__syncLook(); } catch {} }
     else cloudPush(); // this device's look is the newer one: put it in the account
     if (!profile.name && AUTH.user.displayName) profile.name = AUTH.user.displayName.split(' ')[0];
     saveProfile({}); renderHist(); renderSaved(); if (!$('viewProfile').hidden) renderProfile();
