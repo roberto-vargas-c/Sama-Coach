@@ -2482,9 +2482,14 @@ function drawFlatHead(g, R, av){
 function drawFlatFigure(g, R, av){
   const sil = silFor(av); for (const k of ['thigh','shin','upper','fore']) sil[k] = sil[k].map(v => v*1.22); sil.hand *= 1.15; sil.foot *= 1.1; sil.neck *= 1.3;
   // trouser fit: fuller legs, the feet untouched (shorts only widen the thigh)
-  const FIT = {fitted:[[1, 1], [1, 1]], relaxed:[[1.16, 1.22], [1.22, 1.3]], wide:[[1.3, 1.45], [1.5, 2.05]]}[av.fit] || [[1, 1], [1, 1]];
+  const FIT = {fitted:[[1, 1], [1, 1]], relaxed:[[1.16, 1.22], [1.22, 1.28]], wide:[[1.3, 1.45], [1.5, 1.75]]}[av.fit] || [[1, 1], [1, 1]];
   sil.thigh = sil.thigh.map((v, i) => v*FIT[0][i]); if (av.bottom !== 'shorts') sil.shin = sil.shin.map((v, i) => v*FIT[1][i]);
   const parts = silhouetteParts(R, sil);
+  if (av.bottom !== 'shorts' && av.fit && av.fit !== 'fitted'){ // looser trousers end just above the ankle, so the feet show under the hem
+    const K = R.kp, hem = av.fit === 'wide' ? .88 : .93;
+    parts.forEach((p, i) => { if (p.part !== 'shin' || !p.ks) return; const [kn, an] = p.ks, a = K[kn], b = K[an], e = {x: a.x + (b.x - a.x)*hem, y: a.y + (b.y - a.y)*hem};
+      const q = gg => taperPath(gg, a, e, sil.shin[0]*R.scale, sil.shin[1]*R.scale); q.part = 'shin'; q.side = p.side; q.ks = p.ks; parts[i] = q; });
+  }
   { // the seat: trousers are one garment, so the tops of the legs join under the hips (less of it as the legs open, so no webbing)
     const K = R.kp, s0 = R.scale, along = (h, k, f) => ({x: K[h].x + (K[k].x - K[h].x)*f, y: K[h].y + (K[k].y - K[h].y)*f});
     const vL = [K[13].x - K[11].x, K[13].y - K[11].y], vR = [K[14].x - K[12].x, K[14].y - K[12].y];
@@ -2499,7 +2504,7 @@ function drawFlatFigure(g, R, av){
   const zs = R.kp[5].w ? R.kp[5].w[2] : 0, zr = R.kp[6].w ? R.kp[6].w[2] : 0, far = zs > zr + .02 ? 'l' : zr > zs + .02 ? 'r' : null;
   // back to front: far limbs; the near upper arm (its shoulder end hides behind the shirt); the shirt; the trousers over it
   // (shin under thigh, so the knee reads as the end of the thigh); the near arm again minus its shoulder; the head
-  const SUB = {shin:.1, foot:.2, thigh:.3, upper:.4, fore:.5, hand:.6};
+  const SUB = {foot:.05, shin:.1, thigh:.3, upper:.4, fore:.5, hand:.6}; // feet first, so the trouser hems fall over them
   const order = p => p.part==='head' || p.part==='neck' ? 9 : p.front ? 4 : (p.side && p.side===far) ? SUB[p.part] || 0
     : p.part==='upper' ? 1 : p.part==='torso' || p.part==='shoulders' ? 2 : p.part==='shin' || p.part==='foot' || p.part==='thigh' ? 3 + SUB[p.part] : p.part==='hips' || p.part==='seat' ? 3.5 : 4 + (SUB[p.part] || 0);
   for (const p of [...parts]) if (p.part === 'upper' && !(p.side && p.side === far)){ // second pass of the near upper arm, with a hole where the shoulder joint is
