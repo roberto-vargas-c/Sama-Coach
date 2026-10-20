@@ -2431,7 +2431,7 @@ function flatColor(av, part, far){
   if (part === 'thigh' || part === 'hips') return c(av.bottomColor);
   if (part === 'shin') return av.bottom === 'shorts' ? c(av.skin) : c(av.bottomColor);
   if (part === 'torso' || part === 'shoulders') return c(av.topColor);
-  if (part === 'upper') return av.sleeves === 'none' ? c(av.skin) : c(av.topColor);
+  if (part === 'upper') return av.sleeves === 'long' ? c(av.topColor) : c(av.skin);
   if (part === 'fore') return av.sleeves === 'long' ? c(av.topColor) : c(av.skin);
   return c(av.skin);
 }
@@ -2482,7 +2482,9 @@ function drawFlatFigure(g, R, av){
   const sil = silFor(av); for (const k of ['thigh','shin','upper','fore']) sil[k] = sil[k].map(v => v*1.22); sil.hand *= 1.15; sil.foot *= 1.1; sil.neck *= 1.3;
   const parts = silhouetteParts(R, sil);
   const zs = R.kp[5].w ? R.kp[5].w[2] : 0, zr = R.kp[6].w ? R.kp[6].w[2] : 0, far = zs > zr + .02 ? 'l' : zr > zs + .02 ? 'r' : null;
-  const order = p => p.part==='head' || p.part==='neck' ? 3 : (p.side && p.side===far) ? 0 : p.side ? 2 : 1;
+  // back to front: far limbs, near leg, hips and torso (the shirt sits over the legs), near arm, head
+  const LEG = new Set(['thigh','shin','foot']), ARM = new Set(['upper','fore','hand']);
+  const order = p => p.part==='head' || p.part==='neck' ? 6 : (p.side && p.side===far) ? 0 : LEG.has(p.part) ? 1 : p.part==='hips' ? 2 : ARM.has(p.part) ? 4 : 3;
   const s = R.scale; g.lineJoin = 'round';
   const K0 = R.kp, hx = (K0[11].x + K0[12].x)/2, hy = (K0[11].y + K0[12].y)/2, sx = (K0[5].x + K0[6].x)/2, sy = (K0[5].y + K0[6].y)/2;
   const torsoFrame = {x: hx, y: hy, a: Math.atan2(sy - hy, sx - hx) + Math.PI/2}; // the torso's own up, from the hips to the shoulders
@@ -2492,10 +2494,14 @@ function drawFlatFigure(g, R, av){
     const isFar = !!(p.side && p.side === far);
     const unseen = R.live && p.ks && p.ks.some(i => R.kp[i].s < VIS); if (unseen) g.globalAlpha *= .35; // a limb the camera did not find is only a hint
     g.fillStyle = flatColor(av, p.part, isFar); p(g); g.fill();
-    const clothed = p.part === 'torso' || p.part === 'shoulders' || (p.part === 'upper' && av.sleeves !== 'none') || (p.part === 'fore' && av.sleeves === 'long');
-    if (clothed){
-      const K = R.kp, frame = p.ks && p.ks.length > 1 ? {x: K[p.ks[0]].x, y: K[p.ks[0]].y, a: Math.atan2(K[p.ks[1]].y - K[p.ks[0]].y, K[p.ks[1]].x - K[p.ks[0]].x) - Math.PI/2} : torsoFrame;
-      flatPattern(g, av.pattern, isFar ? shade(av.patternColor, .86) : av.patternColor, s, p, frame);
+    const clothed = p.part === 'torso' || p.part === 'shoulders' || (p.part === 'fore' && av.sleeves === 'long');
+    const K = R.kp, frameOf = q => q.ks && q.ks.length > 1 ? {x: K[q.ks[0]].x, y: K[q.ks[0]].y, a: Math.atan2(K[q.ks[1]].y - K[q.ks[0]].y, K[q.ks[1]].x - K[q.ks[0]].x) - Math.PI/2} : torsoFrame;
+    if (clothed) flatPattern(g, av.pattern, isFar ? shade(av.patternColor, .86) : av.patternColor, s, p, frameOf(p));
+    if (p.part === 'upper' && av.sleeves !== 'none' && p.ks){ // a sleeve: wider than the arm at the shoulder, ending in a slight flare
+      const a = K[p.ks[0]], b = K[p.ks[1]], long = av.sleeves === 'long', f = long ? 1 : .58, e = {x: a.x + (b.x - a.x)*f, y: a.y + (b.y - a.y)*f}, r = sil.upper[0]*s;
+      const sleeve = gg => taperPath(gg, a, e, r*1.42, r*(long ? 1.04 : 1.3));
+      g.fillStyle = isFar ? shade(av.topColor, .86) : av.topColor; sleeve(g); g.fill();
+      flatPattern(g, av.pattern, isFar ? shade(av.patternColor, .86) : av.patternColor, s, sleeve, frameOf(p));
     }
     if (unseen) g.globalAlpha /= .35;
   }
