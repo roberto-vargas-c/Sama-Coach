@@ -559,7 +559,7 @@ body.tv #viewCoach{display:none!important}
 .fold[open] .chev{transform:rotate(-135deg);margin-bottom:-4px}
 .fold[open]>summary{margin-bottom:4px}
 #cmCalendar .pcard{max-width:680px;margin:0 auto;cursor:default}
-.btn.coffee{background:#FFDD00;color:#1E1A17;border-color:#F2CF00;font-weight:600}.btn.coffee:hover{filter:brightness(.97)}
+.btn.paypal{background:#FFC439;color:#111;border-color:#F2B52A;font-weight:600;gap:8px}.btn.paypal:hover{filter:brightness(.97)}
 .cal{display:flex;flex-direction:column;gap:8px}
 .calhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .calhead b{font-size:15px}
@@ -939,8 +939,8 @@ Savasana, 3 min"></textarea>
         </details>
         <div class="pcard" id="coffeeCard" hidden>
           <h2>Support Sama</h2>
-          <p class="hint">Sama is free, without ads, and made by one person. If it helps your practice, you can buy me a coffee.</p>
-          <div class="crow"><button class="btn coffee" id="coffeeBtn" type="button"><span aria-hidden="true">☕</span> Buy me a coffee</button></div>
+          <p class="hint">Sama is free, without ads, and made by one person. If it helps your practice, you can support it with a small donation.</p>
+          <div class="crow"><button class="btn paypal" id="coffeeBtn" type="button"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="#003087" d="M7.1 21.3H3.6a.5.5 0 0 1-.5-.6L5.9 3.2c.1-.4.4-.7.8-.7h6.4c3.3 0 5.4 1.6 4.9 4.9-.6 3.8-3.1 5.4-6.6 5.4H9.6c-.4 0-.7.3-.8.7z"/><path fill="#0079C1" d="M19.2 8.2c-.6 3.6-3 5.4-6.6 5.4h-1.4c-.4 0-.7.3-.8.7l-1 6.4-.2 1.1a.5.5 0 0 0 .5.6h3c.4 0 .7-.3.7-.6l.6-3.9c.1-.4.4-.6.7-.6h.5c3 0 5.2-1.2 5.8-4.7.3-1.6.1-2.9-.8-3.7"/></svg> Donate with PayPal</button></div>
         </div>
         <div class="pcard">
           <h2>Account</h2>
@@ -3417,7 +3417,7 @@ async function openVideo(file){
 // ---------- movement recordings: the skeleton between poses in a practice with the camera on (for better transitions) ----------
 // Each recording runs from the moment the next pose is called until three seconds into its hold, ~15 frames a second.
 // Kept in this browser (IndexedDB) until downloaded; never video, never uploaded.
-// donations: the button shows once the Buy Me a Coffee page exists (set the link here)
+// donations through PayPal: the card shows once the PayPal.Me link is set here (e.g. https://paypal.me/yourname)
 const COFFEE_URL = '';
 (function(){ const card = $('coffeeCard'); if (!card || !COFFEE_URL) return; card.hidden = false;
   $('coffeeBtn').addEventListener('click', () => { if (window.SamaNative && window.SamaNative.openUrl) window.SamaNative.openUrl(COFFEE_URL); else window.open(COFFEE_URL, '_blank', 'noopener'); }); })();
