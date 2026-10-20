@@ -645,6 +645,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
           <div class="arow"><span>Transition</span><div class="segs" data-k="trans"><button type="button" class="seg" data-v="blob">Blob</button><button type="button" class="seg" data-v="moves">Movement</button></div></div>
           <div class="arow"><span>Movement</span><div class="segs" data-k="pace"><button type="button" class="seg" data-v="calm">Calm</button><button type="button" class="seg" data-v="flowing">Flowing</button><button type="button" class="seg" data-v="quick">Quick</button></div></div>
           <div class="arow"><span>Style</span><div class="segs" data-k="mode"><button type="button" class="seg" data-v="flat">Illustration</button><button type="button" class="seg" data-v="silhouette">Silhouette</button><button type="button" class="seg" data-v="line">Line</button><button type="button" class="seg" data-v="sketch">Sketch</button><button type="button" class="seg" data-v="avatar">My avatar</button></div></div>
+          <div class="arow"><span>Scene</span><div class="segs" data-k="sceneset"><button type="button" class="seg" data-v="plain">Plain</button><button type="button" class="seg" data-v="studio">Studio</button><button type="button" class="seg" data-v="beach">Beach</button><button type="button" class="seg" data-v="living">Living room</button><button type="button" class="seg" data-v="park">Park</button><button type="button" class="seg" data-v="mountains">Mountains</button><button type="button" class="seg" data-v="night">Night rooftop</button></div></div>
           <div class="arow"><span>Voice guide in practices</span><div class="segs" data-k="voiceset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
           <div class="arow"><span>Background music</span><div class="segs" data-k="musicset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
           <div class="arow"><span>Camera shows</span><div class="segs" data-k="camview"><button type="button" class="seg" data-v="avatar">Me as my figure</button><button type="button" class="seg" data-v="skeleton">Video + skeleton</button></div></div>
@@ -2699,7 +2700,103 @@ function sizeCanvas(w, h){
 function drawScene(g, R){ drawFigureScene(g, R, css('--figbg'), css('--fig'), css('--mat')); }
 let refMirror = false, curRef = null, tween = null;
 function cancelTween(){ if (tween){ cancelAnimationFrame(tween.raf); tween = null; } }
-function drawSampleScene(){ if (curRef) drawScene(ctx, curRef); }
+// ---------- scenes: flat vector environments behind the figure, drawn in the same style (no outlines, flat colour) ----------
+// Everything is laid out on the 720 stage around the floor line the figures stand on, and painted generously past the
+// edges so the camera stage (any aspect ratio) and a shifted floor never show a gap.
+const SCENES = {plain:'Plain', studio:'Studio', beach:'Beach', living:'Living room', park:'Park', mountains:'Mountains', night:'Night rooftop'};
+let scene = 'plain'; try { const v = localStorage.getItem('sama.scene'); if (SCENES[v]) scene = v; } catch {}
+const SCENE_FLOOR = 720*.84;
+function drawEnvironment(g, kind, floorY = SCENE_FLOOR){
+  if (!kind || kind === 'plain') return false;
+  const F = floorY, X0 = -500, X1 = 1220, Y0 = -900, Y1 = 1700;
+  const box = (c, x, y, w, h) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  const poly = (c, pts) => { g.fillStyle = c; g.beginPath(); g.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i+1]); g.closePath(); g.fill(); };
+  const dot = (c, x, y, r) => { g.fillStyle = c; g.beginPath(); g.arc(x, y, r, 0, Math.PI*2); g.fill(); };
+  const ell = (c, x, y, rx, ry, a = 0) => { g.fillStyle = c; g.beginPath(); g.ellipse(x, y, rx, ry, a, 0, Math.PI*2); g.fill(); };
+  const rr = (c, x, y, w, h, r) => { g.fillStyle = c; roundRectOn(g, x, y, w, h, r); g.fill(); };
+  const hills = (c, base, amp, phase, wl) => { g.fillStyle = c; g.beginPath(); g.moveTo(X0, Y1); for (let x = X0; x <= X1; x += 12) g.lineTo(x, base - amp*(.5 + .5*Math.sin((x + phase)/wl))); g.lineTo(X1, Y1); g.closePath(); g.fill(); };
+  const plant = (x, y, s) => { // a potted plant: terracotta pot, broad flat leaves
+    for (const [a, l, c] of [[-1.9, 70, '#2F7D5B'], [-1.3, 86, '#3E9468'], [-.6, 74, '#2F7D5B'], [-2.5, 60, '#3E9468'], [-1.0, 60, '#4FA877']]) ell(c, x + Math.cos(a)*l*s*.55, y - 40*s + Math.sin(a)*l*s*.55, 14*s, l*s*.5, a + Math.PI/2);
+    poly('#C8664A', [x - 28*s, y - 46*s, x + 28*s, y - 46*s, x + 20*s, y, x - 20*s, y]); box('#B1573D', x - 30*s, y - 52*s, 60*s, 10*s);
+  };
+  g.save();
+  if (kind === 'studio'){
+    const wf = F - 78;
+    box('#F3E6D3', X0, Y0, X1 - X0, wf - Y0);                        // wall
+    box('#E7D5BC', X0, wf - 14, X1 - X0, 14);                         // skirting
+    box('#D9A66B', X0, wf, X1 - X0, Y1 - wf);                          // wooden floor
+    g.fillStyle = '#C8925A'; for (let y = wf + 18, i = 0; y < Y1; y += 22 + i*3, i++){ g.fillRect(X0, y, X1 - X0, 2); for (let x = X0 + (i % 2)*90; x < X1; x += 180) g.fillRect(x, y - 20 - i*3, 2, 20 + i*3); }
+    // arched window with the light it throws on the floor
+    const wx = 450, ww = 190, wt = 60, wb = wf - 60;
+    g.fillStyle = '#FFF8EE'; g.beginPath(); g.moveTo(wx, wb); g.lineTo(wx, wt + ww/2); g.arc(wx + ww/2, wt + ww/2, ww/2, Math.PI, 0); g.lineTo(wx + ww, wb); g.closePath(); g.fill();
+    g.fillStyle = '#CFE6E8'; g.beginPath(); g.moveTo(wx + 12, wb - 12); g.lineTo(wx + 12, wt + ww/2); g.arc(wx + ww/2, wt + ww/2, ww/2 - 12, Math.PI, 0); g.lineTo(wx + ww - 12, wb - 12); g.closePath(); g.fill();
+    box('#FFF8EE', wx + ww/2 - 4, wt + 10, 8, wb - wt - 20); box('#FFF8EE', wx + 10, (wt + wb)/2 + 30, ww - 20, 8);
+    poly('rgba(255,250,235,.38)', [wx + 10, wb, wx + ww - 10, wb, wx + ww + 60, F + 80, wx - 120, F + 80]);
+    plant(92, wf + 6, 1.15);
+    for (const [x, c] of [[640, '#5E9A8F'], [672, '#E07A5F'], [700, '#7A6FA8']]){ rr(c, x - 14, wf - 92, 28, 98, 14); dot(shade(c, .85), x, wf - 78, 9); } // rolled mats
+  } else if (kind === 'beach'){
+    const sea = F - 160, sand = F - 72;
+    box('#F9C9A2', X0, Y0, X1 - X0, sea - Y0); box('#FBD9B6', X0, sea - 170, X1 - X0, 170); box('#FCE6C9', X0, sea - 70, X1 - X0, 70);
+    dot('#FDEBC8', 560, sea - 120, 92); dot('#F6A04D', 560, sea - 120, 62);
+    box('#3FA7B5', X0, sea, X1 - X0, sand - sea);
+    box('#F7B26A', 470, sea + 6, 180, 6); box('#F7B26A', 500, sea + 20, 120, 5); // sun on the water
+    g.fillStyle = '#7FD0D6'; for (let y = sea + 26, i = 0; y < sand - 6; y += 18, i++) for (let x = X0 + (i % 2)*40; x < X1; x += 120){ g.beginPath(); g.ellipse(x, y, 22, 3, 0, 0, Math.PI*2); g.fill(); }
+    poly('#FFFFFF', [360, sea - 4, 360, sea - 62, 396, sea - 4]); poly('#E07A5F', [354, sea - 4, 402, sea - 4, 396, sea + 6, 360, sea + 6]); // a sailboat
+    g.fillStyle = '#F2D29B'; g.beginPath(); g.moveTo(X0, sand + 10); for (let x = X0; x <= X1; x += 20) g.lineTo(x, sand + 4*Math.sin(x/40)); g.lineTo(X1, Y1); g.lineTo(X0, Y1); g.closePath(); g.fill();
+    g.fillStyle = '#E3BE83'; for (let i = 0; i < 40; i++){ const x = (i*137) % 900 - 90, y = sand + 30 + (i*61) % 160; g.fillRect(x, y, 4, 2); }
+    // palm
+    g.strokeStyle = '#8A5A3B'; g.lineCap = 'round'; g.lineWidth = 18; g.beginPath(); g.moveTo(70, F + 20); g.quadraticCurveTo(40, F - 160, 120, sea - 150); g.stroke();
+    for (const a of [-2.8, -2.3, -1.7, -1.1, -.5, .1]) ell('#2E8B57', 120 + Math.cos(a)*62, sea - 150 + Math.sin(a)*34 + 18, 72, 15, a);
+    dot('#6B4429', 112, sea - 140, 9); dot('#6B4429', 128, sea - 136, 9);
+    g.strokeStyle = '#7A6A64'; g.lineWidth = 3; for (const [x, y] of [[250, 120], [290, 96]]){ g.beginPath(); g.moveTo(x - 12, y); g.quadraticCurveTo(x - 6, y - 8, x, y); g.quadraticCurveTo(x + 6, y - 8, x + 12, y); g.stroke(); } // gulls
+  } else if (kind === 'living'){
+    const wf = F - 86;
+    box('#D8E0CF', X0, Y0, X1 - X0, wf - Y0); box('#C9D3BF', X0, wf - 12, X1 - X0, 12);
+    box('#B9875A', X0, wf, X1 - X0, Y1 - wf); g.fillStyle = '#A97A4E'; for (let y = wf + 20; y < Y1; y += 26) g.fillRect(X0, y, X1 - X0, 2);
+    ell('#D86F4C', 360, F + 24, 330, 54); ell('#E59A6E', 360, F + 24, 280, 40); ell('#D86F4C', 360, F + 24, 230, 28); // rug
+    // sofa
+    rr('#4F6F8C', -40, wf - 150, 250, 92, 26); rr('#5E7F9C', -40, wf - 72, 270, 56, 18); rr('#4F6F8C', 196, wf - 104, 46, 92, 18);
+    rr('#F2C14E', 20, wf - 128, 54, 50, 14); rr('#E07A5F', 90, wf - 124, 54, 46, 14); box('#3E566C', 0, wf - 16, 10, 16); box('#3E566C', 220, wf - 16, 10, 16);
+    // framed art
+    rr('#FFF8EE', 50, 120, 150, 110, 6); box('#F4D7B5', 62, 132, 126, 86); dot('#E07A5F', 105, 172, 26); box('#3FA7B5', 120, 180, 50, 30);
+    // floor lamp
+    box('#2D2622', 640, 150, 6, wf - 150); ell('#2D2622', 643, wf, 34, 8); poly('#F2C14E', [610, 150, 676, 150, 664, 92, 622, 92]);
+    poly('rgba(255,236,190,.35)', [612, 150, 674, 150, 740, wf, 546, wf]);
+    plant(560, wf + 4, .95);
+  } else if (kind === 'park'){
+    box('#CDEBF2', X0, Y0, X1 - X0, F - Y0);
+    for (const [x, y, s] of [[130, 110, 1], [520, 80, 1.3], [700, 150, .8]]){ ell('#FFFFFF', x, y, 50*s, 18*s); ell('#FFFFFF', x + 28*s, y - 12*s, 32*s, 20*s); ell('#FFFFFF', x - 26*s, y - 6*s, 26*s, 14*s); }
+    hills('#A9D190', F - 150, 60, 0, 120); hills('#8CC27A', F - 96, 40, 200, 90);
+    for (const [x, s, c] of [[60, 1.2, '#4E9A5B'], [150, .9, '#5FAE6A'], [610, 1.1, '#4E9A5B'], [690, .85, '#5FAE6A']]){ box('#8A5A3B', x - 7*s, F - 96 - 80*s, 14*s, 80*s + 20); dot(c, x, F - 96 - 110*s, 52*s); dot(shade(c, 1.12), x - 16*s, F - 96 - 126*s, 28*s); }
+    box('#86BE74', X0, F - 64, X1 - X0, Y1); g.fillStyle = '#76AE64'; for (let i = 0; i < 60; i++){ const x = (i*97) % 920 - 100, y = F - 50 + (i*53) % 180; g.fillRect(x, y, 3, 9); }
+    for (let i = 0; i < 14; i++){ const x = (i*151) % 860 - 70, y = F - 40 + (i*71) % 140; dot(['#F2C14E', '#FFFFFF', '#E07A5F'][i % 3], x, y, 5); }
+  } else if (kind === 'mountains'){
+    box('#DCE9F5', X0, Y0, X1 - X0, F - Y0); box('#E8F0F7', X0, F - 260, X1 - X0, 120);
+    dot('#FDF3D8', 590, 120, 36);
+    const peaks = (c, base, pts) => { g.fillStyle = c; g.beginPath(); g.moveTo(X0, Y1); g.lineTo(X0, base); for (const [x, y] of pts) g.lineTo(x, y); g.lineTo(X1, base); g.lineTo(X1, Y1); g.closePath(); g.fill(); };
+    peaks('#B4C3DE', F - 170, [[-60, F - 240], [80, F - 330], [210, F - 250], [330, F - 310], [470, F - 230], [600, F - 340], [760, F - 240]]);
+    peaks('#8698C3', F - 130, [[-40, F - 170], [120, F - 270], [260, F - 170], [390, F - 240], [520, F - 160], [660, F - 280], [800, F - 170]]);
+    for (const [x, y] of [[120, F - 270], [390, F - 240], [660, F - 280]]) poly('#FFFFFF', [x, y, x - 30, y + 36, x - 10, y + 28, x, y + 40, x + 12, y + 28, x + 32, y + 38]);
+    box('#9CC9DB', X0, F - 130, X1 - X0, 54); box('#B6D9E6', 40, F - 112, 160, 4); box('#B6D9E6', 420, F - 100, 220, 4);
+    box('#A9B98A', X0, F - 76, X1 - X0, Y1); g.fillStyle = '#98A979'; for (let i = 0; i < 40; i++){ const x = (i*113) % 900 - 80, y = F - 60 + (i*47) % 170; g.fillRect(x, y, 10, 3); }
+    ell('#8E8A86', 640, F - 66, 46, 22); ell('#A39F9A', 628, F - 74, 30, 14); ell('#8E8A86', 70, F - 60, 34, 16);
+  } else if (kind === 'night'){
+    box('#1E2A4A', X0, Y0, X1 - X0, F - Y0); box('#26345A', X0, F - 300, X1 - X0, 300);
+    for (let i = 0; i < 46; i++){ const x = (i*157) % 760 - 20, y = (i*89) % 260 + 10; dot('#F6E7C1', x, y, i % 5 ? 1.6 : 2.6); }
+    dot('#F6E7C1', 570, 110, 40); dot('#1E2A4A', 586, 98, 36); // crescent moon
+    let x = -40; const tall = [120, 190, 150, 230, 140, 260, 170, 210, 130, 180];
+    for (let i = 0; i < 10; i++){ const w = 70 + (i*23) % 40, h = tall[i]; box(i % 2 ? '#2C3A5E' : '#33436B', x, F - 90 - h, w, h + 10);
+      g.fillStyle = '#F2C14E'; for (let yy = F - 80 - h; yy < F - 100; yy += 22) for (let xx = x + 10; xx < x + w - 10; xx += 18) if (((xx*7 + yy*3 + i) % 5) < 2) g.fillRect(xx, yy, 7, 9); x += w + 6; }
+    box('#3A3550', X0, F - 84, X1 - X0, Y1); g.fillStyle = '#332E48'; for (let y = F - 64; y < Y1; y += 24) g.fillRect(X0, y, X1 - X0, 2);
+    box('#4A4466', X0, F - 96, X1 - X0, 14); // parapet
+    g.strokeStyle = '#4A4466'; g.lineWidth = 2; g.beginPath(); g.moveTo(-20, 150); g.quadraticCurveTo(180, 230, 360, 160); g.quadraticCurveTo(540, 230, 740, 150); g.stroke();
+    for (let i = 0; i <= 16; i++){ const t = i/16, px = -20 + 760*t, py = t < .5 ? 150 + 80*4*t*(.5 - t)*1.6 + 10*(1 - Math.abs(.25 - t)*4) : 160 + 80*4*(t - .5)*(1 - t)*1.6; dot(['#F2C14E', '#F6E7C1', '#E07A5F'][i % 3], px, py + 8, 5); }
+  }
+  g.restore();
+  return true;
+}
+
+function drawSampleScene(){ if (!curRef) return; if (drawEnvironment(ctx, scene)) drawFigureScene(ctx, curRef, 'transparent', css('--fig'), css('--mat')); else drawScene(ctx, curRef); }
 // the reference figure as a small inset while the stage shows you (camera, photo or clip)
 function drawInset(){
   if (!showInset || !pose) return;
@@ -2816,6 +2913,7 @@ function thumbDraw(id, size = 64, mirrored = false){
 }
 function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 // ---------- you as your figure: the detected joints dressed as the illustrated avatar ----------
+let liveFloor = null; // where the scene's floor sits under you on the camera stage
 let liveScale = null; // smoothed body scale, so the figure does not breathe with detection noise
 function liveRef(K, W, H){
   const f = 720/Math.max(W, H), S = 720, k0 = K.map(p => ({x:p.x*f, y:p.y*f, s:p.s, w:p.w}));
@@ -2893,9 +2991,14 @@ function drawFriendlyChecks(K, u, t){
 function renderAvatarStage(){
   const sc = cv.width / mw, mir = mirror();
   ctx.fillStyle = css('--figbg'); ctx.fillRect(0, 0, cv.width, cv.height);
+  if (scene !== 'plain'){ // the scene sits behind you: centred, its floor where your feet are once you are found
+    const f0 = 720/Math.max(cv.width, cv.height); ctx.save(); ctx.scale(1/f0, 1/f0); ctx.translate((cv.width*f0 - 720)/2, 0);
+    drawEnvironment(ctx, scene, liveFloor != null ? liveFloor : SCENE_FLOOR*cv.height*f0/720); ctx.restore();
+  }
   if (kp){
     const K = kp.map(p => ({x: mir ? cv.width - p.x*sc : p.x*sc, y:p.y*sc, s:p.s, w:p.w}));
     const R = liveRef(K, cv.width, cv.height), f = R.f;
+    liveFloor = liveFloor == null ? R.floor : liveFloor + (R.floor - liveFloor)*.05; // settles slowly, so the room does not bounce
     ctx.save(); ctx.scale(1/f, 1/f);
     drawFlatMat(ctx, R, avatar.mat || '#E9B93A');
     if (avatar.mode === 'flat') drawFlatFigure(ctx, R, avatar); else if (avatar.mode === 'avatar') drawAvatar(ctx, R, avatar); else drawSilhouette(ctx, R, css('--fig'));
@@ -3164,7 +3267,7 @@ let stream = null, facing = 'user', wake = null;
 const mirror = () => mode==='live' && facing==='user';
 function notice(head, text){ $('noticeHead').textContent = head; $('noticeText').textContent = text; $('notice').hidden = !head; }
 async function startLive(){
-  notice(''); liveScale = null;
+  notice(''); liveScale = null; liveFloor = null;
   if (mode==='video' && !vid.paused) vid.pause();
   const framed = (() => { try { return window.self !== window.top; } catch { return true; } })();
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
@@ -4886,7 +4989,7 @@ for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', (
 // ---------- boot ----------
 renderRail(); renderHist(); showReference();
 if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !profile.onboarded && !(() => { try { return localStorage.getItem('sama.welcomed'); } catch { return null; } })()) showWelcome();
-window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, buildPlan, FOCUS, routeSegments, browseSteps, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, selfTest: () => selfTestResult};
+window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, browseSteps, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, selfTest: () => selfTestResult};
 function retheme(){
   for (const k in THUMBS) delete THUMBS[k];
   if (lib.built && lib.pose && $('poseDlg').open) drawPd();
@@ -4902,7 +5005,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
   for (const sw of box.querySelectorAll('.swatches')){ const k = sw.dataset.k; for (const c of AVATAR_CHOICES[k]){ const b = document.createElement('button'); b.type = 'button'; b.style.background = c; b.dataset.v = c; b.setAttribute('aria-label', k + ' ' + c); sw.appendChild(b); } }
   for (const grp of box.querySelectorAll('.segs[data-k]')) dropdownify(grp, {right:true});
   const sync = () => {
-    for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='camview' ? camView : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===cur)); }
+    for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='camview' ? camView : k==='sceneset' ? scene : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===cur)); }
     only.hidden = avatar.mode !== 'avatar' && avatar.mode !== 'flat'; for (const r of box.querySelectorAll('.flatonly')) r.hidden = avatar.mode !== 'flat'; for (const r of box.querySelectorAll('.avonly')) r.hidden = avatar.mode !== 'avatar';
     $('avatarSum').textContent = avatar.mode==='flat' ? 'Illustration' : avatar.mode==='avatar' ? 'My avatar' : avatar.mode==='line' ? 'Line' : avatar.mode==='sketch' ? 'Sketch' : 'Silhouette';
   };
@@ -4913,6 +5016,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
     if (k==='trans'){ transStyle = b.dataset.v; try { localStorage.setItem('sama.trans', transStyle); } catch {} sync(); return; }
     if (k==='overlay'){ showOverlay = b.dataset.v==='on'; try { localStorage.setItem('sama.overlay', b.dataset.v); } catch {} sync(); render(); return; }
     if (k==='inset'){ showInset = b.dataset.v==='on'; try { localStorage.setItem('sama.inset', b.dataset.v); } catch {} sync(); render(); return; }
+    if (k==='sceneset'){ scene = b.dataset.v; try { localStorage.setItem('sama.scene', scene); } catch {} sync(); render(); return; }
     if (k==='voiceset'){ setVoice(b.dataset.v === 'on'); sync(); return; }
     if (k==='musicset'){ setMusic(b.dataset.v === 'on'); sync(); return; }
     if (k==='camview'){ camView = b.dataset.v; try { localStorage.setItem('sama.camview', camView); } catch {} sync(); render(); return; }
