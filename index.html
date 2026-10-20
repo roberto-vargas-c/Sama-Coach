@@ -751,6 +751,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
           <div class="arow"><span>Transition</span><div class="segs" data-k="trans"><button type="button" class="seg" data-v="blob">Blob</button><button type="button" class="seg" data-v="moves">Movement</button></div></div>
           <div class="arow"><span>Movement</span><div class="segs" data-k="pace"><button type="button" class="seg" data-v="calm">Calm</button><button type="button" class="seg" data-v="flowing">Flowing</button><button type="button" class="seg" data-v="quick">Quick</button></div></div>
           <div class="arow"><span>Scene</span><div class="segs" data-k="sceneset"><button type="button" class="seg" data-v="plain">Plain</button><button type="button" class="seg" data-v="studio">Studio</button><button type="button" class="seg" data-v="beach">Beach</button><button type="button" class="seg" data-v="living">Living room</button><button type="button" class="seg" data-v="park">Park</button><button type="button" class="seg" data-v="mountains">Mountains</button><button type="button" class="seg" data-v="night">Night rooftop</button></div></div>
+          <div class="arow"><span>Record my moves between poses</span><div class="segs" data-k="motionset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
           <div class="arow"><span>Voice guide in practices</span><div class="segs" data-k="voiceset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
           <div class="arow"><span>Background music</span><div class="segs" data-k="musicset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
           <div class="arow"><span>Camera shows</span><div class="segs" data-k="camview"><button type="button" class="seg" data-v="avatar">Me as my figure</button><button type="button" class="seg" data-v="skeleton">Video + skeleton</button></div></div>
@@ -976,6 +977,9 @@ Savasana, 3 min"></textarea>
           <h2>Your data</h2>
           <p class="hint">Everything Sama knows about you, as one file; or wipe it from this device.</p>
           <div class="crow"><button class="btn small" id="pfExport" type="button">Download my data</button><button class="btn small danger" id="pfDelete" type="button">Delete my data</button></div>
+          <h4>Movement recordings</h4>
+          <p class="hint" id="mvText">Turn on "Record my moves between poses" in Settings, then practise with the camera on. Only joint positions are kept, never video, and only on this device.</p>
+          <div class="crow"><button class="btn small" id="mvDownload" type="button">Download recordings</button><button class="btn small danger" id="mvClear" type="button">Delete recordings</button></div>
         </div>
       </div>
     </div>
@@ -3404,6 +3408,48 @@ async function openVideo(file){
 }
 ['inPhoto','inVideo','inLib'].forEach(id => $(id).addEventListener('change', e => { openFile(e.target.files[0]); e.target.value=''; }));
 
+// ---------- movement recordings: the skeleton between poses in a practice with the camera on (for better transitions) ----------
+// Each recording runs from the moment the next pose is called until three seconds into its hold, ~15 frames a second.
+// Kept in this browser (IndexedDB) until downloaded; never video, never uploaded.
+let motionOn = false; try { motionOn = localStorage.getItem('sama.motion') === 'on'; } catch {}
+const MV = {clip: null, lastT: 0, db: null};
+function mvDb(){ return MV.db || (MV.db = new Promise((res, rej) => { const r = indexedDB.open('sama-motion', 1); r.onupgradeneeded = () => r.result.createObjectStore('clips', {autoIncrement: true}); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); })); }
+async function mvTx(mode, fn){ const db = await mvDb(); return new Promise((res, rej) => { const tx = db.transaction('clips', mode), st = tx.objectStore('clips'), out = fn(st); tx.oncomplete = () => res(out && out.result !== undefined ? out.result : out); tx.onerror = () => rej(tx.error); }); }
+function motionStart(){
+  motionEnd();
+  if (!motionOn || !sess) return; const x = sess.P.items[sess.i], prev = sess.P.items[sess.i - 1];
+  MV.clip = {at: new Date().toISOString(), from: prev ? prev.id : null, fromSide: prev ? prev.side : null, to: x.id, toSide: x.side, focus: (sess.P.opts || {}).focus || null,
+    mirrored: mirror(), w: mw, h: mh, t0: performance.now(), frames: []};
+}
+function motionTap(k){
+  const c = MV.clip; if (!c || !sess || sess.paused) return;
+  const x = sess.P.items[sess.i], heldFor = sess.phase === 'hold' ? x.secs - sess.left : 0;
+  if (sess.phase === 'hold' && heldFor > 3){ motionEnd(); return; }
+  const now = performance.now(); if (now - MV.lastT < 60) return; MV.lastT = now;
+  const r3 = v => Math.round(v*1000)/1000;
+  c.frames.push([Math.round(now - c.t0), sess.phase === 'hold' ? 1 : 0, k.map(p => p ? [r3(p.x/mw), r3(p.y/mh), Math.round((p.s || 0)*100)/100, ...(p.w ? p.w.map(r3) : [])] : null)]);
+}
+function motionEnd(){
+  const c = MV.clip; MV.clip = null; if (!c || c.frames.length < 10) return;
+  c.score = last && last.score != null ? last.score : null; delete c.t0;
+  mvTx('readwrite', st => st.add(c)).then(motionCount).catch(e => console.warn('motion', e));
+}
+async function motionCount(){
+  const el = $('mvText'); if (!el) return 0; let n = 0; try { n = await mvTx('readonly', st => st.count()); } catch {}
+  el.textContent = n ? `${n} recorded move${n === 1 ? '' : 's'} between poses on this device.${motionOn ? ' Recording is on.' : ''}` : motionOn ? 'Recording is on. Practise with the camera on and your moves between poses are kept here: joint positions only, never video, and only on this device.' : 'Turn on "Record my moves between poses" in Settings, then practise with the camera on. Only joint positions are kept, never video, and only on this device.';
+  return n;
+}
+(function(){
+  const names = Object.entries(KI).sort((a, b) => a[1] - b[1]).map(([n]) => n);
+  $('mvDownload').addEventListener('click', async () => {
+    let clips = []; try { clips = await mvTx('readonly', st => st.getAll()); } catch {}
+    if (!clips.length) return notice('Nothing recorded yet', 'Turn on "Record my moves between poses" in Settings and practise with the camera on.');
+    const data = {app: 'Sama', kind: 'movement between poses', exportedAt: new Date().toISOString(), frame: '[ms since the pose was called, 0 = getting into it / 1 = holding, keypoints]', keypoint: '[x, y as a share of the frame, confidence, then 3D x, y, z in metres when the model gives them]', keypoints: names, clips};
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], {type: 'application/json'})); a.download = `sama-moves-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  });
+  $('mvClear').addEventListener('click', async () => { if (!confirm('Delete all movement recordings on this device?')) return; try { await mvTx('readwrite', st => st.clear()); } catch {} motionCount(); });
+  motionCount();
+})();
 // ---------- video loop ----------
 async function processFrame(fresh){
   if (vs.busy || (mode!=='video' && mode!=='live')) return; vs.busy = true;
@@ -3414,6 +3460,7 @@ async function processFrame(fresh){
     kp = kp && !fresh ? k.map((p,i) => ({x:kp[i].x*a+p.x*b, y:kp[i].y*a+p.y*b, s:p.s,
       w: p.w && kp[i].w ? p.w.map((v,j)=>kp[i].w[j]*a+v*b) : p.w})) : k;
     refresh();
+    if (mode === 'live') motionTap(r.kp);
     const live = mode==='live', t = live ? performance.now()/1000 : vid.currentTime;
     if ((live || !vid.paused) && last && last.score!=null){
       if (vs.lastT!=null){ const dt = t - vs.lastT; if (dt>0 && dt<1 && last.score>=80) vs.hold += dt; }
@@ -4211,6 +4258,7 @@ function enterItem(){
   if (mode==='sample' || mode==='photo' || mode==='idle') showReference(x.side==='left'); else refresh();
   sess.phase = 'prep'; sess.left = sess.i===0 ? 5 : (sess.P.flow ? 2 : sess.P.yin ? 15 : TRANSITION); renderSess();
   if (!sess.boot) voiceForItem();
+  motionStart();
   try { const nx = sess.P.items.slice(sess.i + 1, sess.i + 4); voicePrefetch(nx.flatMap(x => [x.id, 'again_' + x.id])); if (nx.some(x => (META[x.id] || {}).lvl >= 3)) voicePrefetch([...LEAD_ADV, 'clip_adv_inversion', 'clip_adv_armbalance', 'clip_adv_deep']); } catch {}
 }
 // a breath reminder now and then while a longer hold goes on, never over another clip
@@ -4283,7 +4331,7 @@ function nextItem(d){
   sess.i = n; enterItem();
 }
 function endSession(done){
-  if (!sess) return; clearInterval(sess.timer);
+  if (!sess) return; motionEnd(); clearInterval(sess.timer);
   voiceStop(); if (done && voiceOn && !sess.remote) voicePlay(['clip_end'], () => musicStop()); else musicStop();
   if ($('sessBreath')) $('sessBreath').hidden = true;
   if (done && !sess.remote) addHist({pose:'practice', score:null, hold:sess.P.total, at:Date.now(), label:`${(FOCUS[sess.P.opts.focus]||FOCUS.balanced).label} practice`});
@@ -5644,7 +5692,7 @@ for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', (
 // ---------- boot ----------
 renderRail(); renderHist(); showReference();
 if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !profile.onboarded && !(() => { try { return localStorage.getItem('sama.welcomed'); } catch { return null; } })()) showWelcome();
-window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, browseSteps, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, selfTest: () => selfTestResult};
+window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, browseSteps, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
 function retheme(){
   for (const k in THUMBS) delete THUMBS[k];
   if (lib.built && lib.pose && $('poseDlg').open) drawPd();
@@ -5660,7 +5708,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
   for (const sw of box.querySelectorAll('.swatches')){ const k = sw.dataset.k; for (const c of AVATAR_CHOICES[k]){ const b = document.createElement('button'); b.type = 'button'; b.style.background = c; b.dataset.v = c; b.setAttribute('aria-label', k + ' ' + c); sw.appendChild(b); } }
   for (const grp of box.querySelectorAll('.segs[data-k]')) dropdownify(grp, {right:true});
   const sync = () => {
-    for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='camview' ? camView : k==='sceneset' ? scene : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===cur)); }
+    for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='camview' ? camView : k==='sceneset' ? scene : k==='motionset' ? (motionOn ? 'on' : 'off') : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===cur)); }
     only.hidden = false;
     $('avatarSum').textContent = 'Scene, voice, camera';
   };
@@ -5672,6 +5720,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
     if (k==='overlay'){ showOverlay = b.dataset.v==='on'; try { localStorage.setItem('sama.overlay', b.dataset.v); } catch {} sync(); render(); return; }
     if (k==='inset'){ showInset = b.dataset.v==='on'; try { localStorage.setItem('sama.inset', b.dataset.v); } catch {} sync(); render(); return; }
     if (k==='sceneset'){ scene = b.dataset.v; try { localStorage.setItem('sama.scene', scene); } catch {} sync(); render(); return; }
+    if (k==='motionset'){ motionOn = b.dataset.v === 'on'; try { localStorage.setItem('sama.motion', b.dataset.v); } catch {} sync(); motionCount(); return; }
     if (k==='voiceset'){ setVoice(b.dataset.v === 'on'); sync(); return; }
     if (k==='musicset'){ setMusic(b.dataset.v === 'on'); sync(); return; }
     if (k==='camview'){ camView = b.dataset.v; try { localStorage.setItem('sama.camview', camView); } catch {} sync(); render(); return; }
