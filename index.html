@@ -2874,7 +2874,7 @@ const cv = $('cv'), ctx = cv.getContext('2d');
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 function sizeCanvas(w, h){
   const lim = 1280, sc = Math.min(1, lim/Math.max(w,h));
-  cv.width = Math.round(w*sc); cv.height = Math.round(h*sc); cv.parentNode.classList.toggle('sample', w===REF_S && h===REF_S); return sc;
+  const W = Math.round(w*sc), H = Math.round(h*sc); if (cv.width !== W) cv.width = W; if (cv.height !== H) cv.height = H; cv.parentNode.classList.toggle('sample', w===REF_S && h===REF_S); return sc;
 }
 // ---------- illustrated reference figure (watercolor sloth) ----------
 function drawScene(g, R){ drawFigureScene(g, R, css('--figbg'), css('--fig'), css('--mat')); }
@@ -3044,7 +3044,7 @@ function showReference(mirrored = refMirror){
       render();
       if (at < total) tween.raf = requestAnimationFrame(step); else { tween = null; curRef = target; kp = target.kp; refresh(); }
     };
-    tween = {raf: requestAnimationFrame(step)}; return;
+    tween = {raf: 0}; step(performance.now()); return; // first frame now, so the stage never shows a blank frame
   }
   // route through the postures in between (fold, jump back to plank, ...), one tween per leg of the journey
   // Browsing the library: always settle back into Mountain and move on from there (calm and predictable).
@@ -4297,7 +4297,7 @@ function endSession(done){
 }
 function renderSess(){
   { const cb = $('sessCam'); if (cb) cb.setAttribute('aria-pressed', String(mode === 'live')); }
-  { const fb = $('sFb'); if (fb){ const showsPause = fb.classList.contains('on') && fb.querySelector('rect'); if (sess && sess.paused && !showsPause) sessFeedback('paused'); else if (!(sess && sess.paused) && showsPause) fb.className = 'sfb'; } }
+  { const fb = $('sFb'); if (fb){ const showsPause = fb.classList.contains('on') && fb.querySelector('rect'); if (sess && sess.paused && !showsPause) sessFeedback('paused'); else if (!(sess && sess.paused) && showsPause) fb.classList.remove('on'); } }
   const x = sess.P.items[sess.i], n = sess.P.items.length, nx = sess.P.items[sess.i+1];
   $('sessStep').textContent = `${sess.i+1} of ${n} · ${x.phase}`;
   $('sessPose').textContent = POSES.find(q=>q.id===x.id).name + (x.side ? ` · ${x.side} side` : '');
@@ -4319,7 +4319,7 @@ let sfbT = 0;
 function sessFeedback(kind){
   const el = $('sFb'); clearTimeout(sfbT); el.className = 'sfb on' + (kind === 'prev' ? ' side-l' : kind === 'next' ? ' side-r' : '');
   el.innerHTML = kind === 'prev' ? '‹' : kind === 'next' ? '›' : kind === 'paused' ? '<svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>' : '<svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
-  if (kind !== 'paused') sfbT = setTimeout(() => { el.className = 'sfb'; }, 650);
+  if (kind !== 'paused') sfbT = setTimeout(() => { el.classList.remove('on'); }, 650);
 }
 $('sTap').addEventListener('click', e => { const a = e.target.dataset && e.target.dataset.a; if (!a || !sess) return;
   if (a === 'next'){ $('sessNextBtn').click(); sessFeedback('next'); }
