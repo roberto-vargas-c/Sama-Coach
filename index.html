@@ -2515,7 +2515,22 @@ function drawFlatFigure(g, R, av){
   const K0 = R.kp, hx = (K0[11].x + K0[12].x)/2, hy = (K0[11].y + K0[12].y)/2, sx = (K0[5].x + K0[6].x)/2, sy = (K0[5].y + K0[6].y)/2;
   const torsoFrame = {x: hx, y: hy, a: Math.atan2(sy - hy, sx - hx) + Math.PI/2}; // the torso's own up, from the hips to the shoulders
   drawFlatBackHair(g, R, av);
+  // a flat waistband: cut the round tops of the trousers along a line just above the hips. It fades out as the hips turn
+  // edge-on (side views keep their rounded seat): the cut narrows to nothing as the hips close up on screen.
+  // the same flat cut for the top of the shirt, along a line just above the shoulders
+  const band = (A, B, toward, rr, loF, wideF) => { const dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy), t = Math.max(0, Math.min(1, (d/rr - .6)/1.2));
+    if (t <= 0) return null; const cx = (A.x + B.x)/2, cy = (A.y + B.y)/2, u = {x: dx/d, y: dy/d}; let n = {x: -u.y, y: u.x};
+    if (n.x*(toward.x - cx) + n.y*(toward.y - cy) < 0) n = {x: -n.x, y: -n.y};
+    const half = (d/2 + rr*wideF)*t, P = (a, b) => ({x: cx + u.x*a + n.x*b, y: cy + u.y*a + n.y*b});
+    return {pts: [P(-half, rr*loF), P(half, rr*loF), P(half, rr*3), P(-half, rr*3)], n, c: {x: cx, y: cy}}; };
+  const belt = band(K0[11], K0[12], {x: sx, y: sy}, sil.hip*s, .55, 1.15);
+  const yoke = band(K0[5], K0[6], R.head, sil.shoulder*s, .45, 1.9);
+  const clipOut = b => { g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.moveTo(b.pts[0].x, b.pts[0].y); for (const q of b.pts.slice(1)) g.lineTo(q.x, q.y); g.closePath(); g.clip('evenodd'); };
+  const BELTED = {thigh:1, hips:1, seat:1};
   for (const p of [...parts].sort((a,b) => order(a)-order(b))){
+    const lowered = q => { const a = R.kp[q.ks[0]], b = R.kp[q.ks[1]]; return (b.x - a.x)*yoke.n.x + (b.y - a.y)*yoke.n.y < Math.hypot(b.x - a.x, b.y - a.y)*.3; };
+    const cut = belt && BELTED[p.part] ? belt : yoke && (p.part === 'torso' || p.part === 'shoulders' || p.part === 'upper' && lowered(p)) ? yoke : null;
+    if (cut) clipOut(cut);
     if (p.part === 'head') continue;
     const isFar = !!(p.side && p.side === far);
     if (p.hole){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.arc(p.hole.x, p.hole.y, p.hole.r, 0, Math.PI*2, true); g.clip(); }
@@ -2532,6 +2547,7 @@ function drawFlatFigure(g, R, av){
     }
     if (unseen) g.globalAlpha /= .35;
     if (p.hole) g.restore();
+    if (cut) g.restore();
   }
   drawFlatHead(g, R, av);
 }
