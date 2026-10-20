@@ -516,6 +516,14 @@ body.tv #viewCoach{display:none!important}
 .pwho{flex:1;min-width:200px;display:flex;flex-direction:column;gap:8px}
 .pname{font-family:var(--f-display);font-size:26px;border:none;border-bottom:1px dashed var(--line);background:none;color:var(--ink);padding:2px 0;width:100%;min-width:0}
 .pname:focus{outline:none;border-bottom-color:var(--accent)}
+.fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary>span{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.fold .foldfig{width:48px;height:48px;border-radius:12px;background:var(--figbg)}
+.fold[open] .foldfig{display:none}
+.fold .chev{width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0;flex:0 0 auto}
+.fold[open] .chev{transform:rotate(-135deg);margin-bottom:-4px}
+.fold[open]>summary{margin-bottom:4px}
 .cal{display:flex;flex-direction:column;gap:8px}
 .calhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .calhead b{font-size:15px}
@@ -829,8 +837,8 @@ Savasana, 3 min"></textarea>
             <div class="crow"><button class="btn small" id="pfLook" type="button">Change my look</button><button class="btn small" id="pfWelcome" type="button">Replay the welcome</button></div>
           </div>
         </div>
-        <div class="pcard" id="lookCard">
-          <h2>Your figure</h2>
+        <details class="pcard fold" id="lookCard">
+          <summary><span><h2>Your figure</h2><span class="hint">Skin, hair, build, clothes and mat</span></span><canvas class="foldfig" width="96" height="96" data-pose="mountain" data-size="96" aria-hidden="true"></canvas></summary>
           <p class="hint">How you look everywhere in the app: the reference, practices, the camera view and the guide.</p>
           <div class="alook">
           <div class="aonly alook-rows">
@@ -848,7 +856,7 @@ Savasana, 3 min"></textarea>
             <div class="arow flatonly"><span>Mat</span><div class="swatches" data-k="mat"></div></div>
           </div>
           </div>
-        </div>
+        </details>
         <div class="pcard">
           <h2>Account</h2>
           <p class="hint" id="pfAuthText">Your data is kept on this device. Sign in to keep it across your phone, laptop and the app.</p>
@@ -2556,6 +2564,16 @@ function drawFlatFigure(g, R, av){
       const r = sil.thigh[0]*s0*.9; gg.moveTo(a.x + r, a.y); gg.arc(a.x, a.y, r, 0, Math.PI*2); gg.moveTo(b.x + r, b.y); gg.arc(b.x, b.y, r, 0, Math.PI*2); };
     seat.part = 'seat'; parts.push(seat);
   }
+  { // flat tops: fill between the two round caps (thighs at the hips, sleeves at the shoulders) up to their tops, so the
+    // waistband and the shoulder line run straight across and only the outer ends stay round. Turned sideways, the joints
+    // close up on screen and the band shrinks away by itself.
+    const K = R.kp, s0 = R.scale, hc = {x: (K[11].x + K[12].x)/2, y: (K[11].y + K[12].y)/2}, sc = {x: (K[5].x + K[6].x)/2, y: (K[5].y + K[6].y)/2};
+    const bandOf = (A, B, toward, h) => gg => { const dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy) || 1; let n = {x: -dy/d, y: dx/d};
+      const c = {x: (A.x + B.x)/2, y: (A.y + B.y)/2}; if (n.x*(toward.x - c.x) + n.y*(toward.y - c.y) < 0) n = {x: -n.x, y: -n.y};
+      gg.beginPath(); gg.moveTo(A.x, A.y); gg.lineTo(B.x, B.y); gg.lineTo(B.x + n.x*h, B.y + n.y*h); gg.lineTo(A.x + n.x*h, A.y + n.y*h); gg.closePath(); };
+    const waist = bandOf(K[11], K[12], sc, Math.max(sil.hip, sil.thigh[0])*s0*.98); waist.part = 'hips'; parts.push(waist);
+    if (av.sleeves !== 'none'){ const yoke = bandOf(K[5], K[6], R.head, Math.max(sil.shoulder, sil.upper[0]*1.42)*s0*.98); yoke.part = 'shoulders'; parts.push(yoke); }
+  }
   const zs = R.kp[5].w ? R.kp[5].w[2] : 0, zr = R.kp[6].w ? R.kp[6].w[2] : 0, far = zs > zr + .02 ? 'l' : zr > zs + .02 ? 'r' : null;
   // back to front: far limbs; the near upper arm (its shoulder end hides behind the shirt); the shirt; the trousers over it
   // (shin under thigh, so the knee reads as the end of the thigh); the near arm again minus its shoulder; the head
@@ -2573,29 +2591,7 @@ function drawFlatFigure(g, R, av){
   // a flat waistband: cut the round tops of the trousers along a line just above the hips. It fades out as the hips turn
   // edge-on (side views keep their rounded seat): the cut narrows to nothing as the hips close up on screen.
   // the same flat cut for the top of the shirt, along a line just above the shoulders
-  // flat tops: the round caps of the trousers above a line just over the hips (and of the shirt over the shoulders) are trimmed
-  // off, with rounded outer corners. The trim covers only the body's own width, and a limb is trimmed only when it hangs away
-  // from that edge, so nothing that crosses it gets notched. As the hips/shoulders turn edge-on the line rises off the body
-  // (side views keep their round shape, and turning between the two stays smooth).
-  const band = (A, B, toward, rr, ext, loF) => { const dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy), t = Math.max(0, Math.min(1, (d/rr - .6)/1.2));
-    if (t <= 0) return null; const cx = (A.x + B.x)/2, cy = (A.y + B.y)/2, u = {x: dx/d, y: dy/d}; let n = {x: -u.y, y: u.x};
-    if (n.x*(toward.x - cx) + n.y*(toward.y - cy) < 0) n = {x: -n.x, y: -n.y};
-    const W = d/2 + ext, lo = rr*(loF + 2.5*(1 - t)), rc = Math.min(rr*.5, W*.4), hi = lo + ext*3, e = rr*.25, P = (a, b) => ({x: cx + u.x*a + n.x*b, y: cy + u.y*a + n.y*b});
-    const path = gg => { const m = (a, b) => { const q = P(a, b); gg.lineTo(q.x, q.y); };
-      let q = P(-W - e, hi); gg.moveTo(q.x, q.y); m(-W - e, lo - rc); m(-W, lo - rc);
-      for (let k = 1; k <= 8; k++){ const a = Math.PI/2*k/8; m(-W + rc - rc*Math.cos(a), lo - rc + rc*Math.sin(a)); } // rounded corner
-      m(W - rc, lo); for (let k = 1; k <= 8; k++){ const a = Math.PI/2*k/8; m(W - rc + rc*Math.sin(a), lo - rc + rc*Math.cos(a)); }
-      m(W + e, lo - rc); m(W + e, hi); gg.closePath(); };
-    return {path, n}; };
-  const rT = sil.thigh[0]*s, rSl = sil.upper[0]*s*1.42;
-  const belt = band(K0[11], K0[12], {x: sx, y: sy}, sil.hip*s, Math.max(sil.hip*s, rT), .55);
-  const yoke = band(K0[5], K0[6], R.head, sil.shoulder*s, Math.max(sil.shoulder*s, rSl), .45);
-  const clipOut = b => { g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); b.path(g); g.clip('evenodd'); };
-  const hangs = (q, b) => { const a = R.kp[q.ks[0]], c = R.kp[q.ks[1]]; return (c.x - a.x)*b.n.x + (c.y - a.y)*b.n.y < -Math.hypot(c.x - a.x, c.y - a.y)*.35; };
   for (const p of [...parts].sort((a,b) => order(a)-order(b))){
-    const cut = belt && (p.part === 'hips' || p.part === 'seat' || p.part === 'thigh' && hangs(p, belt)) ? belt
-      : yoke && (p.part === 'torso' || p.part === 'shoulders' || p.part === 'upper' && hangs(p, yoke)) ? yoke : null;
-    if (cut) clipOut(cut);
     if (p.part === 'head') continue;
     const isFar = !!(p.side && p.side === far);
     if (p.hole){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.arc(p.hole.x, p.hole.y, p.hole.r, 0, Math.PI*2, true); g.clip(); }
@@ -2612,7 +2608,6 @@ function drawFlatFigure(g, R, av){
     }
     if (unseen) g.globalAlpha /= .35;
     if (p.hole) g.restore();
-    if (cut) g.restore();
   }
   drawFlatHead(g, R, av);
 }
@@ -4930,7 +4925,7 @@ async function startOnboarding(){
   stop();
   if (next === 'coach'){ switchView('coach'); setCoachMode('plan'); }
   else if (next === 'lib') switchView('lib');
-  else if (next === 'dress'){ switchView('profile'); setTimeout(() => $('lookCard').scrollIntoView({behavior:'smooth', block:'start'}), 100); }
+  else if (next === 'dress'){ switchView('profile'); $('lookCard').open = true; setTimeout(() => $('lookCard').scrollIntoView({behavior:'smooth', block:'start'}), 100); }
   else switchView('check');
 }
 
@@ -5186,7 +5181,7 @@ function renderProfile(){
     pfBuilt = true; pfFig = figureAnimator($('pfFig'));
     $('pfName').addEventListener('change', () => saveProfile({name: $('pfName').value.trim().slice(0, 40)}));
     $('pfNotes').addEventListener('change', () => saveProfile({notes: $('pfNotes').value.slice(0, 1200)}));
-    $('pfLook').addEventListener('click', () => $('lookCard').scrollIntoView({behavior:'smooth', block:'start'}));
+    $('pfLook').addEventListener('click', () => { $('lookCard').open = true; $('lookCard').scrollIntoView({behavior:'smooth', block:'start'}); });
     $('pfWelcome').addEventListener('click', () => { showWelcome(); });
     initCalendarUI();
     $('pfExport').addEventListener('click', () => {
@@ -5238,6 +5233,7 @@ function renderProfile(){
   const sv = $('pfSaved'), all = getSaved(); sv.textContent = '';
   if (!all.length){ const li = document.createElement('li'); li.className = 'd'; li.textContent = 'Nothing saved yet. The coach and the planner can both save practices here.'; sv.appendChild(li); }
   all.forEach(s => { const li = document.createElement('li'); li.innerHTML = '<button type="button" class="linkish"></button><span class="d"></span>'; li.querySelector('.linkish').textContent = s.name; li.querySelector('.d').textContent = fmtMin(s.plan.total); li.querySelector('.linkish').addEventListener('click', () => openInPlanner(s.plan)); sv.appendChild(li); });
+  { const fc = document.querySelector('#lookCard .foldfig'), t = thumb('mountain', 96), g = fc.getContext('2d'); g.clearRect(0, 0, 96, 96); g.drawImage(t, 0, 0); }
   renderCalendar(); renderCycle();
   renderAuthUI();
 }
