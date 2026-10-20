@@ -4876,6 +4876,8 @@ function renderProfile(){
 const FIREBASE_CONFIG = {apiKey:"AIzaSyAV5OGxdOG7Q4wnmNRYS0esamwI5uBeU6U", authDomain:"sama-coach-ef83b.firebaseapp.com", projectId:"sama-coach-ef83b", storageBucket:"sama-coach-ef83b.firebasestorage.app", messagingSenderId:"1090152739769", appId:"1:1090152739769:web:af4d5bfed4300079ddfc68"};
 const AUTH = {available: !!FIREBASE_CONFIG, user:null, fb:null, db:null, ready:false};
 function loadScript(src){ return new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => no(new Error('load ' + src)); document.head.appendChild(s); }); }
+// tokens can arrive from the app before Firebase has loaded; keep them until it has
+window.samaNativeAuth = (a, b) => { window.__pendingNativeAuth = [a, b]; };
 async function authInit(){
   if (!AUTH.available) return;
   try {
@@ -4890,6 +4892,9 @@ async function authInit(){
       history.replaceState(null, '', location.pathname);
     }
     await fb.auth().getRedirectResult().catch(() => {});
+    // the app hands over the Google tokens it got back from Chrome
+    window.samaNativeAuth = async (idToken, accessToken) => { try { await fb.auth().signInWithCredential(fb.auth.GoogleAuthProvider.credential(idToken || null, accessToken || null)); notice('Signed in', 'Your practice now syncs across your devices.'); } catch (e){ notice('Sign-in failed', e && e.message || String(e)); } };
+    if (window.__pendingNativeAuth){ const t = window.__pendingNativeAuth; window.__pendingNativeAuth = null; window.samaNativeAuth(t[0], t[1]); }
     fb.auth().onAuthStateChanged(async u => { AUTH.user = u; AUTH.ready = true; if (u) await cloudPull(); renderAuthUI(); });
   } catch (e){ console.warn('auth', e); AUTH.available = false; renderAuthUI(); }
 }
@@ -4900,6 +4905,8 @@ async function authSignIn(kind){
     if (kind === 'google'){
       const p = new fb.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:'select_account'});
       // Browsers: a popup (works on phones too and avoids third-party-cookie trouble). The Android app has no popup, so it redirects.
+      // The Android app: Google refuses sign-in inside an app's web view, so it happens in Chrome (signin.html) and the result comes back to the app
+      if (window.SamaNative && window.SamaNative.openAuth){ window.SamaNative.openAuth(location.origin + '/signin.html'); return; }
       if (window.SamaNative) await fb.auth().signInWithRedirect(p); else await fb.auth().signInWithPopup(p);
     } else {
       const email = prompt('Your email address. We’ll send you a sign-in link.'); if (!email) return;

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in · Sama</title>
+<style>
+:root{--bg:#F4EDE2;--card:#FBF6EE;--ink:#2D2622;--muted:#7B6E63;--accent:#B45A3C;--line:#E4D9CB}
+@media (prefers-color-scheme: dark){:root{--bg:#171310;--card:#211C18;--ink:#F1E8DC;--muted:#B3A596;--accent:#E08A68;--line:#3A312A}}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;max-width:380px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px}
+h1{font:400 30px Georgia,serif;margin:0}p{margin:0;color:var(--muted)}
+button,a.btn{display:block;width:100%;padding:14px;border-radius:12px;border:0;background:var(--accent);color:#FFF7F0;font:600 16px system-ui,sans-serif;text-decoration:none;cursor:pointer}
+button.sec{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.err{color:var(--accent);font-weight:600}
+</style></head><body>
+<div class="card">
+  <h1>Sama</h1>
+  <p id="msg">Sign in with Google, then come back to the app.</p>
+  <button id="go" type="button">Continue with Google</button>
+  <a class="btn" id="back" href="#" hidden>Back to Sama</a>
+  <p id="err" class="err" hidden></p>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAV5OGxdOG7Q4wnmNRYS0esamwI5uBeU6U", authDomain:"sama-coach-ef83b.firebaseapp.com", projectId:"sama-coach-ef83b", storageBucket:"sama-coach-ef83b.firebasestorage.app", messagingSenderId:"1090152739769", appId:"1:1090152739769:web:af4d5bfed4300079ddfc68"});
+const $ = id => document.getElementById(id);
+function handBack(idToken, accessToken){
+  const q = 'id_token=' + encodeURIComponent(idToken || '') + '&access_token=' + encodeURIComponent(accessToken || '');
+  const url = 'intent://auth?' + q + '#Intent;scheme=samacoach;package=app.sama.coach;end';
+  $('go').hidden = true; $('back').href = url; $('back').hidden = false;
+  $('msg').textContent = 'Signed in. Tap below to return to the app.';
+  try { location.href = url; } catch (e) {}
+}
+$('go').onclick = async () => {
+  $('err').hidden = true;
+  try {
+    const p = new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt: 'select_account'});
+    const r = await firebase.auth().signInWithPopup(p), c = r.credential || {};
+    handBack(c.idToken, c.accessToken);
+  } catch (e){ $('err').textContent = 'That didn’t work: ' + (e && e.message || e) + ' Try again.'; $('err').hidden = false; }
+};
+</script></body></html>

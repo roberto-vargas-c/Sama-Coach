@@ -1,0 +1,5 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {"namespace": "android_app", "package_name": "app.sama.coach",
+    "sha256_cert_fingerprints": ["D3:BB:C1:75:D2:56:BE:CC:4C:3E:88:5D:C4:F6:8E:1F:EA:C0:7D:32:99:DA:98:3B:74:5A:25:24:3D:5F:D8:CF"]}
+}]

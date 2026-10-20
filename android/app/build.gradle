@@ -10,7 +10,7 @@ android {
         applicationId "app.sama.coach"
         minSdk 24
         targetSdk 35
-        versionCode 4
+        versionCode 5
         versionName "1.0"
         // The address the app opens. Override with -PsamaUrl=https://... when building.
         buildConfigField "String", "SAMA_URL", "\"" + (project.findProperty("samaUrl") ?: "https://sama-coach-ai.vercel.app") + "\""

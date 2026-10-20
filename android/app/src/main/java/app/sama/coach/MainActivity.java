@@ -34,6 +34,8 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -130,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-        if (savedInstanceState != null) web.restoreState(savedInstanceState); else web.loadUrl(BuildConfig.SAMA_URL);
+        if (savedInstanceState != null) web.restoreState(savedInstanceState); else if (!handleLink(getIntent())) web.loadUrl(BuildConfig.SAMA_URL);
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override public void handleOnBackPressed() {
@@ -140,6 +142,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override protected void onSaveInstanceState(@NonNull Bundle out) { super.onSaveInstanceState(out); web.saveState(out); }
+
+    @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); setIntent(intent); handleLink(intent); }
+
+    /** Links that come back into the app: the Google sign-in result from Chrome (samacoach://auth), and email sign-in links to the site. */
+    private boolean handleLink(Intent intent) {
+        Uri u = intent == null ? null : intent.getData();
+        if (u == null) return false;
+        if ("samacoach".equals(u.getScheme()) && "auth".equals(u.getHost())) {
+            String js = "window.samaNativeAuth && window.samaNativeAuth(" + JSONObject.quote(nz(u.getQueryParameter("id_token"))) + "," + JSONObject.quote(nz(u.getQueryParameter("access_token"))) + ")";
+            if (web.getUrl() == null) { web.loadUrl(BuildConfig.SAMA_URL); web.postDelayed(() -> web.evaluateJavascript(js, null), 2500); }
+            else web.evaluateJavascript(js, null);
+            return true;
+        }
+        if ("https".equals(u.getScheme()) && u.getHost() != null && BuildConfig.SAMA_URL.contains(u.getHost())) { web.loadUrl(u.toString()); return true; }
+        return false;
+    }
+    private static String nz(String v) { return v == null ? "" : v; }
     @Override protected void onPause() { super.onPause(); web.onPause(); }
     @Override protected void onResume() { super.onResume(); web.onResume(); }
     @Override protected void onDestroy() { web.destroy(); super.onDestroy(); }
@@ -165,6 +184,10 @@ public class MainActivity extends AppCompatActivity {
 
     /** window.SamaNative, called from the page. */
     private class SamaNative {
+        /** Open a page in the phone's browser (Google sign-in refuses app web views). */
+        @JavascriptInterface public void openAuth(String url) {
+            runOnUiThread(() -> { try { if (url != null && url.startsWith("https://")) startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); } catch (ActivityNotFoundException ignored) {} });
+        }
         @JavascriptInterface public void keepAwake(boolean on) {
             runOnUiThread(() -> { if (on) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); });
         }
