@@ -347,6 +347,13 @@ h3{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute
 /* near full-screen practice */
 body.practice .top,body.practice .tabs,body.practice .searchrow,body.practice .cats,body.practice .levels,body.practice .rail,body.practice .railEmpty,body.practice .actions,body.practice .tip,body.practice #refBtn,body.practice .model,body.practice .avatar,body.practice .fold,body.practice .notice{display:none}
 body.practice .wrap{gap:8px}
+.stap{display:none;position:absolute;inset:0;grid-template-columns:1fr 1.2fr 1fr}
+body.practice .stap{display:grid}
+.stap i{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sfb{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;background:rgba(30,26,23,.42);color:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;line-height:1;opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;transform:scale(.85)}
+.sfb.on{opacity:1;transform:none}
+.sfb.side-l{left:22%}.sfb.side-r{left:78%}
+body.practice #sessPrev,body.practice #sessPause,body.practice #sessNextBtn{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);border:0}
 body.practice .grid{grid-template-columns:1fr;gap:10px}
 body.practice .stage{aspect-ratio:auto;height:calc(100dvh - 148px);max-height:none;border-radius:14px}
 body.practice .sess{padding:8px 12px;gap:4px}
@@ -706,6 +713,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
       </div>
       <div class="stage">
         <canvas id="cv" width="600" height="800" aria-label="Your pose with alignment overlay"></canvas>
+        <div class="stap" id="sTap" aria-hidden="true"><i data-a="prev"></i><i data-a="pause"></i><i data-a="next"></i><span class="sfb" id="sFb"></span></div>
         <span class="tag" id="tag">Sample</span>
         <button class="sidebtn" id="rotBtn" type="button" title="Turn the figure" aria-label="Turn the figure"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 3v5h-5"/></svg><span id="rotLbl">Front</span></button><button class="sidebtn" id="sideBtn" type="button" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg>Other side</button>
         <div class="busy" id="busy" hidden><span class="spin"></span><span id="busyText">Reading your pose…</span></div>
@@ -3480,6 +3488,7 @@ async function startLive(){
 }
 function stopLive(keepFrame = true){
   if (!stream) return;
+  if (!keepFrame && mode==='live' && vs.best!=null) addHist({pose:pose.id, score:vs.best, hold:vs.hold, at:Date.now()});
   if (keepFrame && mode==='live' && vid.videoWidth){
     const snap = document.createElement('canvas'); snap.width = vid.videoWidth; snap.height = vid.videoHeight;
     const sx = snap.getContext('2d'); if (mirror()){ sx.translate(snap.width,0); sx.scale(-1,1); } sx.drawImage(vid, 0, 0);
@@ -3492,13 +3501,14 @@ function stopLive(keepFrame = true){
   try { wake && wake.release(); } catch {} wake = null;
   $('livectl').hidden = true; document.querySelector('.actions').hidden = false; $('jump').hidden = false;
   if (mode==='photo') refresh();
+  if (!keepFrame && mode==='idle'){ try { showReference(sess ? (sess.P.items[sess.i] || {}).side === 'left' : false); } catch {} }
 }
 $('liveBtn').addEventListener('click', startLive);
 $('refBtn').addEventListener('click', showReference);
-$('stopLive').addEventListener('click', () => stopLive(true));
+$('stopLive').addEventListener('click', () => stopLive(false));
 try { $('search').placeholder = `Search ${new Set(POSES.map(p => p.id)).size} poses: name, Sanskrit, family…`; } catch {}
 // in a practice: the camera can go on and off from the practice bar (the figure follows you, or the video with the skeleton)
-$('sessCam').addEventListener('click', () => { if (mode === 'live') stopLive(true); else startLive(); setTimeout(() => { const b = $('sessCam'); if (b) b.setAttribute('aria-pressed', String(mode === 'live')); }, 400); });
+$('sessCam').addEventListener('click', () => { if (mode === 'live') stopLive(false); else startLive(); setTimeout(() => { const b = $('sessCam'); if (b) b.setAttribute('aria-pressed', String(mode === 'live')); }, 400); });
 $('flip').addEventListener('click', async () => { facing = facing==='user' ? 'environment' : 'user'; stopLive(false); await startLive(); });
 
 // ---------- spoken cues ----------
@@ -4287,6 +4297,7 @@ function endSession(done){
 }
 function renderSess(){
   { const cb = $('sessCam'); if (cb) cb.setAttribute('aria-pressed', String(mode === 'live')); }
+  { const fb = $('sFb'); if (fb){ const showsPause = fb.classList.contains('on') && fb.querySelector('rect'); if (sess && sess.paused && !showsPause) sessFeedback('paused'); else if (!(sess && sess.paused) && showsPause) fb.className = 'sfb'; } }
   const x = sess.P.items[sess.i], n = sess.P.items.length, nx = sess.P.items[sess.i+1];
   $('sessStep').textContent = `${sess.i+1} of ${n} · ${x.phase}`;
   $('sessPose').textContent = POSES.find(q=>q.id===x.id).name + (x.side ? ` · ${x.side} side` : '');
@@ -4303,6 +4314,17 @@ $('sessVoice').addEventListener('click', () => setVoice(!voiceOn));
 $('sessMusic').setAttribute('aria-pressed', String(musicOn));
 $('sessMusic').addEventListener('click', () => setMusic(!musicOn));
 $('sessNextBtn').addEventListener('click', () => nextItem(1));
+// practice tap zones, with a short sign of what happened (the pause sign stays while paused)
+let sfbT = 0;
+function sessFeedback(kind){
+  const el = $('sFb'); clearTimeout(sfbT); el.className = 'sfb on' + (kind === 'prev' ? ' side-l' : kind === 'next' ? ' side-r' : '');
+  el.innerHTML = kind === 'prev' ? '‹' : kind === 'next' ? '›' : kind === 'paused' ? '<svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>' : '<svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+  if (kind !== 'paused') sfbT = setTimeout(() => { el.className = 'sfb'; }, 650);
+}
+$('sTap').addEventListener('click', e => { const a = e.target.dataset && e.target.dataset.a; if (!a || !sess) return;
+  if (a === 'next'){ $('sessNextBtn').click(); sessFeedback('next'); }
+  else if (a === 'prev'){ $('sessPrev').click(); sessFeedback('prev'); }
+  else { $('sessPause').click(); sessFeedback(sess.paused ? 'paused' : 'play'); } });
 $('sessPrev').addEventListener('click', () => nextItem(-1));
 $('sessEnd').addEventListener('click', () => endSession(false));
 
