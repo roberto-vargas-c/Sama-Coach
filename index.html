@@ -128,6 +128,7 @@ body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -
 .stime{font-family:var(--f-mono);font-size:26px;font-variant-numeric:tabular-nums;color:var(--accent)}
 .sbtns{display:flex;gap:6px}
 #sessVoice[aria-pressed="false"] .vwave{display:none}
+#sessCam[aria-pressed="true"]{color:#fff;background:var(--accent);border-color:var(--accent)}
 #sessMusic .vslash{display:none}
 #sessMusic[aria-pressed="false"] .vslash{display:inline}
 #sessMusic[aria-pressed="false"]{opacity:.6}
@@ -449,6 +450,21 @@ body.tv #viewCoach{display:none!important}
 @media (prefers-reduced-motion: reduce){.splash *{animation-duration:.01s!important;animation-delay:0s!important}}
 /* after the splash the welcome shows its buttons right away */
 .welcome .wmark *, .welcome .wname span, .welcome .wtag, .welcome .wfig, .welcome .wbtns, .welcome .wfoot{animation-delay:.15s!important;animation-duration:.5s!important}
+.brand{cursor:pointer;-webkit-user-select:none;user-select:none}
+.reel{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));background:var(--bg);background-image:radial-gradient(800px 560px at 50% 40%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);animation:rin .4s ease-out}
+.reel[hidden]{display:none}
+@keyframes rin{from{opacity:0;transform:scale(.98)}}
+.rbars{position:absolute;top:max(14px, env(safe-area-inset-top));left:16px;right:60px;display:flex;gap:5px}
+.rbars i{flex:1;height:3px;border-radius:2px;background:color-mix(in srgb, var(--ink) 15%, transparent);overflow:hidden;position:relative}
+.rbars i b{position:absolute;inset:0;width:0;background:var(--accent)}
+.rx{position:absolute;top:max(4px, env(safe-area-inset-top));right:10px;width:44px;height:44px;border:none;background:none;color:var(--ink);font-size:30px;line-height:1;cursor:pointer}
+.rstage{position:relative;width:min(100%, 440px, 58vh);aspect-ratio:1/1}
+.rstage canvas{width:100%;height:100%;border-radius:28px;background:var(--figbg);box-shadow:var(--shadow);display:block}
+.rtap{position:absolute;top:0;bottom:0;width:35%;cursor:pointer}.rprev{left:0}.rnext{right:0}
+.rcap{width:min(100%, 440px);text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:120px}
+.rcap h2{font-family:var(--f-display);font-weight:400;font-size:28px;margin:0;color:var(--ink)}
+.rcap p{margin:0;color:var(--muted);font-size:15px;line-height:1.45}
+.rcap .fadein{animation:wrise .5s ease-out both}
 .welcome{position:fixed;inset:0;z-index:50;background:var(--bg);background-image:radial-gradient(900px 500px at 50% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%);overflow:auto;display:flex;align-items:center;justify-content:center;padding:max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom))}
 .winner{display:flex;flex-direction:column;align-items:center;gap:18px;width:min(100%, 420px);text-align:center}
 .wlogo{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--accent)}
@@ -603,6 +619,12 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
   var go = function(){ if (!el.parentNode || el.classList.contains('out')) return; el.classList.add('out'); setTimeout(function(){ el.remove(); }, 600); };
   setTimeout(go, first ? 2300 : 1300); el.addEventListener('click', go); })();
 </script>
+<div class="reel" id="reel" hidden role="dialog" aria-label="What Sama can do">
+  <div class="rbars" id="rBars"></div>
+  <button class="rx" id="rClose" type="button" aria-label="Close">×</button>
+  <div class="rstage"><canvas id="rCv" width="720" height="720"></canvas><div class="rtap rprev" id="rPrev"></div><div class="rtap rnext" id="rNext"></div></div>
+  <div class="rcap"><h2 id="rTitle"></h2><p id="rText"></p><button class="btn primary" id="rGo" type="button" hidden>Start practising</button></div>
+</div>
 <div class="welcome" id="welcome" hidden>
   <div class="winner">
     <div class="wlogo">
@@ -656,7 +678,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
     <button class="tab" type="button" role="tab" data-view="coach" aria-selected="false">Coach</button>
   </div>
   <div id="viewCheck" class="view-wrap">
-  <div class="searchrow"><label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="search" placeholder="Search 160 poses: name, Sanskrit, family…" autocomplete="off" aria-label="Search poses"></label>
+  <div class="searchrow"><label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="search" placeholder="Search poses: name, Sanskrit, family…" autocomplete="off" aria-label="Search poses"></label>
   <div class="cats" id="cats" role="tablist" aria-label="Pose families"></div>
   <div class="levels" id="levels" aria-label="Difficulty"></div></div>
   <nav class="rail" id="rail" aria-label="Choose a pose"></nav>
@@ -680,7 +702,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
         <div class="sbar"><span id="sessBar"></span></div>
         <div class="srow"><div><span class="sstep" id="sessStep"></span><b id="sessPose"></b></div><span class="sbreath" id="sessBreath" hidden aria-live="off"><i></i><span></span></span><span class="stime" id="sessTime"></span></div>
         <div class="srow"><span class="snext" id="sessNext"></span>
-          <div class="sbtns"><button type="button" id="sessPrev" aria-label="Previous pose">‹</button><button type="button" id="sessPause">Pause</button><button type="button" id="sessNextBtn" aria-label="Next pose">›</button><button type="button" id="sessVoice" aria-pressed="true" aria-label="Voice guide" title="Voice guide"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="vwave" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button><button type="button" id="sessMusic" aria-pressed="true" aria-label="Background music" title="Background music"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path class="vslash" d="M3 3l18 18"/></svg></button><button type="button" id="sessTv" aria-label="Show on TV" title="Show on TV"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button><button type="button" id="sessEnd">End</button></div></div>
+          <div class="sbtns"><button type="button" id="sessPrev" aria-label="Previous pose">‹</button><button type="button" id="sessPause">Pause</button><button type="button" id="sessNextBtn" aria-label="Next pose">›</button><button type="button" id="sessCam" aria-pressed="false" aria-label="Live camera" title="Live camera: the figure follows you"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button><button type="button" id="sessVoice" aria-pressed="true" aria-label="Voice guide" title="Voice guide"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="vwave" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button><button type="button" id="sessMusic" aria-pressed="true" aria-label="Background music" title="Background music"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path class="vslash" d="M3 3l18 18"/></svg></button><button type="button" id="sessTv" aria-label="Show on TV" title="Show on TV"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button><button type="button" id="sessEnd">End</button></div></div>
       </div>
       <div class="stage">
         <canvas id="cv" width="600" height="800" aria-label="Your pose with alignment overlay"></canvas>
@@ -3474,6 +3496,9 @@ function stopLive(keepFrame = true){
 $('liveBtn').addEventListener('click', startLive);
 $('refBtn').addEventListener('click', showReference);
 $('stopLive').addEventListener('click', () => stopLive(true));
+try { $('search').placeholder = `Search ${new Set(POSES.map(p => p.id)).size} poses: name, Sanskrit, family…`; } catch {}
+// in a practice: the camera can go on and off from the practice bar (the figure follows you, or the video with the skeleton)
+$('sessCam').addEventListener('click', () => { if (mode === 'live') stopLive(true); else startLive(); setTimeout(() => { const b = $('sessCam'); if (b) b.setAttribute('aria-pressed', String(mode === 'live')); }, 400); });
 $('flip').addEventListener('click', async () => { facing = facing==='user' ? 'environment' : 'user'; stopLive(false); await startLive(); });
 
 // ---------- spoken cues ----------
@@ -4261,6 +4286,7 @@ function endSession(done){
   window.dispatchEvent(new Event('resize'));
 }
 function renderSess(){
+  { const cb = $('sessCam'); if (cb) cb.setAttribute('aria-pressed', String(mode === 'live')); }
   const x = sess.P.items[sess.i], n = sess.P.items.length, nx = sess.P.items[sess.i+1];
   $('sessStep').textContent = `${sess.i+1} of ${n} · ${x.phase}`;
   $('sessPose').textContent = POSES.find(q=>q.id===x.id).name + (x.side ? ` · ${x.side} side` : '');
@@ -4963,6 +4989,85 @@ function profileSummary(){
 
 // ---------- the figure that talks: Sama's own reference figure, animated ----------
 // It breathes while idle and melts into a blob and grows back out when it changes pose.
+// ---------- the feature reel: tap the logo; a short animated tour of what Sama does, drawn live with your own figure ----------
+const REEL = [
+  {title:'A practice that guides you', text:'Sama talks you through every pose with a calm voice, an Aum to begin and end, breath reminders and soft music.', scene:'studio', poses:['mountain','upsalute','forwardfold','halflift','dog'], beat:1500, fx:'voice'},
+  {title:'You become the figure', text:'Turn on the camera and the figure moves with you. Your video never leaves your phone.', scene:'living', poses:['warrior2','reversewarrior','triangle'], beat:1700, fx:'camera'},
+  {title:'Friendly corrections', text:'Small, kind cues for what to adjust, and a cheer when you are in line.', scene:'plain', poses:['tree'], beat:4200, fx:'checks'},
+  {title:'165 poses, gentle to advanced', text:'Standing, seated, balances, backbends, inversions and wrist care, each with its story.', scene:'plain', poses:['crow','wheel','dancer','pigeon','headstand','lotus','halfmoon','camel'], beat:560},
+  {title:'A coach that plans with you', text:'Plans for your body and your goals, a road to your dream pose, and your practice days in your calendar.', scene:'beach', poses:['lowlunge','crescentmoon','warrior1'], beat:1500, fx:'plan'},
+  {title:'Practise anywhere', text:'Your living room, the beach, the park or a rooftop under the stars.', scene:['park','mountains','night','beach'], poses:['easy'], beat:1100},
+  {title:'Sama', text:'Your alignment, your practice, your coach.', scene:'plain', poses:['mountain'], beat:3500, end:true},
+];
+const reel = {i:0, t0:0, raf:0, R:null, from:null, to:null, tp:0, pose:0, last:0};
+function openReel(){
+  const el = $('reel'); el.hidden = false; reel.i = 0; reel.t0 = performance.now(); reel.pose = -1; reel.R = null;
+  $('rBars').innerHTML = REEL.map(() => '<i><b></b></i>').join(''); reelSlide(0); cancelAnimationFrame(reel.raf); reel.raf = requestAnimationFrame(reelFrame);
+}
+function closeReel(){ $('reel').hidden = true; cancelAnimationFrame(reel.raf); }
+function reelSlide(i){
+  reel.i = Math.max(0, Math.min(REEL.length - 1, i)); reel.t0 = performance.now(); reel.pose = -1; reel.tp = 0; const sl = REEL[reel.i];
+  const t = $('rTitle'), x = $('rText'); t.textContent = sl.title; x.textContent = sl.text; for (const e of [t, x]){ e.classList.remove('fadein'); void e.offsetWidth; e.classList.add('fadein'); }
+  $('rGo').hidden = !sl.end;
+  [...$('rBars').children].forEach((b, k) => { b.firstChild.style.width = k < reel.i ? '100%' : '0'; });
+}
+function reelDur(sl){ return sl.end ? sl.beat : Math.max(3600, sl.poses.length*sl.beat); }
+function reelFrame(now){
+  reel.raf = requestAnimationFrame(reelFrame);
+  const sl = REEL[reel.i], el = now - reel.t0, dur = reelDur(sl);
+  const bar = $('rBars').children[reel.i]; if (bar) bar.firstChild.style.width = Math.min(100, el/dur*100) + '%';
+  if (el >= dur && !sl.end){ reelSlide(reel.i + 1); return; }
+  // which pose now; a new one grows out of a blob of the last
+  const k = Math.min(sl.poses.length - 1, Math.floor(el/sl.beat)), id = sl.poses[k % sl.poses.length];
+  if (k !== reel.pose){ reel.pose = k; reel.from = reel.R ? (reel.R.base || reel.R) : null; reel.to = refFor(id, false, 0); reel.tp = now; }
+  const ez = u => u*u*u*(u*(u*6-15)+10), u = Math.min(1, (now - reel.tp)/Math.min(900, sl.beat*.8));
+  let R = reel.to;
+  if (u < 1){ if (!reel.from) R = blobRef(reel.to, 1 - ez(u)); else if (u < .45) R = blobRef(reel.from, ez(u/.45), blobRef(reel.to, 1).head.x); else R = blobRef(reel.to, 1 - ez((u - .45)/.55)); }
+  if (!R) return; reel.R = u < 1 ? R : reel.to;
+  const cv = $('rCv'), g = cv.getContext('2d'), S = 720, sc = cv.width/S;
+  const kind = Array.isArray(sl.scene) ? sl.scene[Math.min(sl.scene.length - 1, Math.floor(el/(dur/sl.scene.length)))] : sl.scene;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height); g.setTransform(sc, 0, 0, sc, 0, 0);
+  g.fillStyle = css('--figbg') || '#FBF5EC'; g.fillRect(0, 0, S, S);
+  if (kind !== 'plain') drawEnvironment(g, kind);
+  const br = 1 + .012*Math.sin(now/1900); g.save(); g.translate(S*(1 - br)/2, S*(1 - br)); g.scale(br, br);
+  drawFlatMat(g, R, avatar.mat || '#EE7A2E'); drawFlatFigure(g, R, avatar); g.restore();
+  reelFx(g, sl, el, R, now);
+}
+function reelFx(g, sl, el, R, now){
+  const S = 720, acc = css('--accent') || '#B85A3B', ink = css('--ink') || '#2D2622';
+  const pill = (x, y, txt, color, a = 1) => { g.save(); g.globalAlpha = a; g.font = '600 26px system-ui, -apple-system, Segoe UI, sans-serif'; const w = g.measureText(txt).width + 36;
+    g.fillStyle = '#fff'; g.shadowColor = 'rgba(0,0,0,.12)'; g.shadowBlur = 12; roundRectOn(g, x - w/2, y - 24, w, 48, 24); g.fill(); g.shadowBlur = 0; g.fillStyle = color; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, x, y + 1); g.restore(); };
+  const ap = (t0, t1) => Math.max(0, Math.min(1, (el - t0)/(t1 - t0)));
+  if (sl.fx === 'voice'){ // sound waves beside the figure's head, and a bubble of what the voice says
+    const h = R.head, a = .5 + .5*Math.sin(now/300); g.save(); g.strokeStyle = acc; g.lineCap = 'round'; g.lineWidth = 6;
+    for (let k = 0; k < 3; k++){ g.globalAlpha = (.35 + .25*k)*a + .2; g.beginPath(); g.arc(h.x + 30, h.y - 10, 26 + k*20, -.6, .6); g.stroke(); } g.restore();
+    const lines = ['Breathe in…', 'From here, we’ll continue to…', 'And breathe out.']; pill(S/2, 70, lines[Math.floor(el/1800) % lines.length], ink, ap(200, 600));
+  }
+  if (sl.fx === 'camera'){ // a viewfinder
+    g.save(); g.strokeStyle = '#fff'; g.lineWidth = 8; g.lineCap = 'round'; const m = 70, L = 60;
+    for (const [x, y, dx, dy] of [[m, m, 1, 1], [S - m, m, -1, 1], [m, S - m, 1, -1], [S - m, S - m, -1, -1]]){ g.beginPath(); g.moveTo(x, y + dy*L); g.lineTo(x, y); g.lineTo(x + dx*L, y); g.stroke(); }
+    g.fillStyle = '#E04A4A'; g.globalAlpha = .6 + .4*Math.sin(now/250); g.beginPath(); g.arc(m + 26, m + 30, 10, 0, Math.PI*2); g.fill(); g.restore();
+    pill(S/2, S - 40, 'Camera on · stays on your phone', ink, ap(300, 700));
+  }
+  if (sl.fx === 'checks'){
+    pill(190, 150, '✓ Hips level', '#2E8B57', ap(600, 1000)); pill(S - 190, 230, '✓ Standing knee long', '#2E8B57', ap(1300, 1700));
+    pill(200, 320, 'Lift the chest a little', acc, ap(2100, 2500)); pill(S/2, 70, 'In line ✨', '#2E8B57', ap(3000, 3400));
+  }
+  if (sl.fx === 'plan'){
+    const items = ['Mon · Wake up flow · 20 min', 'Wed · Hips · 30 min', 'Sat · Toward Crow · 45 min'];
+    items.forEach((t, k) => pill(S/2, 60 + k*58, t, ink, ap(300 + k*400, 700 + k*400)));
+  }
+  if (sl.end){ g.save(); g.globalAlpha = ap(200, 900); g.translate(S/2 - 50, 60); g.scale(100/132, 100/132); g.strokeStyle = acc; g.fillStyle = acc; g.lineCap = 'round';
+    g.lineWidth = 6; g.globalAlpha *= .4; g.beginPath(); g.moveTo(66, 14); g.lineTo(66, 118); g.stroke(); g.globalAlpha /= .4;
+    g.lineWidth = 12; g.beginPath(); g.moveTo(18, 112); g.bezierCurveTo(18, 60, 50, 46, 66, 24); g.bezierCurveTo(82, 46, 114, 60, 114, 112); g.stroke(); g.beginPath(); g.arc(66, 24, 12, 0, Math.PI*2); g.fill(); g.restore(); }
+}
+(function(){
+  const b = document.querySelector('.brand'); if (!b) return; b.setAttribute('role', 'button'); b.setAttribute('tabindex', '0'); b.title = 'What Sama can do';
+  b.addEventListener('click', openReel); b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openReel(); } });
+  $('rClose').onclick = closeReel; $('rGo').onclick = () => { closeReel(); switchView('plan'); };
+  $('rNext').onclick = () => { if (REEL[reel.i].end) closeReel(); else reelSlide(reel.i + 1); }; $('rPrev').onclick = () => reelSlide(reel.i - 1);
+  document.addEventListener('keydown', e => { if ($('reel').hidden) return; if (e.key === 'Escape') closeReel(); if (e.key === 'ArrowRight') $('rNext').onclick(); if (e.key === 'ArrowLeft') reelSlide(reel.i - 1); });
+})();
 function figureAnimator(cv){
   const g = cv.getContext('2d'); let cur = null, anim = null, raf = 0; const t0 = performance.now();
   const ez = u => u*u*u*(u*(u*6-15)+10);
