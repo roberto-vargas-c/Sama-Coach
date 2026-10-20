@@ -10,7 +10,7 @@
 <style>
 /* no blue flash on tap (Android/Chrome); buttons give their own pressed feedback */
 *{-webkit-tap-highlight-color:transparent}
-:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+:root{--period:#D9677B;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <title>Sama Yoga</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -516,6 +516,36 @@ body.tv #viewCoach{display:none!important}
 .pwho{flex:1;min-width:200px;display:flex;flex-direction:column;gap:8px}
 .pname{font-family:var(--f-display);font-size:26px;border:none;border-bottom:1px dashed var(--line);background:none;color:var(--ink);padding:2px 0;width:100%;min-width:0}
 .pname:focus{outline:none;border-bottom-color:var(--accent)}
+.cal{display:flex;flex-direction:column;gap:8px}
+.calhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.calhead b{font-size:15px}
+.calhead button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;width:34px;height:30px;font:inherit;font-size:16px;cursor:pointer}
+.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.calgrid .wd{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:center;padding:2px 0}
+.calgrid .day{position:relative;aspect-ratio:1/1;border:1px solid transparent;border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0}
+.calgrid .day.out{opacity:.35}
+.calgrid .day.today{border-color:var(--accent)}
+.calgrid .day.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.calgrid .day.per{background:color-mix(in srgb,var(--period) 26%,var(--bg))}
+.calgrid .day.pred{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--period) 14%,var(--bg)) 0 4px,var(--bg) 4px 8px)}
+.calgrid .day.ovu{box-shadow:inset 0 -3px 0 color-mix(in srgb,var(--period) 55%,transparent)}
+.calgrid .marks{display:flex;gap:3px;height:6px;align-items:center}
+.calgrid .mk{width:6px;height:6px;border-radius:50%}
+.calgrid .mk.done{background:var(--accent)}
+.calgrid .mk.plan{border:1.5px solid var(--accent);width:4px;height:4px}
+.calgrid .mk.g{background:#4285F4}
+.callegend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--muted)}
+.callegend span{display:inline-flex;align-items:center;gap:5px}
+.callegend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.calday{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.calday ul{margin:0;padding-left:18px;color:var(--muted);font-size:13px}
+.calsched{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.calsched input[type=time],.cyc input[type=date],.cyc input[type=number]{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.cyc input[type=number]{width:64px}
+.cyctoday{background:color-mix(in srgb,var(--period) 12%,var(--bg));border:1px solid color-mix(in srgb,var(--period) 35%,var(--line));border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+#viewProfile .pcard p,.cyctoday p{display:block;-webkit-line-clamp:unset;overflow:visible}
+.cyctoday b{font-size:15px}.cyctoday p{margin:0;font-size:13.5px;color:var(--ink);line-height:1.45}
+.cyctip{grid-column:1/-1;margin:0 0 4px}
 .ptiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
 .ptile{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .ptile b{display:block;font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
@@ -701,6 +731,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
 
   <section id="viewPlan" class="planner" hidden>
     <div class="pform">
+      <div class="cyctoday cyctip" id="cycleTip" hidden></div>
       <div class="prow"><h3>Length</h3><div class="segs" id="pDur"></div></div>
       <div class="prow"><h3>Level</h3><div class="segs" id="pLvl"></div></div>
       <div class="prow"><h3>Focus</h3><div class="segs" id="pFocus"></div></div>
@@ -825,6 +856,7 @@ Savasana, 3 min"></textarea>
         </div>
         <div class="pcard">
           <h2>My practice</h2>
+          <div class="crow"><span class="label">I am</span><div class="segs" id="pfGender"></div></div>
           <div class="crow"><span class="label">Experience</span><div class="segs" id="pfLevel"></div></div>
           <div class="crow"><span class="label">Gentle with</span><div class="segs" id="pfBody"></div></div>
           <div class="crow"><span class="label">Goal pose</span><div class="segs" id="pfGoal"></div></div>
@@ -834,6 +866,29 @@ Savasana, 3 min"></textarea>
         </div>
       </div>
       <div class="pcol">
+        <div class="pcard" id="calCard">
+          <h2>Calendar</h2>
+          <div class="cal">
+            <div class="calhead"><button type="button" id="calPrev" aria-label="Previous month">‹</button><b id="calMonth"></b><button type="button" id="calNext" aria-label="Next month">›</button></div>
+            <div class="calgrid" id="calGrid"></div>
+            <div class="callegend" id="calLegend"></div>
+            <div class="calday" id="calDay"></div>
+          </div>
+          <h4>Practice days</h4>
+          <div class="calsched"><div class="segs" id="calDays"></div><label class="calsched">at <input type="time" id="calTime" value="07:30"></label><div class="segs" id="calLen"></div></div>
+          <h4>Google Calendar</h4>
+          <p class="hint" id="gcalText">Put your practice days in Google Calendar, with a reminder.</p>
+          <div class="crow" id="gcalBtns"></div>
+        </div>
+        <div class="pcard cyc" id="cycleCard" hidden>
+          <h2>Your cycle</h2>
+          <p class="hint">Sama can shape your practice around your cycle: softer on your period, stronger when your energy is up. This stays on this device only; it isn't synced or shared with the coach.</p>
+          <div class="cyctoday" id="cycNow"></div>
+          <div class="crow" id="cycBtns"></div>
+          <div class="crow"><span class="label">Last period started</span><input type="date" id="cycStart"></div>
+          <div class="crow"><span class="label">Cycle length</span><input type="number" id="cycLen" min="20" max="45"> <span class="hint">days</span><span class="label">Period</span><input type="number" id="cycPLen" min="2" max="10"> <span class="hint">days</span></div>
+          <div class="crow"><span class="label">Adapt my practices</span><div class="segs" id="cycAdapt"></div></div>
+        </div>
         <div class="pcard">
           <h2>Progress</h2>
           <div class="ptiles" id="pfTiles"></div>
@@ -3631,6 +3686,7 @@ function buildYin(opts, ok, rand){
   for (const x of held) x.secs = Math.max(90, Math.round(x.secs*f/15)*15);
   return {items, opts:{...opts}, total: sum(), yin:true, goal: goal ? opts.goal : null};
 }
+const PERIOD_SKIP = new Set(['headstand','tripodheadstand','forearmstand','handstand','shoulderstand','plow','earpressure','headstandsplit','scorpion','dolphin','wheel','onelegwheel','boat','halfboat','legraises','lsit','tolasana','peacock','crane','crow']);
 function buildPlan(opts){
   const {minutes, level, focus, easy, seed} = opts, F = FOCUS[focus], rand = rng(seed);
   const total = minutes*60, stretch = minutes >= 45 ? 1.4 : minutes >= 30 ? 1.2 : 1;
@@ -3640,6 +3696,8 @@ function buildPlan(opts){
     if (easy.includes('knees') && m.load==='knees') return false;
     if (easy.includes('back') && m.tags.includes('backbend') && m.lvl >= 2) return false;
     if (F.gentle && m.lvl >= 3) return false;
+    // on her period: no inversions, strong core work or deep twists, nothing too intense
+    if (easy.includes('period') && (PERIOD_SKIP.has(id) || m.lvl >= 3 || (m.tags.includes('core') && m.lvl >= 2) || (m.tags.includes('twist') && m.lvl >= 2))) return false;
     return true; };
   if (F.flow) return buildFlow(opts, ok, rand);
   if (F.ashtanga) return buildAshtanga(opts, ok);
@@ -3710,8 +3768,9 @@ function renderPlannerForm(){
   segmented($('pDur'), [[10,'10 min'],[20,'20 min'],[30,'30 min'],[45,'45 min'],[60,'60 min'],[90,'90 min']], planOpts.minutes, v => { planOpts.minutes = v; makePlan(); });
   segmented($('pLvl'), [[1,'Beginner'],[2,'Intermediate'],[3,'Advanced']], planOpts.level, v => { planOpts.level = v; makePlan(); });
   segmented($('pFocus'), Object.entries(FOCUS).map(([k,f]) => [k, f.label]), planOpts.focus, v => { planOpts.focus = v; makePlan(); });
-  segmented($('pEasy'), [['wrists','Easy on wrists'],['knees','Easy on knees'],['back','Gentle on the back']], planOpts.easy, v => {
+  segmented($('pEasy'), [['wrists','Easy on wrists'],['knees','Easy on knees'],['back','Gentle on the back'],['period','On my period']], planOpts.easy, v => {
     planOpts.easy = planOpts.easy.includes(v) ? planOpts.easy.filter(x => x!==v) : [...planOpts.easy, v]; makePlan(); }, true);
+  try { for (const b of $('pEasy').querySelectorAll('[data-v="period"]')) b.hidden = !cycleOn(); renderCycleTip(); } catch {} // the cycle code loads further down
   segmented($('pGoal'), [[null,'No goal'], ...Object.entries(GOALS).map(([k,g]) => [k, g.label])], planOpts.goal, v => { planOpts.goal = v; makePlan(); });
   renderLadder();
 }
@@ -4727,7 +4786,7 @@ function saveProfile(patch){
   Object.assign(profile, patch || {}); if (!profile.createdAt) profile.createdAt = Date.now();
   try { localStorage.setItem(PK, JSON.stringify(profile)); } catch {}
   // the planner follows the profile
-  planOpts.level = profile.level; planOpts.easy = profile.body.filter(b => ['wrists','knees','back'].includes(b)); planOpts.goal = profile.goal;
+  planOpts.level = profile.level; planOpts.easy = [...profile.body.filter(b => ['wrists','knees','back'].includes(b)), ...(planOpts.easy.includes('period') ? ['period'] : [])]; planOpts.goal = profile.goal;
   try { localStorage.setItem('plumb.planOpts', JSON.stringify(planOpts)); } catch {}
   if (plan && !plan.edited) { plan = buildPlan(planOpts); if (!$('viewPlan').hidden){ renderPlannerForm(); renderPlan(); } }
   const pb = $('pBtn'); if (pb) pb.title = profile.name ? profile.name : 'Profile';
@@ -4846,6 +4905,12 @@ async function startOnboarding(){
   // a quick start for the figure: women get long hair and a slim build, men short hair and a regular build; or they choose later
   a = await G.ask({text:`Nice to meet you, ${answers.name}. So I can look a bit like you: are you a woman or a man?`, pose:'mountain', input:false, chips:[{label:'Woman', value:'woman'}, {label:'Man', value:'man'}, {label:'I’ll choose myself', value:'open'}]}); if (a == null) return;
   answers.gender = a; prog(2);
+  if (a === 'woman'){
+    const c = await G.ask({text:'Would you like your practices to follow your cycle? Softer on your period, stronger when your energy is up. This stays on your device.', pose:'easy', input:false, chips:[{label:'I’m on my period now', value:0}, {label:'Yes, it started 1–2 weeks ago', value:10}, {label:'Yes, it started 3–4 weeks ago', value:24}, {label:'Not now', value:-1}]}); if (c == null) return;
+    if (+c >= 0){ periodStart(dKey(dAdd(new Date(), -(+c)))); saveCycle({adapt:true}); G.tell(+c === 0 ? 'Thanks for telling me. We’ll keep it gentle for now.' : 'Got it. You can set the exact date in your profile.', +c === 0 ? 'child' : 'mountain'); await new Promise(r => setTimeout(r, 1500)); }
+    else saveCycle({adapt:false});
+  }
+  if (a === 'woman'){ saveProfile({gender:'woman'}); }
   if (a !== 'open'){ Object.assign(avatar, a === 'woman' ? {hair:'long', build:'slim'} : {hair:'short', build:'regular'}); try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {} try { window.__syncLook && window.__syncLook(); } catch {} retheme(); }
   a = await G.ask({text:'How long have you been practising yoga?', pose:'tree', input:false, chips:[{label:'I’m new to it', value:1}, {label:'A few months', value:1}, {label:'A year or two', value:2}, {label:'Many years', value:3}]}); if (a == null) return;
   answers.level = +a; prog(3);
@@ -4869,6 +4934,250 @@ async function startOnboarding(){
   else switchView('check');
 }
 
+// ---------- cycle: on this device only ----------
+const CYK = 'sama.cycle';
+const CYCLE_DEFAULT = {adapt:true, periods:[], len:28, plen:5};
+let cycle = {...CYCLE_DEFAULT};
+try { const c = JSON.parse(localStorage.getItem(CYK) || 'null'); if (c) cycle = {...CYCLE_DEFAULT, ...c}; } catch {}
+function saveCycle(patch){ Object.assign(cycle, patch || {}); cycle.periods.sort((a, b) => a.start < b.start ? -1 : 1); try { localStorage.setItem(CYK, JSON.stringify(cycle)); } catch {} }
+const dKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const dParse = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m-1, d); };
+const dAdd = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const dDiff = (a, b) => Math.round((dParse(dKey(a)) - dParse(dKey(b))) / 864e5);
+function cycleOn(){ return profile.gender === 'woman' || cycle.periods.length > 0; }
+function cycleLen(){ // the average of the logged cycles when there are some, else what was entered
+  const st = cycle.periods.map(p => dParse(p.start)), gaps = [];
+  for (let i = 1; i < st.length; i++){ const g = dDiff(st[i], st[i-1]); if (g >= 20 && g <= 45) gaps.push(g); }
+  return gaps.length ? Math.round(gaps.slice(-6).reduce((a, b) => a + b, 0) / gaps.slice(-6).length) : cycle.len;
+}
+const CYCLE_PHASES = {
+  period:{label:'Period', focus:'yin', easy:true, short:'Go gentle',
+    text:'Many people prefer a softer practice now: slow floor poses, hip openers, long exhales. While this is on, Sama leaves out inversions, strong core work and deep twists. If you feel strong, that is fine too: listen to your body.'},
+  follicular:{label:'After your period', focus:'vinyasa', short:'Build up',
+    text:'Energy often comes back after your period. A good time for flowing practice and for trying new poses.'},
+  ovulation:{label:'Around ovulation', focus:'strength', short:'Go strong',
+    text:'Often the most energetic days of the cycle: strength, balance and your goal pose.'},
+  luteal:{label:'Second half of your cycle', focus:'balanced', short:'Keep steady',
+    text:'Keep a steady, all-round practice and add a little more rest at the end.'},
+  late:{label:'Days before your period', focus:'hips', short:'Slow down',
+    text:'Energy can dip and the body can feel heavier. Hip openers, forward folds and a calmer pace tend to feel good.'},
+};
+// where a date sits in the cycle: logged periods first, then a prediction from the last start
+function cycleAt(date){
+  if (!cycle.periods.length) return null;
+  const k = dKey(date), L = cycleLen(), P = cycle.plen;
+  for (const p of cycle.periods){ const end = p.end || dKey(dAdd(dParse(p.start), P - 1)); if (k >= p.start && k <= end) return {phase:'period', day: dDiff(date, dParse(p.start)) + 1, logged:true, L}; }
+  const past = cycle.periods.filter(p => p.start <= k); if (!past.length) return null;
+  const last = dParse(past[past.length - 1].start); let day = dDiff(date, last) + 1;
+  const predicted = day > L; if (predicted) day = ((day - 1) % L) + 1;
+  const ov = L - 14;
+  const phase = day <= P ? 'period' : day < ov - 1 ? 'follicular' : day <= ov + 1 ? 'ovulation' : day > L - 5 ? 'late' : 'luteal';
+  return {phase, day, predicted, logged:false, L, ovulation: day === ov};
+}
+function cycleToday(){ return cycleOn() && cycle.adapt ? cycleAt(new Date()) : null; }
+function periodStart(dateKey){
+  const open = cycle.periods.find(p => !p.end && dDiff(dParse(dateKey), dParse(p.start)) < 10 && p.start <= dateKey);
+  if (open) return;
+  cycle.periods = cycle.periods.filter(p => p.start !== dateKey); cycle.periods.push({start: dateKey}); saveCycle();
+}
+function periodEnd(dateKey){ const p = [...cycle.periods].reverse().find(q => q.start <= dateKey); if (p){ p.end = dateKey; saveCycle(); } }
+// the planner: a banner with today's phase and a one-tap practice for it
+function applyCycleToPlan(c){
+  const ph = CYCLE_PHASES[c.phase]; planOpts.focus = ph.focus;
+  planOpts.easy = planOpts.easy.filter(x => x !== 'period'); if (ph.easy) planOpts.easy.push('period');
+  makePlan();
+}
+function renderCycleTip(){
+  const box = $('cycleTip'); if (!box) return; const c = cycleToday(); box.hidden = !c && !(cycleOn() && cycle.adapt); box.textContent = ''; if (box.hidden) return;
+  const b = document.createElement('b'), pp = document.createElement('p'), row = document.createElement('div'); row.className = 'crow';
+  const btn = (t, f, primary) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn small' + (primary ? ' primary' : ''); x.textContent = t; x.onclick = f; row.appendChild(x); };
+  if (!c){ b.textContent = 'Your cycle'; pp.textContent = 'Tell Sama when your period starts and your practices will follow your cycle.'; btn('My period started today', () => { periodStart(dKey(new Date())); renderCycleTip(); const t = cycleToday(); if (t) applyCycleToPlan(t); }, true); }
+  else {
+    const ph = CYCLE_PHASES[c.phase]; b.textContent = `${ph.label} · day ${c.day}${c.predicted ? ' (estimated)' : ''}`; pp.textContent = ph.text;
+    const using = planOpts.focus === ph.focus && (!ph.easy || planOpts.easy.includes('period'));
+    btn(using ? 'Practice set for today ✓' : `${ph.short}: ${FOCUS[ph.focus].label}`, () => applyCycleToPlan(c), !using);
+    if (c.phase === 'period') btn('My period ended', () => { periodEnd(dKey(new Date())); planOpts.easy = planOpts.easy.filter(x => x !== 'period'); makePlan(); renderCycleTip(); });
+    else btn('My period started today', () => { periodStart(dKey(new Date())); const t = cycleToday(); if (t) applyCycleToPlan(t); renderCycleTip(); });
+  }
+  box.append(b, pp, row);
+}
+
+// ---------- calendar ----------
+const WEEKDAYS = [[1,'Mon'],[2,'Tue'],[3,'Wed'],[4,'Thu'],[5,'Fri'],[6,'Sat'],[0,'Sun']];
+const DEFAULT_DAYS = {2:[2,5], 3:[1,3,5], 4:[1,3,5,6], 5:[1,2,3,4,5]};
+function schedule(){ const s = profile.schedule || {}; return {days: s.days || DEFAULT_DAYS[profile.days] || [1,3,5], time: s.time || '07:30', minutes: s.minutes || planOpts.minutes || 20, gEvent: s.gEvent || null}; }
+function saveSchedule(patch){ saveProfile({schedule: {...schedule(), ...patch}}); }
+let calMonth = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); })(), calSel = dKey(new Date());
+const GCAL = {token:null, exp:0, events:{}, loaded:{}};
+try { const g = JSON.parse(sessionStorage.getItem('sama.gcal') || 'null'); if (g && g.exp > Date.now()){ GCAL.token = g.token; GCAL.exp = g.exp; } } catch {}
+const gcalLive = () => GCAL.token && GCAL.exp > Date.now() + 30e3;
+function practisedOn(){ const m = {}; for (const e of getHist()) if (e.pose === 'practice'){ const k = dKey(new Date(e.at)); m[k] = (m[k] || 0) + (e.hold || 0); } return m; }
+function renderCalendar(){
+  const grid = $('calGrid'); if (!grid) return;
+  const sc = schedule(), done = practisedOn(), today = dKey(new Date()), y = calMonth.getFullYear(), mo = calMonth.getMonth();
+  $('calMonth').textContent = calMonth.toLocaleDateString(undefined, {month:'long', year:'numeric'});
+  grid.textContent = '';
+  for (const [, l] of WEEKDAYS){ const w = document.createElement('div'); w.className = 'wd'; w.textContent = l.slice(0, 2); grid.appendChild(w); }
+  const first = new Date(y, mo, 1), lead = (first.getDay() + 6) % 7, start = dAdd(first, -lead), showCycle = cycleOn() && cycle.adapt;
+  for (let i = 0; i < 42; i++){
+    const d = dAdd(start, i), k = dKey(d); if (i >= 35 && d.getMonth() !== mo) break;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'day'; if (d.getMonth() !== mo) b.classList.add('out'); if (k === today) b.classList.add('today'); if (k === calSel) b.classList.add('sel');
+    const c = showCycle ? cycleAt(d) : null; if (c && c.phase === 'period') b.classList.add(c.logged ? 'per' : 'pred'); if (c && c.ovulation) b.classList.add('ovu');
+    const n = document.createElement('span'); n.textContent = d.getDate(); const mk = document.createElement('span'); mk.className = 'marks';
+    if (done[k]){ const x = document.createElement('i'); x.className = 'mk done'; mk.appendChild(x); }
+    else if (k >= today && sc.days.includes(d.getDay())){ const x = document.createElement('i'); x.className = 'mk plan'; mk.appendChild(x); }
+    if ((GCAL.events[k] || []).some(e => !e.sama)){ const x = document.createElement('i'); x.className = 'mk g'; mk.appendChild(x); }
+    b.append(n, mk); b.onclick = () => { calSel = k; renderCalendar(); }; grid.appendChild(b);
+  }
+  const lg = $('calLegend'); lg.innerHTML = '';
+  const leg = (style, t) => { const s = document.createElement('span'); s.innerHTML = `<i style="${style}"></i>`; s.append(t); lg.appendChild(s); };
+  leg('background:var(--accent)', 'Practised'); leg('border:1.5px solid var(--accent);width:7px;height:7px', 'Planned');
+  if (showCycle){ leg('background:color-mix(in srgb,var(--period) 40%,transparent)', 'Period'); leg('background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--period) 40%,transparent) 0 2px,transparent 2px 4px)', 'Expected'); }
+  if (gcalLive()) leg('background:#4285F4', 'Google Calendar');
+  renderCalDay(); if (gcalLive()) gcalLoadMonth(y, mo);
+  segmented($('calDays'), WEEKDAYS, sc.days, v => { const cur = schedule().days; const days = cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v]; saveSchedule({days}); renderCalendar(); gcalSyncSchedule(true); }, true);
+  segmented($('calLen'), [[10,'10 min'],[20,'20 min'],[30,'30 min'],[45,'45 min'],[60,'60 min']], sc.minutes, v => { saveSchedule({minutes:v}); renderCalendar(); gcalSyncSchedule(true); });
+  if (document.activeElement !== $('calTime')) $('calTime').value = sc.time;
+  renderGcalButtons();
+}
+function renderCalDay(){
+  const box = $('calDay'), d = dParse(calSel), k = calSel, today = dKey(new Date()), sc = schedule(), done = practisedOn()[k];
+  box.textContent = '';
+  const h = document.createElement('b'); h.textContent = d.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'}); box.appendChild(h);
+  const line = t => { const p = document.createElement('span'); p.textContent = t; box.appendChild(p); return p; };
+  if (done) line(`Practised ${Math.max(1, Math.round(done/60))} min.`);
+  else if (sc.days.includes(d.getDay()) && k >= today) line(`Practice planned at ${sc.time}, ${sc.minutes} min.`);
+  else if (k < today) line('No practice.');
+  const c = cycleOn() && cycle.adapt ? cycleAt(d) : null;
+  if (c){ const ph = CYCLE_PHASES[c.phase]; line(`${ph.label}, day ${c.day}${c.predicted || !c.logged && c.phase === 'period' ? ' (expected)' : ''}. Suggested: ${FOCUS[ph.focus].label}${ph.easy ? ', gentle' : ''}.`); }
+  const ev = (GCAL.events[k] || []).filter(e => !e.sama);
+  if (ev.length){ const ul = document.createElement('ul'); for (const e of ev.slice(0, 5)){ const li = document.createElement('li'); li.textContent = `${e.time ? e.time + ' ' : ''}${e.title}`; ul.appendChild(li); } box.appendChild(ul); }
+  const row = document.createElement('div'); row.className = 'crow';
+  const btn = (t, f, primary) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn small' + (primary ? ' primary' : ''); x.textContent = t; x.onclick = f; row.appendChild(x); };
+  if (k >= today) btn(k === today ? 'Plan today’s practice' : 'Plan this practice', () => {
+    planOpts.minutes = sc.minutes; if (c){ const ph = CYCLE_PHASES[c.phase]; planOpts.focus = ph.focus; planOpts.easy = planOpts.easy.filter(x => x !== 'period'); if (ph.easy) planOpts.easy.push('period'); }
+    planOpts.seed = Date.now() % 100000; switchView('plan'); makePlan(); renderCycleTip(); window.scrollTo({top:0, behavior:'smooth'}); }, true);
+  if (cycleOn() && k <= today){
+    const inP = c && c.phase === 'period' && c.logged;
+    if (!inP) btn('Period started this day', () => { periodStart(k); renderCalendar(); renderCycle(); });
+    else { btn('Period ended this day', () => { periodEnd(k); renderCalendar(); renderCycle(); });
+      const p = cycle.periods.find(q => q.start === k); if (p) btn('Remove this period', () => { cycle.periods = cycle.periods.filter(q => q !== p); saveCycle(); renderCalendar(); renderCycle(); }); }
+  }
+  if (row.children.length) box.appendChild(row);
+}
+// Google Calendar: a link that needs nothing (adds the repeating practice), a file for other calendars, and a full connection
+const BYDAY = ['SU','MO','TU','WE','TH','FR','SA'];
+function nextPracticeStart(){ const sc = schedule(), [hh, mm] = sc.time.split(':').map(Number), now = new Date();
+  for (let i = 0; i < 8; i++){ const d = dAdd(new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm), i); if (sc.days.includes(d.getDay()) && d > now) return d; } return dAdd(now, 1); }
+const gStamp = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}00`;
+function practiceRule(){ return `RRULE:FREQ=WEEKLY;BYDAY=${schedule().days.map(d => BYDAY[d]).join(',')}`; }
+const APP_URL = 'https://sama-coach-ai.vercel.app/';
+function gcalTemplateUrl(){
+  const sc = schedule(), a = nextPracticeStart(), b = new Date(a.getTime() + sc.minutes*60e3);
+  const q = new URLSearchParams({action:'TEMPLATE', text:'Yoga with Sama', dates:`${gStamp(a)}/${gStamp(b)}`, ctz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', recur: practiceRule(), details:`Your ${sc.minutes}-minute practice. Open Sama: ${APP_URL}`});
+  return 'https://calendar.google.com/calendar/render?' + q.toString();
+}
+function icsFile(){
+  const sc = schedule(), a = nextPracticeStart(), now = new Date();
+  const z = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Sama//Yoga coach//EN','BEGIN:VEVENT',`UID:sama-practice-${Date.now()}@sama-coach`,`DTSTAMP:${z(now)}`,`DTSTART:${gStamp(a)}`,`DURATION:PT${sc.minutes}M`, practiceRule(),'SUMMARY:Yoga with Sama',`DESCRIPTION:Your ${sc.minutes}-minute practice. ${APP_URL}`,`URL:${APP_URL}`,'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Yoga with Sama','TRIGGER:-PT10M','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+}
+function openOut(url){ if (window.SamaNative && window.SamaNative.openUrl) window.SamaNative.openUrl(url); else window.open(url, '_blank', 'noopener'); }
+function renderGcalButtons(){
+  const row = $('gcalBtns'); if (!row) return; row.textContent = '';
+  const btn = (t, f, primary) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn small' + (primary ? ' primary' : ''); x.textContent = t; x.onclick = f; row.appendChild(x); };
+  const sc = schedule();
+  if (gcalLive()){
+    $('gcalText').textContent = sc.gEvent ? 'Connected. Your practice days are in your Google Calendar and follow any change you make here; your own events show as blue dots.' : 'Connected. Your Google events show as blue dots. Add your practice days to it too:';
+    btn(sc.gEvent ? 'Update in Google Calendar' : 'Add practice days', () => gcalSyncSchedule(false), !sc.gEvent);
+    btn('Disconnect', () => { GCAL.token = null; GCAL.exp = 0; GCAL.events = {}; GCAL.loaded = {}; try { sessionStorage.removeItem('sama.gcal'); } catch {} renderCalendar(); });
+  } else {
+    $('gcalText').textContent = sc.gEvent ? 'Your practice days are in Google Calendar. Connect again to update them or to see your own events here.' : 'Connect to see your Google events here and keep your practice days in Google Calendar, or just add them once.';
+    btn('Connect Google Calendar', gcalConnect, true);
+    btn('Add once (no sign-in)', () => openOut(gcalTemplateUrl()));
+    if (!window.SamaNative) btn('Download for other calendars', () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([icsFile()], {type:'text/calendar'})); a.download = 'sama-practice.ics'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); });
+  }
+}
+const GCAL_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+function gcalSetToken(t){ if (!t) return; GCAL.token = t; GCAL.exp = Date.now() + 55*60e3; GCAL.loaded = {}; try { sessionStorage.setItem('sama.gcal', JSON.stringify({token:t, exp:GCAL.exp})); } catch {} renderCalendar(); gcalSyncSchedule(true); }
+async function gcalConnect(){
+  if (!AUTH.fb) return notice('Not available here', 'Google sign-in is not set up in this copy of Sama. Use “Add once” instead.');
+  const fb = AUTH.fb, p = new fb.auth.GoogleAuthProvider(); p.addScope(GCAL_SCOPE); p.setCustomParameters({prompt:'consent'});
+  // the Android app: Google sign-in happens in Chrome, which hands the token back (see samaNativeAuth)
+  if (window.SamaNative && window.SamaNative.openAuth){ try { localStorage.setItem('sama.gcalPending', String(Date.now())); } catch {} window.SamaNative.openAuth(location.origin + '/signin.html?cal=1'); return; }
+  try {
+    const u = fb.auth().currentUser, isG = u && u.providerData.some(x => x.providerId === 'google.com');
+    const r = u && isG ? await u.reauthenticateWithPopup(p) : u ? await u.linkWithPopup(p).catch(e => e && e.code === 'auth/credential-already-in-use' ? fb.auth().signInWithPopup(p) : Promise.reject(e)) : await fb.auth().signInWithPopup(p);
+    const t = r && r.credential && r.credential.accessToken; if (!t) throw new Error('Google did not give calendar access.');
+    gcalSetToken(t); notice('Google Calendar connected', 'Your events now show in Sama’s calendar.');
+  } catch (e){ if (e && e.code === 'auth/popup-closed-by-user') return; notice('Could not connect Google Calendar', e && e.message || String(e)); }
+}
+async function gcalFetch(path, opts = {}){
+  const r = await fetch('https://www.googleapis.com/calendar/v3/' + path, {...opts, headers:{Authorization:`Bearer ${GCAL.token}`, 'Content-Type':'application/json', ...(opts.headers || {})}});
+  if (r.status === 401){ GCAL.token = null; GCAL.exp = 0; try { sessionStorage.removeItem('sama.gcal'); } catch {} renderGcalButtons(); throw new Error('Google sign-in expired. Connect again.'); }
+  if (!r.ok){ let m = `${r.status}`; try { const j = await r.json(); m = j.error && j.error.message || m; } catch {} throw new Error(m); }
+  return r.status === 204 ? null : r.json();
+}
+async function gcalLoadMonth(y, mo){
+  const key = `${y}-${mo}`; if (GCAL.loaded[key]) return; GCAL.loaded[key] = true;
+  try {
+    const a = new Date(y, mo, 1), b = new Date(y, mo + 1, 1), q = new URLSearchParams({timeMin: dAdd(a, -7).toISOString(), timeMax: dAdd(b, 7).toISOString(), singleEvents:'true', orderBy:'startTime', maxResults:'250'});
+    const j = await gcalFetch(`calendars/primary/events?${q}`), gid = schedule().gEvent;
+    for (const e of j.items || []){
+      const st = e.start && (e.start.dateTime || e.start.date); if (!st) continue; const d = e.start.dateTime ? new Date(st) : dParse(st), k = dKey(d);
+      (GCAL.events[k] = GCAL.events[k] || []).push({title: e.summary || '(busy)', time: e.start.dateTime ? d.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'}) : '', sama: !!(gid && e.recurringEventId === gid) || e.id === gid});
+    }
+    for (const k in GCAL.events){ const seen = new Set(); GCAL.events[k] = GCAL.events[k].filter(e => { const h = e.time + e.title; if (seen.has(h)) return false; seen.add(h); return true; }); }
+    renderCalendar();
+  } catch (e){ GCAL.loaded[key] = false; console.warn('gcal', e); }
+}
+let gcalTimer = 0;
+function gcalSyncSchedule(quiet){
+  if (!gcalLive()) return; const sc = schedule(); if (quiet && !sc.gEvent) return;
+  clearTimeout(gcalTimer); gcalTimer = setTimeout(async () => {
+    const a = nextPracticeStart(), b = new Date(a.getTime() + sc.minutes*60e3), tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:00`;
+    const body = {summary:'Yoga with Sama', description:`Your ${sc.minutes}-minute practice. Open Sama: ${APP_URL}`, start:{dateTime: iso(a), timeZone: tz}, end:{dateTime: iso(b), timeZone: tz}, recurrence:[practiceRule()], reminders:{useDefault:false, overrides:[{method:'popup', minutes:10}]}, source:{title:'Sama', url: APP_URL}};
+    try {
+      let ev = null;
+      if (sc.gEvent) ev = await gcalFetch(`calendars/primary/events/${encodeURIComponent(sc.gEvent)}`, {method:'PUT', body: JSON.stringify(body)}).catch(() => null);
+      if (!ev) ev = await gcalFetch('calendars/primary/events', {method:'POST', body: JSON.stringify(body)});
+      saveSchedule({gEvent: ev.id}); GCAL.events = {}; GCAL.loaded = {}; renderCalendar();
+      if (!quiet) notice('Added to Google Calendar', `Yoga with Sama, ${sc.days.length} days a week at ${sc.time}, with a reminder 10 minutes before.`);
+    } catch (e){ notice('Google Calendar', e && e.message || String(e)); }
+  }, quiet ? 900 : 0);
+}
+// the cycle card in the profile
+function renderCycle(){
+  const card = $('cycleCard'); if (!card) return; card.hidden = !cycleOn(); if (card.hidden) return;
+  const c = cycleAt(new Date()), now = $('cycNow'); now.textContent = '';
+  const b = document.createElement('b'), pp = document.createElement('p');
+  if (!c){ b.textContent = 'Nothing logged yet'; pp.textContent = 'Tap “My period started today”, or enter the date your last period started.'; }
+  else { const ph = CYCLE_PHASES[c.phase]; b.textContent = `Today: ${ph.label}, day ${c.day}${c.predicted ? ' (estimated)' : ''}`; pp.textContent = ph.text; }
+  now.append(b, pp);
+  const next = cycle.periods.length ? dAdd(dParse(cycle.periods[cycle.periods.length - 1].start), cycleLen()) : null;
+  if (next && next > new Date()){ const n = document.createElement('p'); n.className = 'hint'; n.textContent = `Next period expected around ${next.toLocaleDateString(undefined, {day:'numeric', month:'long'})} (cycle of ${cycleLen()} days).`; now.appendChild(n); }
+  const row = $('cycBtns'); row.textContent = '';
+  const btn = (t, f, primary) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn small' + (primary ? ' primary' : ''); x.textContent = t; x.onclick = f; row.appendChild(x); };
+  const today = dKey(new Date());
+  if (c && c.phase === 'period' && c.logged) btn('My period ended', () => { periodEnd(today); renderCycle(); renderCalendar(); renderCycleTip(); });
+  else btn('My period started today', () => { periodStart(today); renderCycle(); renderCalendar(); renderCycleTip(); }, true);
+  if (c) btn('Plan today’s practice', () => { applyCycleToPlan(c); switchView('plan'); renderCycleTip(); window.scrollTo({top:0, behavior:'smooth'}); });
+  const last = cycle.periods[cycle.periods.length - 1];
+  $('cycStart').value = last ? last.start : ''; $('cycStart').max = today; $('cycLen').value = cycle.len; $('cycPLen').value = cycle.plen;
+  segmented($('cycAdapt'), [[true,'On'],[false,'Off']], cycle.adapt, v => { saveCycle({adapt:v}); if (!v){ planOpts.easy = planOpts.easy.filter(x => x !== 'period'); } renderCycle(); renderCalendar(); renderCycleTip(); });
+}
+function initCalendarUI(){
+  $('calPrev').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderCalendar(); };
+  $('calNext').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderCalendar(); };
+  $('calTime').addEventListener('change', () => { if ($('calTime').value){ saveSchedule({time: $('calTime').value}); renderCalendar(); gcalSyncSchedule(true); } });
+  $('cycStart').addEventListener('change', () => { const v = $('cycStart').value; if (!v) return; const last = cycle.periods[cycle.periods.length - 1];
+    if (last && dDiff(dParse(v), dParse(last.start)) < 15 && dDiff(dParse(v), dParse(last.start)) > -15){ last.start = v; if (last.end && last.end < v) delete last.end; saveCycle(); } else periodStart(v);
+    renderCycle(); renderCalendar(); renderCycleTip(); });
+  $('cycLen').addEventListener('change', () => { const v = Math.max(20, Math.min(45, Math.round(+$('cycLen').value || 28))); saveCycle({len:v}); renderCycle(); renderCalendar(); });
+  $('cycPLen').addEventListener('change', () => { const v = Math.max(2, Math.min(10, Math.round(+$('cycPLen').value || 5))); saveCycle({plen:v}); renderCycle(); renderCalendar(); });
+}
+
 // ---------- profile view ----------
 let pfBuilt = false, pfFig = null;
 function initial(){ return (profile.name || '').trim().charAt(0).toUpperCase() || '·'; }
@@ -4879,13 +5188,14 @@ function renderProfile(){
     $('pfNotes').addEventListener('change', () => saveProfile({notes: $('pfNotes').value.slice(0, 1200)}));
     $('pfLook').addEventListener('click', () => $('lookCard').scrollIntoView({behavior:'smooth', block:'start'}));
     $('pfWelcome').addEventListener('click', () => { showWelcome(); });
+    initCalendarUI();
     $('pfExport').addEventListener('click', () => {
-      const data = {exportedAt: new Date().toISOString(), profile, history: getHist(), saved: getSaved(), avatar, planOpts};
+      const data = {exportedAt: new Date().toISOString(), profile, history: getHist(), saved: getSaved(), avatar, planOpts, cycle};
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:'application/json'})); a.download = `sama-${(profile.name || 'me').toLowerCase().replace(/\W+/g, '-')}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     });
     $('pfDelete').addEventListener('click', () => {
       if (!confirm('Delete your profile, checks and saved practices from this device?')) return;
-      for (const k of [PK, HK, SK, 'plumb.planOpts', 'sama.avatar', 'sama.welcomed']) { try { localStorage.removeItem(k); } catch {} }
+      for (const k of [PK, HK, SK, CYK, 'plumb.planOpts', 'sama.avatar', 'sama.welcomed']) { try { localStorage.removeItem(k); } catch {} }
       if (AUTH.user) authDeleteRemote().catch(() => {});
       location.reload();
     });
@@ -4893,6 +5203,7 @@ function renderProfile(){
   pfFig.setPose(profile.goal && REF_SPECS[profile.goal] ? profile.goal : 'mountain');
   $('pfName').value = profile.name; $('pfNotes').value = profile.notes;
   $('pfSince').textContent = profile.createdAt ? `Practising with Sama since ${new Date(profile.createdAt).toLocaleDateString(undefined, {month:'long', year:'numeric'})}` : 'New here';
+  segmented($('pfGender'), [['woman','Woman'],['man','Man'],['open','Prefer not to say']], profile.gender || 'open', v => { saveProfile({gender:v}); renderProfile(); renderPlannerForm(); });
   segmented($('pfLevel'), [[1,'Beginner'],[2,'Intermediate'],[3,'Advanced']], profile.level, v => { saveProfile({level:v}); renderProfile(); });
   segmented($('pfBody'), BODY_OPTS, profile.body, v => { saveProfile({body: profile.body.includes(v) ? profile.body.filter(x => x !== v) : [...profile.body, v]}); renderProfile(); }, true);
   segmented($('pfGoal'), [[null,'No goal'], ...Object.entries(GOALS).map(([k, g]) => [k, g.label])], profile.goal, v => { saveProfile({goal:v}); renderProfile(); });
@@ -4927,6 +5238,7 @@ function renderProfile(){
   const sv = $('pfSaved'), all = getSaved(); sv.textContent = '';
   if (!all.length){ const li = document.createElement('li'); li.className = 'd'; li.textContent = 'Nothing saved yet. The coach and the planner can both save practices here.'; sv.appendChild(li); }
   all.forEach(s => { const li = document.createElement('li'); li.innerHTML = '<button type="button" class="linkish"></button><span class="d"></span>'; li.querySelector('.linkish').textContent = s.name; li.querySelector('.d').textContent = fmtMin(s.plan.total); li.querySelector('.linkish').addEventListener('click', () => openInPlanner(s.plan)); sv.appendChild(li); });
+  renderCalendar(); renderCycle();
   renderAuthUI();
 }
 // header button
@@ -4960,7 +5272,7 @@ async function authInit(){
     }
     await fb.auth().getRedirectResult().catch(() => {});
     // the app hands over the Google tokens it got back from Chrome
-    window.samaNativeAuth = async (idToken, accessToken) => { try { await fb.auth().signInWithCredential(fb.auth.GoogleAuthProvider.credential(idToken || null, accessToken || null)); notice('Signed in', 'Your practice now syncs across your devices.'); } catch (e){ notice('Sign-in failed', e && e.message || String(e)); } };
+    window.samaNativeAuth = async (idToken, accessToken) => { let pend = 0; try { pend = +localStorage.getItem('sama.gcalPending') || 0; localStorage.removeItem('sama.gcalPending'); } catch {} if (pend && Date.now() - pend < 15*60e3 && accessToken){ gcalSetToken(accessToken); if (AUTH.user) return notice('Google Calendar connected', 'Your events now show in Sama’s calendar.'); } try { await fb.auth().signInWithCredential(fb.auth.GoogleAuthProvider.credential(idToken || null, accessToken || null)); notice('Signed in', 'Your practice now syncs across your devices.'); } catch (e){ notice('Sign-in failed', e && e.message || String(e)); } };
     if (window.__pendingNativeAuth){ const t = window.__pendingNativeAuth; window.__pendingNativeAuth = null; window.samaNativeAuth(t[0], t[1]); }
     fb.auth().onAuthStateChanged(async u => {
       AUTH.user = u; AUTH.ready = true; if (u) await cloudPull(); renderAuthUI();

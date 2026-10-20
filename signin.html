@@ -34,6 +34,7 @@ $('go').onclick = async () => {
   $('err').hidden = true;
   try {
     const p = new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt: 'select_account'});
+    if (/[?&]cal=1/.test(location.search)){ p.addScope('https://www.googleapis.com/auth/calendar.events'); p.setCustomParameters({prompt: 'consent select_account'}); }
     const r = await firebase.auth().signInWithPopup(p), c = r.credential || {};
     handBack(c.idToken, c.accessToken);
   } catch (e){ $('err').textContent = 'That didn’t work: ' + (e && e.message || e) + ' Try again.'; $('err').hidden = false; }
