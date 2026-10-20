@@ -118,6 +118,10 @@ body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -
 .srow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .srow b{display:block;font-size:17px}
 .sstep,.snext{font-size:12.5px;color:var(--muted)}
+.sbreath{display:inline-flex;align-items:center;gap:8px;margin-left:auto;margin-right:14px;font-size:13px;font-weight:600;color:var(--muted)}
+.sbreath i{width:22px;height:22px;border-radius:50%;background:var(--accent);opacity:.35;transform:scale(.45);transition:transform 5s ease-in-out,opacity 5s ease-in-out}
+.sbreath.in i{transform:scale(1);opacity:.75}
+@media (prefers-reduced-motion: reduce){.sbreath i{transition:none}}
 .stime{font-family:var(--f-mono);font-size:26px;font-variant-numeric:tabular-nums;color:var(--accent)}
 .sbtns{display:flex;gap:6px}
 #sessVoice[aria-pressed="false"] .vwave{display:none}
@@ -602,7 +606,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
     <section class="stagecol">
       <div class="sess" id="sess" hidden>
         <div class="sbar"><span id="sessBar"></span></div>
-        <div class="srow"><div><span class="sstep" id="sessStep"></span><b id="sessPose"></b></div><span class="stime" id="sessTime"></span></div>
+        <div class="srow"><div><span class="sstep" id="sessStep"></span><b id="sessPose"></b></div><span class="sbreath" id="sessBreath" hidden aria-live="off"><i></i><span></span></span><span class="stime" id="sessTime"></span></div>
         <div class="srow"><span class="snext" id="sessNext"></span>
           <div class="sbtns"><button type="button" id="sessPrev" aria-label="Previous pose">‹</button><button type="button" id="sessPause">Pause</button><button type="button" id="sessNextBtn" aria-label="Next pose">›</button><button type="button" id="sessVoice" aria-pressed="true" aria-label="Voice guide" title="Voice guide"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="vwave" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button><button type="button" id="sessMusic" aria-pressed="true" aria-label="Background music" title="Background music"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path class="vslash" d="M3 3l18 18"/></svg></button><button type="button" id="sessTv" aria-label="Show on TV" title="Show on TV"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button><button type="button" id="sessEnd">End</button></div></div>
       </div>
@@ -3909,6 +3913,7 @@ function beep(f = 660, d = .15){ try { audio = audio || new (window.AudioContext
   o.connect(g).connect(audio.destination); o.start(); o.stop(audio.currentTime+d+.02); } catch {} }
 // ---------- the recorded voice guide: Aum and welcome, one script per pose, the other side, closing words and Aum ----------
 const VOICE_DIR = 'voice/';
+const BREATH_CLIPS = ['clip_breath_pair', 'clip_breath_long', 'clip_breath_inhale', 'clip_breath_exhale', 'clip_breath_keep', 'clip_breath_soften', 'clip_breath_belly', 'clip_breath_count'];
 const VOICE_AGAIN = new Set(["cat", "chair", "chairtwist", "chaturanga", "cow", "cowface", "crescentmoon", "deer", "dog", "eagle", "figurefour", "firelog", "forwardfold", "garland", "gate", "goddess", "halflift", "halfmoon", "halfsplits", "headtoknee", "highlunge", "humblewarrior", "kneetonose", "lizard", "lowlunge", "lungetwist", "mountain", "pigeon", "plank", "pyramid", "reclinedbigtoeside", "reclinedpigeon", "reversewarrior", "revtriangle", "savasana", "sideangle", "sidebend", "skandasana", "sleepingpigeon", "standingsplit", "star", "supinetwist", "threadneedle", "threeleggeddog", "toestand", "triangle", "updog", "upsalute", "warrior1", "warrior2", "warrior3", "widefold", "widefoldtwist"]); // poses that come back within a practice have a short 'back to …' line
 let voiceOn = true; try { voiceOn = localStorage.getItem('sama.voice') !== 'off'; } catch {}
 const voiceEl = new Audio(); voiceEl.preload = 'auto';
@@ -3923,7 +3928,7 @@ function voiceNext(){
   const p = voiceEl.play(); if (p && p.catch) p.catch(() => voiceAdvance(tok));
 }
 function voiceAdvance(tok){ if (tok === voice.tok){ voice.tok++; voiceNext(); } } // each clip moves the queue on once, whether it ends or fails
-voiceEl.addEventListener('ended', () => voiceAdvance(voice.tok));
+voiceEl.addEventListener('ended', () => { voice.lastEnd = performance.now(); voiceAdvance(voice.tok); });
 voiceEl.addEventListener('error', () => voiceAdvance(voice.tok));
 function voiceStop(){ voice.queue = []; voice.done = null; voice.playing = false; voice.tok = (voice.tok || 0) + 1; try { voiceEl.pause(); } catch {} }
 function voiceUnlock(){ try { voiceEl.src = VOICE_DIR + 'clip_otherside.mp3'; voiceEl.muted = true; const p = voiceEl.play(); if (p && p.then) p.then(() => { if (!voice.playing) voiceEl.pause(); voiceEl.muted = false; }).catch(() => { voiceEl.muted = false; }); else voiceEl.muted = false; } catch {} }
@@ -3982,6 +3987,21 @@ function enterItem(){
   sess.phase = 'prep'; sess.left = sess.i===0 ? 5 : (sess.P.flow ? 2 : sess.P.yin ? 15 : TRANSITION); renderSess();
   if (!sess.boot) voiceForItem();
 }
+// a breath reminder now and then while a longer hold goes on, never over another clip
+function breathReminder(){
+  if (!voiceOn || !sess || sess.remote || sess.paused || sess.phase !== 'hold' || voice.playing) return;
+  const x = sess.P.items[sess.i]; if (!x || x.secs < 14 || sess.left < 7) return;
+  const now = performance.now(); if (now - (voice.lastEnd || 0) < 11000 || now - (voice.lastBreath || 0) < 12000) return;
+  let pick; do { pick = BREATH_CLIPS[Math.floor(Math.random()*BREATH_CLIPS.length)]; } while (pick === voice.lastBreathId && BREATH_CLIPS.length > 1);
+  voice.lastBreath = now; voice.lastBreathId = pick; voicePlay([pick]);
+}
+// the breathing light in the practice bar: five seconds in, five out, through every hold
+function breathLight(){
+  const el = $('sessBreath'); if (!el) return;
+  const on = !!sess && sess.phase === 'hold' && !sess.paused; el.hidden = !on; if (!on) return;
+  const inhale = Math.floor(performance.now()/5000) % 2 === 0;
+  if (el.classList.contains('in') !== inhale || !el.lastChild.textContent){ el.classList.toggle('in', inhale); el.lastChild.textContent = inhale ? 'Breathe in' : 'Breathe out'; }
+}
 function voiceForItem(){
   if (!voiceOn || !sess || sess.remote) return;
   const x = sess.P.items[sess.i], prev = sess.P.items[sess.i - 1];
@@ -3992,8 +4012,10 @@ function voiceForItem(){
 function enterItemRemote(i){ sess.i = i; const x = sess.P.items[i]; pose = POSES.find(q => q.id===x.id); renderRail(); showReference(x.side==='left'); }
 function tick(){
   const now = performance.now(), dt = (now - sess.last)/1000; sess.last = now;
+  breathLight();
   if (sess.paused || sess.remote) return;
   if (sess.phase==='intro') return;
+  breathReminder();
   sess.left -= dt;
   if (sess.left <= 0){
     if (sess.phase==='hold' && voice.playing && voiceOn){ sess.left = 0; renderSess(); return; } // let the sentence finish
@@ -4012,6 +4034,7 @@ function nextItem(d){
 function endSession(done){
   if (!sess) return; clearInterval(sess.timer);
   voiceStop(); if (done && voiceOn && !sess.remote) voicePlay(['clip_end', 'clip_aum_end'], () => musicStop()); else musicStop();
+  if ($('sessBreath')) $('sessBreath').hidden = true;
   if (done && !sess.remote) addHist({pose:'practice', score:null, hold:sess.P.total, at:Date.now(), label:`${(FOCUS[sess.P.opts.focus]||FOCUS.balanced).label} practice`});
   sess = null; $('sess').hidden = true; tvSend({t:'end'}); renderTv();
   try { window.SamaNative && window.SamaNative.keepAwake(false); } catch {}
