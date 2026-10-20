@@ -559,6 +559,7 @@ body.tv #viewCoach{display:none!important}
 .fold[open] .chev{transform:rotate(-135deg);margin-bottom:-4px}
 .fold[open]>summary{margin-bottom:4px}
 #cmCalendar .pcard{max-width:680px;margin:0 auto;cursor:default}
+.btn.coffee{background:#FFDD00;color:#1E1A17;border-color:#F2CF00;font-weight:600}.btn.coffee:hover{filter:brightness(.97)}
 .cal{display:flex;flex-direction:column;gap:8px}
 .calhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .calhead b{font-size:15px}
@@ -936,6 +937,11 @@ Savasana, 3 min"></textarea>
           </div>
           </div>
         </details>
+        <div class="pcard" id="coffeeCard" hidden>
+          <h2>Support Sama</h2>
+          <p class="hint">Sama is free, without ads, and made by one person. If it helps your practice, you can buy me a coffee.</p>
+          <div class="crow"><button class="btn coffee" id="coffeeBtn" type="button"><span aria-hidden="true">☕</span> Buy me a coffee</button></div>
+        </div>
         <div class="pcard">
           <h2>Account</h2>
           <p class="hint" id="pfAuthText">Your data is kept on this device. Sign in to keep it across your phone, laptop and the app.</p>
@@ -3411,6 +3417,10 @@ async function openVideo(file){
 // ---------- movement recordings: the skeleton between poses in a practice with the camera on (for better transitions) ----------
 // Each recording runs from the moment the next pose is called until three seconds into its hold, ~15 frames a second.
 // Kept in this browser (IndexedDB) until downloaded; never video, never uploaded.
+// donations: the button shows once the Buy Me a Coffee page exists (set the link here)
+const COFFEE_URL = '';
+(function(){ const card = $('coffeeCard'); if (!card || !COFFEE_URL) return; card.hidden = false;
+  $('coffeeBtn').addEventListener('click', () => { if (window.SamaNative && window.SamaNative.openUrl) window.SamaNative.openUrl(COFFEE_URL); else window.open(COFFEE_URL, '_blank', 'noopener'); }); })();
 let motionOn = false; try { motionOn = localStorage.getItem('sama.motion') === 'on'; } catch {}
 const MV = {clip: null, lastT: 0, db: null};
 function mvDb(){ return MV.db || (MV.db = new Promise((res, rej) => { const r = indexedDB.open('sama-motion', 1); r.onupgradeneeded = () => r.result.createObjectStore('clips', {autoIncrement: true}); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); })); }
