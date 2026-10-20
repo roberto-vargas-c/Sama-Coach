@@ -2497,9 +2497,15 @@ function drawFlatFigure(g, R, av){
     seat.part = 'seat'; parts.push(seat);
   }
   const zs = R.kp[5].w ? R.kp[5].w[2] : 0, zr = R.kp[6].w ? R.kp[6].w[2] : 0, far = zs > zr + .02 ? 'l' : zr > zs + .02 ? 'r' : null;
-  // back to front: far limbs, near leg, hips and torso (the shirt sits over the legs), near arm, head
-  const LEG = new Set(['thigh','shin','foot']), ARM = new Set(['upper','fore','hand']);
-  const order = p => p.part==='head' || p.part==='neck' ? 6 : (p.side && p.side===far) ? 0 : LEG.has(p.part) ? 1 : p.part==='hips' || p.part==='seat' ? 2 : ARM.has(p.part) ? 4 : 3;
+  // back to front: far limbs; the near upper arm (its shoulder end hides behind the shirt); the shirt; the trousers over it
+  // (shin under thigh, so the knee reads as the end of the thigh); the near arm again minus its shoulder; the head
+  const SUB = {shin:.1, foot:.2, thigh:.3, upper:.4, fore:.5, hand:.6};
+  const order = p => p.part==='head' || p.part==='neck' ? 9 : p.front ? 4 : (p.side && p.side===far) ? SUB[p.part] || 0
+    : p.part==='upper' ? 1 : p.part==='torso' || p.part==='shoulders' ? 2 : p.part==='shin' || p.part==='foot' || p.part==='thigh' ? 3 + SUB[p.part] : p.part==='hips' || p.part==='seat' ? 3.5 : 4 + (SUB[p.part] || 0);
+  for (const p of [...parts]) if (p.part === 'upper' && !(p.side && p.side === far)){ // second pass of the near upper arm, with a hole where the shoulder joint is
+    const K = R.kp, sh = K[p.ks[0]], rr = sil.shoulder*R.scale*1.25;
+    const again = gg => p(gg); again.part = 'upper'; again.side = p.side; again.ks = p.ks; again.front = true; again.hole = {x: sh.x, y: sh.y, r: rr}; parts.push(again);
+  }
   const s = R.scale; g.lineJoin = 'round';
   const K0 = R.kp, hx = (K0[11].x + K0[12].x)/2, hy = (K0[11].y + K0[12].y)/2, sx = (K0[5].x + K0[6].x)/2, sy = (K0[5].y + K0[6].y)/2;
   const torsoFrame = {x: hx, y: hy, a: Math.atan2(sy - hy, sx - hx) + Math.PI/2}; // the torso's own up, from the hips to the shoulders
@@ -2507,6 +2513,7 @@ function drawFlatFigure(g, R, av){
   for (const p of [...parts].sort((a,b) => order(a)-order(b))){
     if (p.part === 'head') continue;
     const isFar = !!(p.side && p.side === far);
+    if (p.hole){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.arc(p.hole.x, p.hole.y, p.hole.r, 0, Math.PI*2, true); g.clip(); }
     const unseen = R.live && p.ks && p.ks.some(i => R.kp[i].s < VIS); if (unseen) g.globalAlpha *= .35; // a limb the camera did not find is only a hint
     g.fillStyle = flatColor(av, p.part, isFar); p(g); g.fill();
     const clothed = p.part === 'torso' || p.part === 'shoulders' || (p.part === 'fore' && av.sleeves === 'long');
@@ -2519,6 +2526,7 @@ function drawFlatFigure(g, R, av){
       flatPattern(g, av.pattern, isFar ? shade(av.patternColor, .86) : av.patternColor, s, sleeve, frameOf(p));
     }
     if (unseen) g.globalAlpha /= .35;
+    if (p.hole) g.restore();
   }
   drawFlatHead(g, R, av);
 }
