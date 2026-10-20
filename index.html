@@ -2390,7 +2390,7 @@ function transitionPath(fromId, toId, fromMir = false, toMir = false){
 }
 // Pace: how unhurried the figure moves. Calm is the default; floor and resting families move slower still.
 const PACE = {calm:1.45, flowing:1, quick:.7};
-let showOverlay = true, showInset = true; try { showOverlay = localStorage.getItem('sama.overlay') !== 'off'; showInset = localStorage.getItem('sama.inset') !== 'off'; } catch {}
+let showOverlay = false, showInset = true; try { showOverlay = localStorage.getItem('sama.overlay') === 'on'; showInset = localStorage.getItem('sama.inset') !== 'off'; } catch {}
 let camView = 'avatar'; try { camView = localStorage.getItem('sama.camview') === 'skeleton' ? 'skeleton' : 'avatar'; } catch {} // what the stage shows while the camera runs: your illustrated figure, or the video with the skeleton
 let transStyle = 'blob'; try { const v = localStorage.getItem('sama.trans'); if (v==='blob' || v==='moves') transStyle = v; } catch {}
 let pace = 'calm'; try { const v = localStorage.getItem('sama.pace'); if (PACE[v]) pace = v; } catch {}
