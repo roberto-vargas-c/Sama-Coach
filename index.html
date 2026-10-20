@@ -648,7 +648,6 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
           <div class="arow"><span>Pose engine</span><div class="segs" data-k="engine"><button type="button" class="seg" data-v="auto">Auto</button><button type="button" class="seg" data-v="wasm">WebAssembly</button><button type="button" class="seg" data-v="gpu">GPU</button><button type="button" class="seg" data-v="cpu">CPU</button></div></div>
           <div class="arow"><span>Transition</span><div class="segs" data-k="trans"><button type="button" class="seg" data-v="blob">Blob</button><button type="button" class="seg" data-v="moves">Movement</button></div></div>
           <div class="arow"><span>Movement</span><div class="segs" data-k="pace"><button type="button" class="seg" data-v="calm">Calm</button><button type="button" class="seg" data-v="flowing">Flowing</button><button type="button" class="seg" data-v="quick">Quick</button></div></div>
-          <div class="arow"><span>Style</span><div class="segs" data-k="mode"><button type="button" class="seg" data-v="flat">Illustration</button><button type="button" class="seg" data-v="silhouette">Silhouette</button><button type="button" class="seg" data-v="line">Line</button><button type="button" class="seg" data-v="sketch">Sketch</button><button type="button" class="seg" data-v="avatar">My avatar</button></div></div>
           <div class="arow"><span>Scene</span><div class="segs" data-k="sceneset"><button type="button" class="seg" data-v="plain">Plain</button><button type="button" class="seg" data-v="studio">Studio</button><button type="button" class="seg" data-v="beach">Beach</button><button type="button" class="seg" data-v="living">Living room</button><button type="button" class="seg" data-v="park">Park</button><button type="button" class="seg" data-v="mountains">Mountains</button><button type="button" class="seg" data-v="night">Night rooftop</button></div></div>
           <div class="arow"><span>Voice guide in practices</span><div class="segs" data-k="voiceset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
           <div class="arow"><span>Background music</span><div class="segs" data-k="musicset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
@@ -660,7 +659,6 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
             <div class="arow"><span>Hair</span><div class="segs" data-k="hair"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="bun">Bun</button><button type="button" class="seg" data-v="ponytail">Ponytail</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="curly">Curly</button><button type="button" class="seg" data-v="none">None</button></div></div>
             <div class="arow"><span>Hair colour</span><div class="swatches" data-k="hairColor"></div></div>
             <div class="arow"><span>Build</span><div class="segs" data-k="build"><button type="button" class="seg" data-v="slim">Slim</button><button type="button" class="seg" data-v="regular">Regular</button><button type="button" class="seg" data-v="soft">Soft</button><button type="button" class="seg" data-v="strong">Strong</button></div></div>
-            <div class="arow avonly"><span>Top</span><div class="segs" data-k="top"><button type="button" class="seg" data-v="tank">Tank</button><button type="button" class="seg" data-v="tee">Tee</button><button type="button" class="seg" data-v="bare">None</button></div></div>
             <div class="arow flatonly"><span>Sleeves</span><div class="segs" data-k="sleeves"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="none">Sleeveless</button></div></div>
             <div class="arow"><span>Top colour</span><div class="swatches" data-k="topColor"></div></div>
             <div class="arow flatonly"><span>Pattern</span><div class="segs" data-k="pattern"><button type="button" class="seg" data-v="none">Plain</button><button type="button" class="seg" data-v="dots">Dots</button><button type="button" class="seg" data-v="stripes">Stripes</button><button type="button" class="seg" data-v="zigzag">Zigzag</button><button type="button" class="seg" data-v="checks">Checks</button></div></div>
@@ -2396,56 +2394,13 @@ const AVATAR_CHOICES = {
 const BUILD = {slim:{all:.9}, regular:{all:1}, soft:{all:1.06, hip:1.2, thigh:1.14, torso:1.06}, strong:{all:1.14, shoulder:1.25, upper:1.2, fore:1.1}};
 let avatar = {...AVATAR_DEFAULT};
 try { const a = JSON.parse(localStorage.getItem('sama.avatar')||'null'); if (a){ avatar = {...AVATAR_DEFAULT, ...a}; if (!a.v){ avatar.v = 2; if (a.mode === 'silhouette' || !a.mode) avatar.mode = 'flat'; if (a.mode === 'avatar'){ avatar.sleeves = a.top === 'tee' ? 'short' : 'none'; avatar.pattern = 'none'; } } } } catch {}
+avatar.mode = 'flat'; // the illustration is the only figure style
 function silFor(av){
   const b = BUILD[av.build] || BUILD.regular, f = k => (b[k] || 1) * b.all, out = {};
   for (const [k,v] of Object.entries(SIL_BASE)) out[k] = Array.isArray(v) ? v.map(x => x*f(k)) : k==='head' || k==='neck' || k==='foot' || k==='hand' ? v : v*f(k);
   return out;
 }
 const shade = (hex, f) => { const n = parseInt(hex.slice(1),16); const c = [n>>16, (n>>8)&255, n&255].map(v => Math.max(0, Math.min(255, Math.round(v*f)))); return '#'+c.map(v => v.toString(16).padStart(2,'0')).join(''); };
-function avatarColor(av, part, side){
-  const dim = side==='r' ? .86 : 1; // the far side sits a little in shadow
-  let c;
-  if (part==='thigh' || part==='hips') c = av.bottomColor;
-  else if (part==='shin') c = av.bottom==='leggings' ? av.bottomColor : av.skin;
-  else if (part==='torso' || part==='shoulders') c = av.top==='bare' ? av.skin : av.topColor;
-  else if (part==='upper') c = av.top==='tee' ? av.topColor : av.skin;
-  else c = av.skin;
-  return side ? shade(c, dim) : c;
-}
-function drawHair(g, R, av, layer){
-  if (av.hair==='none') return;
-  const F = faceFrame(R), r = F.r, h = F.h, sgn = F.lx > .25 ? 1 : F.lx < -.25 ? -1 : 0; // which way the face points in the head's own frame
-  g.save(); g.translate(h.x, h.y); g.rotate(F.rot); g.fillStyle = av.hairColor;
-  if (layer==='back'){
-    // what hangs behind the head: ponytail, long hair
-    const down = (x, y) => { const c = Math.cos(-F.rot), s = Math.sin(-F.rot); return {x: x*c - y*s, y: x*s + y*c}; }; // screen-down in head frame
-    const d = down(0, 1);
-    if (av.hair==='ponytail'){ const a = {x:-sgn*r*.55, y:-r*.35}; taperPath(g, a, {x:a.x + d.x*r*1.7 - sgn*r*.25, y:a.y + d.y*r*1.7}, r*.3, r*.12); g.fill(); }
-    if (av.hair==='long'){ for (const sx of [-1,1]){ const a = {x:sx*r*.7, y:-r*.2}; taperPath(g, a, {x:a.x + d.x*r*1.5 + sx*r*.15, y:a.y + d.y*r*1.5}, r*.36, r*.22); g.fill(); } }
-    g.restore(); return;
-  }
-  // the cap: the top of the head, cut lower at the back than at the hairline
-  g.beginPath(); g.ellipse(0, 0, r*.92*1.08, r*1.08, 0, 0, Math.PI*2); g.clip();
-  g.beginPath(); const yF = -r*.12 - sgn*0 + (sgn ? -r*.35 : -r*.15), yB = sgn ? r*.45 : -r*.15;
-  // polygon above the tilted cut line (front: hairline high; back: hair reaches the nape)
-  const xf = sgn*r*1.3, xb = -sgn*r*1.3;
-  if (sgn){ g.moveTo(xf, yF); g.lineTo(xb, yB); g.lineTo(xb, -r*1.3); g.lineTo(xf, -r*1.3); }
-  else { g.rect(-r*1.3, -r*1.3, r*2.6, r*1.3 + yB); }
-  g.closePath(); g.fill();
-  if (av.hair==='curly'){ for (let i = 0; i < 9; i++){ const a = -Math.PI*(.05 + .9*i/8), rr = r*(.22 + .08*((i*7)%3)); g.beginPath(); g.arc(Math.cos(a)*r*1.02, Math.sin(a)*r*1.02 + r*.05, rr, 0, Math.PI*2); g.fill(); } }
-  if (av.hair==='bun'){ g.beginPath(); g.arc(-sgn*r*.55, -r*.9, r*.38, 0, Math.PI*2); g.fill(); }
-  g.restore();
-}
-function drawAvatar(g, R, av){
-  const parts = silhouetteParts(R, silFor(av));
-  const zs = R.kp[5].w ? R.kp[5].w[2] : 0, zr = R.kp[6].w ? R.kp[6].w[2] : 0, far = zs > zr + .02 ? 'l' : zr > zs + .02 ? 'r' : null; // the side further from the camera
-  const order = p => p.part==='head' || p.part==='neck' ? 3 : (p.side && p.side===far) ? 0 : p.side ? 2 : 1; // far limbs, body, near limbs, head
-  g.lineJoin = 'round';
-  drawHair(g, R, av, 'back');
-  for (const p of [...parts].sort((a,b) => order(a)-order(b))){ g.fillStyle = avatarColor(av, p.part, p.side ? (p.side===far ? 'r' : 'l') : null); p(g); g.fill(); }
-  drawHair(g, R, av, 'front');
-}
-
 // ---------- illustration: flat colours, no outlines, patterned clothes, a face, a mat in perspective ----------
 // The print is pinned to the body: drawn in the frame of the part it sits on (torso or arm bone), so it moves with the figure instead of sliding under it.
 function flatPattern(g, kind, color, s, part, frame){
@@ -2539,50 +2494,8 @@ function drawFlatFigure(g, R, av){
 function drawFigureScene(g, R, bg, ink, matColor){
   const S = R.S;
   g.fillStyle = bg; g.fillRect(0,0,S,S);
-  if (avatar.mode==='flat'){ drawFlatMat(g, R, avatar.mat || '#E9B93A'); drawFlatFigure(g, R, avatar); return; }
-  g.fillStyle = matColor; roundRectOn(g, S*.07, R.floor-4, S*.86, 12, 6); g.fill();
-  if (avatar.mode==='avatar') drawAvatar(g, R, avatar); else if (avatar.mode==='line') drawLineFigure(g, R, ink); else if (avatar.mode==='sketch') drawSketchFigure(g, R, ink); else drawSilhouette(g, R, ink);
+  drawFlatMat(g, R, avatar.mat || '#E9B93A'); drawFlatFigure(g, R, avatar);
 }
-// a single-line figure: bones drawn as strokes, the head as an open circle
-// Sketchy figure: a pencil-like outline drawn three times with a slight wobble, over a light diagonal hatch inside the shape.
-let SKETCH_CV = null, SKETCH_CV2 = null, OUTLINE_CV = null;
-function drawSketchFigure(g, R, color){
-  const S = R.S, parts = silhouetteParts(R, avatar.build ? silFor(avatar) : SIL_BASE), w = Math.max(1.6, .011*R.scale);
-  const a = SKETCH_CV || (SKETCH_CV = document.createElement('canvas')), b = SKETCH_CV2 || (SKETCH_CV2 = document.createElement('canvas'));
-  if (a.width !== S){ a.width = a.height = S; b.width = b.height = S; }
-  let seed = 7; const rnd = () => (seed = (seed*1664525 + 1013904223) >>> 0) / 4294967296 - .5; // the same wobble every frame, so nothing boils
-  // hatch inside the shape
-  const o2 = b.getContext('2d'); o2.setTransform(1,0,0,1,0,0); o2.clearRect(0,0,S,S);
-  o2.strokeStyle = color; o2.globalAlpha = .28; o2.lineWidth = Math.max(1, w*.6); o2.beginPath();
-  for (let d = -S; d < S*2; d += Math.max(7, .055*R.scale)){ o2.moveTo(d, 0); o2.lineTo(d + S*.9, S*.9 + rnd()*4); } o2.stroke(); o2.globalAlpha = 1;
-  const m = OUTLINE_CV || (OUTLINE_CV = document.createElement('canvas')); if (m.width !== S){ m.width = m.height = S; }
-  const om = m.getContext('2d'); om.setTransform(1,0,0,1,0,0); om.clearRect(0,0,S,S); om.fillStyle = '#000'; for (const p of parts){ p(om); om.fill(); } // the union as a mask
-  o2.globalCompositeOperation = 'destination-in'; o2.drawImage(m, 0, 0); o2.globalCompositeOperation = 'source-over';
-  g.drawImage(b, 0, 0, S, S);
-  // three wobbly outline passes
-  const o = a.getContext('2d');
-  for (let pass = 0; pass < 3; pass++){
-    o.setTransform(1,0,0,1,0,0); o.clearRect(0,0,S,S);
-    const j = (pass ? 1.1 : .5)*R.scale*.012; o.setTransform(1, rnd()*.012, rnd()*.012, 1, rnd()*j*2, rnd()*j*2);
-    o.lineJoin = 'round'; o.lineCap = 'round'; o.fillStyle = color; o.strokeStyle = color; o.lineWidth = (pass===0 ? w*2 : w*1.3);
-    for (const p of parts){ p(o); o.fill(); o.stroke(); }
-    o.globalCompositeOperation = 'destination-out'; for (const p of parts){ p(o); o.fill(); } o.globalCompositeOperation = 'source-over';
-    g.save(); g.globalAlpha = pass===0 ? .9 : .45; g.drawImage(a, 0, 0, S, S); g.restore();
-  }
-}
-// Outline figure: the silhouette's parts are united and only the outer contour is drawn (dilate the union, then cut the union out again).
-function drawLineFigure(g, R, color){
-  const S = R.S, w = Math.max(2.5, .018*R.scale), parts = silhouetteParts(R, avatar.build ? silFor(avatar) : SIL_BASE);
-  const off = OUTLINE_CV || (OUTLINE_CV = document.createElement('canvas')); if (off.width !== S){ off.width = off.height = S; }
-  const o = off.getContext('2d'); o.setTransform(1,0,0,1,0,0); o.clearRect(0,0,S,S);
-  o.lineJoin = 'round'; o.lineCap = 'round'; o.fillStyle = color; o.strokeStyle = color; o.lineWidth = w*2;
-  for (const p of parts){ p(o); o.fill(); o.stroke(); }            // the union, grown by the line width
-  o.globalCompositeOperation = 'destination-out';
-  for (const p of parts){ p(o); o.fill(); }                         // take the union itself away: the ring that is left is the outline
-  o.globalCompositeOperation = 'source-over';
-  g.drawImage(off, 0, 0, S, S);
-}
-
 // Hand-corrected poses from the Pose Fixer: 3D joint positions that replace the built ones (bone lengths kept).
 const POSE_FIX = {"bigtoe":{"ls":[-0.1529,-0.4685,-0.2076],"rs":[-0.1551,-0.4823,0.1711],"neck":[-0.1922,-0.5338,-0.0244],"head":[-0.2574,-0.6576,-0.0293],"crown":[-0.3179,-0.7725,-0.0339],"nose":[-0.3335,-0.7056,-0.0309],"leye":[-0.3303,-0.7202,-0.067],"reye":[-0.3307,-0.7228,0.0028],"lear":[-0.257,-0.655,-0.1043],"rear":[-0.2579,-0.6605,0.0456],"le":[-0.3463,-0.2661,-0.2029],"re":[-0.3554,-0.2868,0.1771],"lw":[-0.4259,-0.0358,-0.1121],"rw":[-0.4171,-0.2301,0.4232],"lpi":[-0.4802,0.0099,-0.145],"lix":[-0.4958,0.0206,-0.0962],"lth":[-0.4495,-0.0181,-0.0718],"rpi":[-0.4479,-0.262,0.4877],"rix":[-0.4445,-0.212,0.5084],"rth":[-0.4189,-0.1897,0.4527],"lk":[-0.4398,-0.0076,-0.1043],"rk":[0,0.44,0.1196],"la":[-0.8598,-0.0073,-0.1022],"ra":[0,0.86,0.1218],"lhe":[-0.9323,-0.0136,-0.0983],"lft":[-0.7568,-0.1134,-0.0963],"rhe":[0.0517,0.9031,0.1218],"rft":[-0.1484,0.9012,0.1218],"face":[-0.8458,-0.5335,0],"up":[-0.4658,-0.8849,0],"front":[-0.8906,-0.4548,0],"sl":[0,0,-1]},"bigtoeside":{"lh":[0.1119,-0.0265,0],"ls":[0.2411,-0.4773,0.1146],"rs":[-0.1369,-0.5172,0.1147],"neck":[0.0546,-0.5672,0.1147],"head":[0.0596,-0.7071,0.1147],"crown":[0.0642,-0.8371,0.1147],"nose":[0.0596,-0.7072,0.0247],"leye":[0.0955,-0.7336,0.0448],"reye":[0.0258,-0.7407,0.0447],"lear":[0.1342,-0.6994,0.1147],"rear":[-0.015,-0.715,0.1147],"le":[0.4864,-0.3428,0.1034],"re":[-0.4166,-0.5172,0.1275],"lw":[0.7422,-0.3385,0.0575],"rw":[-0.6766,-0.5172,0.1275],"lpi":[0.8028,-0.3036,0.0928],"lix":[0.8202,-0.2936,0.0422],"lth":[0.7682,-0.3235,0.0175],"rpi":[-0.7468,-0.5172,0.0929],"rix":[-0.7668,-0.5172,0.1414],"rth":[-0.7066,-0.5172,0.1674],"lk":[0.5372,-0.1345,0.0318],"la":[0.9439,-0.2376,0.0508],"lhe":[0.9632,-0.256,0.0518],"lft":[0.7812,-0.3161,0.0499]},"bow":{"ls":[-0.4869,-0.114,-0.1899],"rs":[-0.4869,-0.114,0.1899],"neck":[-0.5568,-0.1116,0],"head":[-0.6848,-0.1684,0.0026],"crown":[-0.8035,-0.221,0.0096],"nose":[-0.7737,-0.1822,0.0051],"leye":[-0.7812,-0.1915,-0.0329],"reye":[-0.7812,-0.1915,0.0381],"lear":[-0.6848,-0.1684,-0.0724],"rear":[-0.6848,-0.1684,0.0776],"le":[-0.2357,-0.2364,-0.1717],"re":[-0.2346,-0.2349,0.178],"lw":[0.0178,-0.2366,-0.1138],"rw":[0.0228,-0.232,0.141],"lpi":[0.0775,-0.2731,-0.0788],"lix":[0.0945,-0.2837,-0.1288],"lth":[0.0434,-0.2522,-0.1538],"rpi":[0.0758,-0.278,0.1757],"rix":[0.0906,-0.2912,0.1259],"rth":[0.0454,-0.2515,0.101],"lk":[0.4333,-0.0763,-0.1022],"rk":[0.4333,-0.0763,0.1178],"la":[0.0561,-0.2602,-0.1213],"ra":[0.0567,-0.2616,0.1335],"lhe":[0.0652,-0.2748,-0.1214],"lft":[-0.1244,-0.2912,-0.1289],"rhe":[0.0659,-0.276,0.1354],"rft":[-0.1236,-0.2931,0.143],"face":[-0.9879,-0.155,0],"up":[-0.9141,-0.4054,0],"front":[-0.9572,0.2895,0],"sl":[0,0,-1]},"bridge":{"lh":[0.029,0.0397,0.11],"rh":[0.0265,0.0435,-0.11],"ls":[-0.3926,0.3094,0.1941],"rs":[-0.3926,0.3094,-0.1941],"neck":[-0.4619,0.3196,0],"head":[-0.5939,0.2731,0],"crown":[-0.7166,0.2301,0],"nose":[-0.5642,0.1882,0],"leye":[-0.5991,0.1973,0.0353],"reye":[-0.5991,0.1973,-0.0353],"lear":[-0.594,0.2731,0.075],"rear":[-0.594,0.2731,-0.075],"le":[-0.1128,0.3186,0.1941],"re":[-0.1128,0.3186,-0.1941],"lw":[0.147,0.3272,0.2003],"rw":[0.147,0.3272,-0.1879],"lpi":[0.2161,0.3167,0.2355],"lix":[0.236,0.3134,0.1855],"lth":[0.1766,0.3226,0.1602],"rpi":[0.2164,0.3172,-0.153],"rix":[0.2363,0.3143,-0.2016],"rth":[0.1766,0.3229,-0.2279],"lk":[0.4482,-0.0938,0.11],"rk":[0.4425,-0.0998,-0.1032],"la":[0.5272,0.3186,0.1198],"ra":[0.5153,0.3138,-0.1032],"lhe":[0.4821,0.3601,0.1198],"lft":[0.6807,0.3629,0.1198],"rhe":[0.4697,0.3548,-0.1032],"rft":[0.6681,0.3605,-0.1005],"face":[0.3311,-0.9436,0],"up":[-0.9436,-0.3311,0],"front":[-0.0436,-0.999,0],"sl":[0,0,1]},"camel":{"ls":[-0.4415,-0.2347,0.1898],"rs":[-0.4415,-0.2347,-0.1898],"neck":[-0.5114,-0.2381,0.0015],"head":[-0.6377,-0.2986,0.0015],"crown":[-0.755,-0.3546,0.0015],"nose":[-0.5682,-0.3558,0.0015],"leye":[-0.6107,-0.356,0.0366],"reye":[-0.6107,-0.356,-0.0336],"lear":[-0.6379,-0.2987,0.0765],"rear":[-0.6379,-0.2987,-0.0735],"le":[-0.435,0.0452,0.1898],"re":[-0.4347,0.0452,-0.1898],"lw":[-0.4369,0.3052,0.1925],"rw":[-0.4396,0.3052,-0.1898],"lpi":[-0.4327,0.3751,0.1575],"lix":[-0.4316,0.3951,0.2068],"lth":[-0.4352,0.3352,0.2324],"rpi":[-0.4377,0.3751,-0.1548],"rix":[-0.4371,0.3951,-0.2047],"rth":[-0.4389,0.3352,-0.2298],"la":[-0.42,0.4641,0.1194],"ra":[-0.42,0.4641,-0.1006],"lhe":[-0.415,0.4666,0.1206],"lft":[-0.6049,0.466,0.1194],"rhe":[-0.415,0.4666,-0.0994],"rft":[-0.6049,0.466,-0.1006],"face":[0.7717,-0.6359,0],"up":[-0.9025,-0.4307,0],"front":[0.4694,-0.883,0],"sl":[0,0,1]},"dancer":{"neck":[-0.5435,-0.1643,0.0051],"head":[-0.6647,-0.2344,0.0051],"crown":[-0.7774,-0.2992,0.0051],"nose":[-0.7547,-0.2345,0.0051],"leye":[-0.7609,-0.2495,-0.0293],"reye":[-0.7609,-0.2495,0.0395],"lear":[-0.6649,-0.2345,-0.0699],"rear":[-0.6649,-0.2345,0.0801],"re":[-0.7602,-0.1685,0.1955],"lw":[0.0316,-0.2807,-0.1895],"rw":[-1.0176,-0.2046,0.2036],"lpi":[0.0974,-0.3048,-0.1547],"lix":[0.116,-0.3116,-0.2052],"lth":[0.06,-0.2912,-0.2293],"rpi":[-1.0722,-0.2489,0.1693],"rix":[-1.0878,-0.2609,0.2184],"rth":[-1.041,-0.2235,0.2436],"lk":[0.4397,-0.0136,-0.0955],"rk":[0.0001,0.4399,0.1205],"la":[0.1713,-0.3367,-0.0955],"ra":[0.0001,0.8599,0.1205],"lhe":[0.1895,-0.3539,-0.0955],"lft":[0.0083,-0.4154,-0.0891],"rhe":[0.0538,0.9,0.1268],"rft":[-0.1458,0.909,0.1205]},"eagle":{"rear":[-0.0749,-0.7098,0.0088],"lw":[0.0049,-0.756,-0.2324],"rw":[-0.0049,-0.756,-0.2324],"lpi":[-0.0422,-0.8249,-0.2324],"lix":[0.0042,-0.8446,-0.2324],"lth":[0.0396,-0.7856,-0.2306],"rpi":[0.0422,-0.8249,-0.2324],"rix":[-0.0042,-0.8446,-0.2324],"rth":[-0.0395,-0.7856,-0.2306],"la":[-0.1954,0.6055,-0.2091],"lhe":[-0.2011,0.6018,-0.1961],"lft":[-0.0604,0.73,-0.2026]},"garland":{"ls":[0.209,-0.4887,0],"rs":[-0.1706,-0.5041,0],"neck":[0.0219,-0.5664,0],"head":[0.0191,-0.7063,0],"crown":[0.0164,-0.8363,0],"nose":[0.0191,-0.7064,-0.09],"leye":[0.0534,-0.7371,-0.0701],"reye":[-0.0166,-0.7356,-0.0699],"lear":[0.094,-0.7081,0.004],"rear":[-0.0558,-0.7047,0],"le":[0.171,-0.3129,-0.2146],"re":[-0.1463,-0.3259,-0.2146],"lw":[0.0116,-0.5183,-0.2146],"rw":[0.0238,-0.5222,-0.2049],"lpi":[0.0285,-0.5863,-0.2495],"lix":[0.0332,-0.6056,-0.1994],"lth":[0.0189,-0.5475,-0.1747],"rpi":[0.0317,-0.5918,-0.1699],"rix":[0.034,-0.6116,-0.2203],"rth":[0.027,-0.552,-0.2449],"face":[0,0,-1],"up":[-0.0213,-0.9998,0],"front":[0,0,-1],"sl":[0.9992,0.0406,0]},"halfbow":{"ls":[-0.4685,-0.1753,-0.1891],"rs":[-0.4685,-0.1753,0.1891],"neck":[-0.537,-0.1882,-0.0067],"head":[-0.6747,-0.2136,-0.0067],"crown":[-0.8025,-0.2371,-0.0067],"nose":[-0.7641,-0.222,-0.002],"leye":[-0.7741,-0.2257,-0.041],"reye":[-0.7741,-0.2257,0.0276],"lear":[-0.6747,-0.2136,-0.0817],"rear":[-0.6747,-0.2136,0.0683],"le":[-0.7472,-0.1536,-0.173],"re":[-0.2403,-0.3372,0.1787],"lw":[-1.0033,-0.1985,-0.173],"rw":[0.0122,-0.3774,0.1313],"lpi":[-1.0715,-0.2158,-0.2072],"lix":[-1.0907,-0.2206,-0.1589],"lth":[-1.0325,-0.2058,-0.1331],"rpi":[0.0814,-0.369,0.1668],"rix":[0.1016,-0.3664,0.1173],"rth":[0.042,-0.3738,0.0913],"lk":[0.4401,0,-0.1031],"la":[0.8601,0,-0.1031],"ra":[0.0569,-0.3719,0.1243],"lhe":[0.8551,0,-0.1031],"lft":[1.045,0,-0.0965],"rhe":[0.0687,-0.3978,0.1298],"rft":[-0.1226,-0.3817,0.1292],"face":[-0.9955,-0.0945,0],"up":[-0.9835,-0.1809,0],"front":[-0.9954,-0.0959,0],"sl":[0,0,-1]},"halfmoon":{"lear":[-0.71,-0.0749,0.0048],"rear":[-0.71,0.0748,0.0048],"rpi":[-0.5001,0.8,-0.0347],"rix":[-0.5001,0.8199,0.0145],"rth":[-0.5001,0.7601,0.0398],"lk":[0.4398,-0.1098,0.0165],"la":[0.8598,-0.1098,0.0165],"lhe":[0.9051,-0.1098,0.0662],"lft":[0.895,-0.1098,-0.1335]},"handunderfoot":{"neck":[-0.177,0.5395,-0.005],"head":[-0.1894,0.6789,-0.005],"crown":[-0.2007,0.8085,-0.005],"nose":[-0.2672,0.7241,-0.005],"leye":[-0.2526,0.744,-0.0397],"reye":[-0.2526,0.744,0.0297],"lear":[-0.1894,0.679,-0.08],"rear":[-0.1894,0.679,0.07],"le":[-0.0985,0.7402,-0.1817],"re":[-0.0985,0.7402,0.198],"lw":[0.1239,0.8748,-0.1766],"rw":[0.1245,0.8738,0.2031],"lpi":[0.0585,0.8992,-0.1413],"lix":[0.0396,0.9064,-0.1916],"lth":[0.0959,0.8853,-0.2167],"rpi":[0.0585,0.8969,0.2383],"rix":[0.0394,0.9034,0.1886],"rth":[0.0963,0.8837,0.163],"lk":[0.0001,0.4399,-0.0988],"rk":[0.0001,0.4399,0.1212],"la":[0.0001,0.8599,-0.0988],"ra":[0.0001,0.8599,0.1212],"lhe":[0.0499,0.905,-0.0975],"lft":[-0.1499,0.8951,-0.0988],"rhe":[0.0499,0.905,0.1225],"rft":[-0.1499,0.8951,0.1212]},"happybaby":{"lw":[-0.3752,-0.5237,0.2094],"rw":[-0.3695,-0.5218,-0.2104],"lpi":[-0.3537,-0.5902,0.1743],"lix":[-0.3476,-0.6093,0.2251],"lth":[-0.3661,-0.552,0.2496],"rpi":[-0.3488,-0.5885,-0.1752],"rix":[-0.3429,-0.6077,-0.2257],"rth":[-0.3607,-0.5503,-0.2506],"lhe":[-0.3173,-0.616,0.3062],"lft":[-0.4914,-0.5397,0.3103],"rhe":[-0.3172,-0.6162,-0.3062],"rft":[-0.4904,-0.5378,-0.3012]},"kingdancer":{"ls":[-0.4286,-0.2576,-0.1894],"rs":[-0.4286,-0.2576,0.1894],"neck":[-0.4974,-0.271,0],"head":[-0.6348,-0.2976,0.0037],"crown":[-0.7623,-0.3225,0.0071],"nose":[-0.7245,-0.2991,0.0106],"leye":[-0.7342,-0.3045,-0.0313],"reye":[-0.7342,-0.3045,0.0387],"lear":[-0.6348,-0.2976,-0.0713],"rear":[-0.6348,-0.2976,0.0787],"le":[-0.3462,-0.5247,-0.1735],"re":[-0.2705,-0.444,0.0529],"lw":[-0.1121,-0.6027,-0.0914],"rw":[-0.1139,-0.594,-0.0906],"lpi":[-0.0451,-0.581,-0.0572],"lix":[-0.0263,-0.5745,-0.1048],"lth":[-0.0836,-0.5933,-0.1314],"rpi":[-0.0444,-0.5857,-0.0557],"rix":[-0.0245,-0.5832,-0.1056],"rth":[-0.0844,-0.5904,-0.1308],"lk":[0.337,-0.2829,-0.1006],"rk":[0.0001,0.4399,0.1161],"la":[0.0149,-0.5524,-0.1006],"ra":[0.0001,0.8599,0.1161],"lhe":[0.0272,-0.5639,-0.097],"lft":[-0.1534,-0.6248,-0.0956],"rhe":[0.0499,0.9051,0.1194],"rft":[-0.1499,0.895,0.1161],"face":[-0.9998,-0.018,0],"up":[-0.9815,-0.1913,0],"front":[-0.9998,-0.0174,0],"sl":[0,0,-1]},"peacock":{"lh":[0.0322,0.0807,-0.11],"rh":[0.027,0.0756,0.11],"ls":[-0.496,0.0612,-0.098],"rs":[-0.496,0.0612,0.098],"neck":[-0.5659,0.0636,0],"head":[-0.7058,0.0688,0],"crown":[-0.8358,0.0732,0],"nose":[-0.7939,0.0875,0],"leye":[-0.8045,0.0845,-0.0344],"reye":[-0.8045,0.0845,0.0344],"lear":[-0.706,0.0688,-0.075],"rear":[-0.706,0.0688,0.075],"le":[-0.2774,0.236,-0.0891],"re":[-0.2774,0.236,0.107],"lw":[-0.2586,0.4953,-0.084],"rw":[-0.2692,0.4956,0.1186],"lpi":[-0.1885,0.4926,-0.0494],"lix":[-0.1683,0.4915,-0.0966],"lth":[-0.2285,0.4939,-0.1239],"rpi":[-0.1991,0.496,0.1533],"rix":[-0.1789,0.496,0.1055],"rth":[-0.2391,0.4956,0.0786],"lk":[0.472,0.0807,-0.0992],"rk":[0.4669,0.0756,0.1208],"la":[0.892,0.0807,-0.0992],"ra":[0.8869,0.0756,0.1208],"lhe":[0.8873,0.0807,-0.0977],"lft":[1.077,0.0807,-0.0992],"rhe":[0.8821,0.0756,0.1223],"rft":[1.0719,0.0756,0.1208],"face":[-0.9783,0.2072,0],"up":[-0.9994,0.0342,0],"front":[-0.9985,0.055,0],"sl":[0,0,-1]},"reclinedbigtoe":{"nose":[-0.7067,-0.1264,0.0051],"le":[-0.2201,-0.0001,0.202],"re":[-0.4171,-0.266,-0.1615],"lw":[0.0399,-0.0001,0.2072],"rw":[-0.4693,-0.5206,-0.1535],"lpi":[0.1099,-0.0001,0.2421],"lix":[0.13,-0.0001,0.1932],"lth":[0.0699,-0.0001,0.1672],"rpi":[-0.4316,-0.5797,-0.1188],"rix":[-0.4211,-0.5963,-0.1694],"rth":[-0.453,-0.5455,-0.1937],"lk":[0.4399,0.0024,0.1153],"rk":[-0.2136,-0.3829,-0.1488],"la":[0.8599,0.0047,0.1153],"ra":[-0.4319,-0.7407,-0.176],"lhe":[0.905,0.0548,0.1153],"lft":[0.8948,-0.1451,0.1153],"rhe":[-0.4473,-0.7483,-0.1774],"rft":[-0.4452,-0.5585,-0.1614]},"reclinedbigtoeside":{"nose":[-0.7067,-0.1264,0.0051],"le":[-0.2882,-0.183,0.2028],"re":[-0.2201,-0.0001,-0.1793],"lw":[-0.0915,-0.3531,0.2028],"rw":[-0.2201,-0.0001,-0.4393],"lpi":[-0.0385,-0.3988,0.2377],"lix":[-0.0234,-0.4119,0.1878],"lth":[-0.0688,-0.3726,0.1628],"rpi":[-0.1849,-0.0241,-0.505],"rix":[-0.2351,-0.0308,-0.5239],"rth":[-0.26,-0.0103,-0.4676],"lk":[0.4399,0.0024,0.1153],"la":[0.8599,0.0047,0.1153],"lhe":[0.905,0.0548,0.1153],"lft":[0.8948,-0.1451,0.1153]},"skandasana":{"ls":[0.2329,-0.4815,0.0096],"rs":[-0.1458,-0.5145,0.0103],"neck":[0.0498,-0.5677,0.01],"head":[0.0619,-0.7072,0.0128],"crown":[0.0732,-0.8367,0.0146],"nose":[0.0619,-0.7072,-0.0772],"leye":[0.0993,-0.7341,-0.0572],"reye":[0.0295,-0.7402,-0.057],"lear":[0.1367,-0.7008,0.0128],"rear":[-0.0128,-0.7138,0.0128],"le":[0.2329,-0.4328,-0.2661],"re":[-0.1458,-0.4661,-0.2655],"lw":[0.2329,-0.3876,-0.5222],"rw":[-0.1458,-0.421,-0.5215],"lpi":[0.2679,-0.3755,-0.5911],"lix":[0.2178,-0.3723,-0.6108],"lth":[0.1929,-0.3824,-0.5517],"rpi":[-0.1107,-0.4088,-0.5904],"rix":[-0.1606,-0.4053,-0.6102],"rth":[-0.1858,-0.4157,-0.5511],"lk":[0.55,-0.0049,0],"la":[0.4574,0.4047,0],"lhe":[0.4493,0.449,0.05],"lft":[0.451,0.4392,-0.15]},"toestand":{"lh":[0.0023,0.0263,-0.11],"rh":[0.0012,0.0198,0.11],"ls":[0.0175,-0.4997,-0.1119],"rs":[0.0175,-0.4997,0.1119],"head":[-0.1916,-0.518,0.0046],"crown":[-0.3211,-0.5294,0.0046],"nose":[-0.2816,-0.518,0.0046],"leye":[-0.2916,-0.5205,-0.0301],"reye":[-0.2916,-0.5205,0.0393],"lear":[-0.1916,-0.518,-0.0704],"rear":[-0.1916,-0.518,0.0796],"le":[-0.1224,-0.2572,-0.1119],"re":[-0.1224,-0.2572,0.1119],"lw":[-0.2325,-0.4928,-0.1119],"rw":[-0.2325,-0.4928,0.1119],"lpi":[-0.2325,-0.5629,-0.0772],"lix":[-0.2325,-0.5828,-0.1269],"lth":[-0.2325,-0.5227,-0.1519],"rpi":[-0.2325,-0.5629,0.0772],"rix":[-0.2325,-0.5828,0.1269],"rth":[-0.2325,-0.5227,0.1519],"lk":[-0.431,0.1026,-0.11],"rk":[-0.4321,0.0961,0.11],"la":[-0.087,0.3436,-0.11],"ra":[-0.0882,0.3371,0.11],"lhe":[-0.018,0.3312,-0.11],"lft":[-0.1548,0.4786,-0.11],"rhe":[-0.0192,0.3247,0.11],"rft":[-0.1559,0.4721,0.11]},"tree":{"neck":[0.0001,-0.5699,0.0041],"head":[0.0001,-0.7099,0.0041],"crown":[0.0001,-0.8399,0.0041],"nose":[0.0001,-0.71,-0.0859],"leye":[0.0349,-0.74,-0.0659],"reye":[-0.0352,-0.74,-0.0657],"lear":[0.075,-0.71,0.0072],"rear":[-0.0749,-0.71,0.0072],"re":[-0.1036,-0.7663,0.0082],"lw":[0.0231,-1.0134,0.0074],"rw":[-0.023,-1.0134,0.0153],"lpi":[0.0017,-1.0802,-0.0272],"lix":[-0.0048,-1.0993,0.0204],"lth":[0.0138,-1.0422,0.0472],"rpi":[-0.0016,-1.0802,0.0499],"rix":[0.0045,-1.0993,0.0014],"rth":[-0.0137,-1.0422,-0.0246],"rk":[-0.1101,0.44,0.0095],"la":[-0.0161,0.299,-0.0721],"ra":[-0.1101,0.86,0.0095],"lhe":[-0.0428,0.2513,-0.0721],"lft":[-0.1069,0.4371,-0.0714],"rhe":[-0.1101,0.905,0.0595],"rft":[-0.1101,0.8948,-0.1405]},"widechild":{"lh":[0.0514,0.1468,-0.11],"rh":[0.0514,0.1468,0.11],"ls":[-0.4829,0.1293,-0.0175],"rs":[-0.4829,0.1293,0.0175],"le":[-0.7492,0.2158,-0.0175],"re":[-0.7492,0.2158,0.0175],"lw":[-0.9965,0.2961,-0.0175],"rw":[-0.9965,0.2961,0.0175],"lpi":[-1.0666,0.2962,-0.0521],"lix":[-1.0865,0.2962,-0.0027],"lth":[-1.0266,0.2962,0.0224],"rpi":[-1.0666,0.2962,-0.0172],"rix":[-1.0865,0.2962,0.0322],"rth":[-1.0266,0.2962,0.0574],"lk":[-0.3351,0.2551,0.0702],"rk":[-0.333,0.2622,-0.0703],"la":[0.0847,0.2663,0.0702],"ra":[0.0869,0.2708,-0.0703],"lhe":[0.0799,0.2663,0.0716],"lft":[0.2697,0.2716,0.0702],"rhe":[0.082,0.2708,-0.0691],"rft":[0.2718,0.2747,-0.0703],"front":[-0.8375,0.5464,0],"sl":[0,0,-1]}};
 function applyPoseFix(id, P){ const f = POSE_FIX[id]; if (f) for (const [n, v] of Object.entries(f)) P[n] = v.slice(); return P; }
@@ -2591,10 +2504,29 @@ const POSE_HISTORY = {"mountain": "Tadasana joins tada, mountain, with asana, po
 const REF_S = 720, P3 = {};
 let refAngle = 0; // how far the reference is turned for viewing: 0 = as the pose is defined, 90 = from its side, …
 const ROT_LABELS = {0:'Front', 90:'Side', 180:'Back', 270:'Other side'};
+// The other side of a two-sided pose: reflect the body through its own middle (across the plane between the hips),
+// so it keeps facing the same way on the mat and only swaps legs, arms or the side it lies on.
+const DIRS3 = new Set(['face','up','front','sl']);
+function otherSide(P){
+  const c = P.lh.map((v,i) => (v + P.rh[i])/2); let L = P.lh.map((v,i) => v - P.rh[i]), l = Math.hypot(...L);
+  if (l < 1e-6){ L = P.ls.map((v,i) => v - P.rs[i]); l = Math.hypot(...L) || 1; } L = L.map(v => v/l);
+  const out = {};
+  for (const [n,v] of Object.entries(P)){
+    if (!Array.isArray(v) || v.length !== 3){ out[n] = v; continue; }
+    const d = DIRS3.has(n) ? v : v.map((x,i) => x - c[i]), k = 2*(d[0]*L[0] + d[1]*L[1] + d[2]*L[2]), r = d.map((x,i) => x - k*L[i]);
+    out[n] = DIRS3.has(n) ? r : r.map((x,i) => x + c[i]);
+  }
+  return out;
+}
+// Only when the hip line points toward or away from the viewer (side-on lunges, pigeon, dancer ...); stacked hips (side plank, half moon) and
+// front-facing poses keep the plain mirror image, which already reads as the other side there.
+function hipsAlongDepth(P){ const L = P.lh.map((v,i) => Math.abs(v - P.rh[i])); return L[2] > L[0] && L[2] > L[1]; }
+const isTwoSided = id => { const q = POSES.find(x => x.id === id); return !!(q && q.asym); };
 const refFor = (id, mirrored = false, angle = refAngle) => {
   const P0 = P3[id] || (P3[id] = applyPoseFix(id, build3d(REF_SPECS[id] || MOTION_SPECS[id], GROUND[id] || MOTION_GROUND[id] || '')));
-  const R = projectRef(angle ? rotateY(P0, angle) : P0, REF_S, mirrored); R.poseId = id; R.angle = angle;
-  R.kp0 = angle ? projectRef(P0, REF_S, mirrored).kp : R.kp; // the unturned view is what the alignment rules are written for
+  const swap = mirrored && isTwoSided(id) && hipsAlongDepth(P0), Pm = swap ? (P3[id + '|other'] || (P3[id + '|other'] = otherSide(P0))) : P0, flip = mirrored && !swap;
+  const R = projectRef(angle ? rotateY(Pm, angle) : Pm, REF_S, flip); R.poseId = id; R.angle = angle; R.otherSide = swap;
+  R.kp0 = angle ? projectRef(Pm, REF_S, flip).kp : R.kp; // the unturned view is what the alignment rules are written for
   return R;
 };
 
@@ -3007,7 +2939,7 @@ function renderAvatarStage(){
     liveFloor = liveFloor == null ? R.floor : liveFloor + (R.floor - liveFloor)*.05; // settles slowly, so the room does not bounce
     ctx.save(); ctx.scale(1/f, 1/f);
     drawFlatMat(ctx, R, avatar.mat || '#E9B93A');
-    if (avatar.mode === 'flat') drawFlatFigure(ctx, R, avatar); else if (avatar.mode === 'avatar') drawAvatar(ctx, R, avatar); else drawSilhouette(ctx, R, css('--fig'));
+    drawFlatFigure(ctx, R, avatar);
     ctx.restore();
     if (last && showOverlay) drawFriendlyChecks(K, Math.max(cv.width, cv.height)/700, performance.now());
   }
@@ -4757,8 +4689,9 @@ function figureAnimator(cv){
     if (!R) return;
     const sc = cv.width / R.S, br = reduce ? 1 : 1 + .012*Math.sin((now - t0)/1900);
     g.setTransform(1,0,0,1,0,0); g.clearRect(0, 0, cv.width, cv.height);
+    if (scene !== 'plain'){ g.setTransform(sc, 0, 0, sc, 0, 0); drawEnvironment(g, scene); }
     g.setTransform(sc*br, 0, 0, sc*br, cv.width*(1 - br)/2, cv.height*(1 - br));
-    drawScene(g, R);
+    if (scene !== 'plain') drawFigureScene(g, R, 'transparent', css('--fig'), css('--mat')); else drawScene(g, R);
   }
   raf = requestAnimationFrame(frame);
   return {
@@ -4833,7 +4766,7 @@ let onboardGuide = null;
 async function startOnboarding(){
   const box = $('onboard'); box.hidden = false; document.body.style.overflow = 'hidden';
   if (onboardGuide) onboardGuide.destroy(); onboardGuide = makeGuide($('oGuide'));
-  const G = onboardGuide, total = 6, prog = n => { $('oBar').style.width = `${n/total*100}%`; };
+  const G = onboardGuide, total = 7, prog = n => { $('oBar').style.width = `${n/total*100}%`; };
   const stop = () => { box.hidden = true; document.body.style.overflow = ''; G.destroy(); onboardGuide = null; };
   $('oSkip').onclick = () => { G.cancel(); saveProfile({onboarded:true}); stop(); };
   const answers = {};
@@ -4848,8 +4781,11 @@ async function startOnboarding(){
   answers.goal = a || null; if (answers.goal) { G.tell(`${GOALS[answers.goal].label}. Lovely. We’ll get there step by step.`, answers.goal); await new Promise(r => setTimeout(r, 1600)); } prog(4);
   a = await G.ask({text:'How often would you like to practise?', pose:'dog', input:false, chips:[{label:'Twice a week', value:2}, {label:'Three times', value:3}, {label:'Four times', value:4}, {label:'Most days', value:5}]}); if (a == null) return;
   answers.days = +a; prog(5);
+  a = await G.ask({text:'Where do you like to practise? I’ll set the scene to match.', pose:'easy', input:false, chips:[{label:'Living room', value:'living'}, {label:'Studio', value:'studio'}, {label:'Beach', value:'beach'}, {label:'Park', value:'park'}, {label:'Mountains', value:'mountains'}, {label:'Rooftop at night', value:'night'}, {label:'Keep it plain', value:'plain'}]}); if (a == null) return;
+  scene = SCENES[a] ? a : 'plain'; try { localStorage.setItem('sama.scene', scene); } catch {} answers.place = scene;
+  if (scene !== 'plain'){ G.tell(`${SCENES[scene]}. I like it here.`, 'mountain'); await new Promise(r => setTimeout(r, 1500)); } prog(6);
   a = await G.ask({text:'One more thing: shall I look like you? You can give me your skin, hair, clothes and patterns.', pose:'upsalute', input:false, chips:[{label:'Yes, dress me up', value:'avatar'}, {label:'Maybe later', value:'flat'}]}); if (a == null) return;
-  prog(6);
+  prog(7);
   saveProfile({...answers, look: a, onboarded:true});
   const next = await G.ask({text:`All set, ${answers.name}. ${a === 'avatar' ? 'My wardrobe is under “Figure” on the alignment page. ' : ''}Where shall we start?`, pose:'mountain', input:false, chips:a === 'avatar' ? [{label:'Dress the figure', value:'dress'}, {label:'Plan my first practice', value:'coach'}, {label:'Check my alignment', value:'check'}] : [{label:'Plan my first practice', value:'coach'}, {label:'Check my alignment', value:'check'}, {label:'Browse the poses', value:'lib'}]});
   stop();
@@ -5031,8 +4967,8 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
   for (const grp of box.querySelectorAll('.segs[data-k]')) dropdownify(grp, {right:true});
   const sync = () => {
     for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='camview' ? camView : k==='sceneset' ? scene : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===cur)); }
-    only.hidden = avatar.mode !== 'avatar' && avatar.mode !== 'flat'; for (const r of box.querySelectorAll('.flatonly')) r.hidden = avatar.mode !== 'flat'; for (const r of box.querySelectorAll('.avonly')) r.hidden = avatar.mode !== 'avatar';
-    $('avatarSum').textContent = avatar.mode==='flat' ? 'Illustration' : avatar.mode==='avatar' ? 'My avatar' : avatar.mode==='line' ? 'Line' : avatar.mode==='sketch' ? 'Sketch' : 'Silhouette';
+    only.hidden = false;
+    $('avatarSum').textContent = 'Illustration';
   };
   box.addEventListener('click', e => {
     const b = e.target.closest('button[data-v]'); if (!b) return; const k = b.closest('[data-k]').dataset.k;
