@@ -186,6 +186,7 @@ body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -
 .arow{display:flex;flex-direction:column;gap:6px}
 .arow>span{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .arow .segs .seg{padding:6px 10px;font-size:13px}
+.alook .aonly{display:flex;flex-direction:column;gap:14px;margin-top:6px}
 .swatches{display:flex;flex-wrap:wrap;gap:8px}
 .swatches button{width:30px;height:30px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
 .swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--accent)}
@@ -643,7 +644,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
       <div class="notice" id="notice" hidden><b id="noticeHead"></b><p id="noticeText"></p></div>
       <span class="model" id="model">Pose models: loading…</span>
       <details class="avatar" id="avatarBox">
-        <summary><span>Figure</span><b id="avatarSum">Silhouette</b></summary>
+        <summary><span>Settings</span><b id="avatarSum">Scene, voice, camera</b></summary>
         <div class="abody">
           <div class="arow"><span>Pose engine</span><div class="segs" data-k="engine"><button type="button" class="seg" data-v="auto">Auto</button><button type="button" class="seg" data-v="wasm">WebAssembly</button><button type="button" class="seg" data-v="gpu">GPU</button><button type="button" class="seg" data-v="cpu">CPU</button></div></div>
           <div class="arow"><span>Transition</span><div class="segs" data-k="trans"><button type="button" class="seg" data-v="blob">Blob</button><button type="button" class="seg" data-v="moves">Movement</button></div></div>
@@ -654,19 +655,6 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
           <div class="arow"><span>Camera shows</span><div class="segs" data-k="camview"><button type="button" class="seg" data-v="avatar">Me as my figure</button><button type="button" class="seg" data-v="skeleton">Video + skeleton</button></div></div>
           <div class="arow"><span>Alignment lines on the figure</span><div class="segs" data-k="overlay"><button type="button" class="seg" data-v="on">Show</button><button type="button" class="seg" data-v="off">Hide</button></div></div>
           <div class="arow"><span>Reference while checking</span><div class="segs" data-k="inset"><button type="button" class="seg" data-v="on">Small inset</button><button type="button" class="seg" data-v="off">Hidden</button></div></div>
-          <div class="aonly">
-            <div class="arow"><span>Skin</span><div class="swatches" data-k="skin"></div></div>
-            <div class="arow"><span>Hair</span><div class="segs" data-k="hair"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="bun">Bun</button><button type="button" class="seg" data-v="ponytail">Ponytail</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="curly">Curly</button><button type="button" class="seg" data-v="none">None</button></div></div>
-            <div class="arow"><span>Hair colour</span><div class="swatches" data-k="hairColor"></div></div>
-            <div class="arow"><span>Build</span><div class="segs" data-k="build"><button type="button" class="seg" data-v="slim">Slim</button><button type="button" class="seg" data-v="regular">Regular</button><button type="button" class="seg" data-v="soft">Soft</button><button type="button" class="seg" data-v="strong">Strong</button></div></div>
-            <div class="arow flatonly"><span>Sleeves</span><div class="segs" data-k="sleeves"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="none">Sleeveless</button></div></div>
-            <div class="arow"><span>Top colour</span><div class="swatches" data-k="topColor"></div></div>
-            <div class="arow flatonly"><span>Pattern</span><div class="segs" data-k="pattern"><button type="button" class="seg" data-v="none">Plain</button><button type="button" class="seg" data-v="dots">Dots</button><button type="button" class="seg" data-v="stripes">Stripes</button><button type="button" class="seg" data-v="zigzag">Zigzag</button><button type="button" class="seg" data-v="checks">Checks</button></div></div>
-            <div class="arow flatonly"><span>Pattern colour</span><div class="swatches" data-k="patternColor"></div></div>
-            <div class="arow"><span>Bottom</span><div class="segs" data-k="bottom"><button type="button" class="seg" data-v="leggings">Trousers</button><button type="button" class="seg" data-v="shorts">Shorts</button></div><div class="swatches" data-k="bottomColor"></div></div>
-            <div class="arow flatonly"><span>Beard</span><div class="segs" data-k="beard"><button type="button" class="seg" data-v="no">No</button><button type="button" class="seg" data-v="yes">Yes</button></div></div>
-            <div class="arow flatonly"><span>Mat</span><div class="swatches" data-k="mat"></div></div>
-          </div>
         </div>
       </details>
     </section>
@@ -805,6 +793,25 @@ Savasana, 3 min"></textarea>
             <input id="pfName" class="pname" placeholder="Your name" aria-label="Your name" autocomplete="off">
             <p class="hint" id="pfSince"></p>
             <div class="crow"><button class="btn small" id="pfLook" type="button">Change my look</button><button class="btn small" id="pfWelcome" type="button">Replay the welcome</button></div>
+          </div>
+        </div>
+        <div class="pcard" id="lookCard">
+          <h2>Your figure</h2>
+          <p class="hint">How you look everywhere in the app: the reference, practices, the camera view and the guide.</p>
+          <div class="alook">
+          <div class="aonly alook-rows">
+            <div class="arow"><span>Skin</span><div class="swatches" data-k="skin"></div></div>
+            <div class="arow"><span>Hair</span><div class="segs" data-k="hair"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="bun">Bun</button><button type="button" class="seg" data-v="ponytail">Ponytail</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="curly">Curly</button><button type="button" class="seg" data-v="none">None</button></div></div>
+            <div class="arow"><span>Hair colour</span><div class="swatches" data-k="hairColor"></div></div>
+            <div class="arow"><span>Build</span><div class="segs" data-k="build"><button type="button" class="seg" data-v="slim">Slim</button><button type="button" class="seg" data-v="regular">Regular</button><button type="button" class="seg" data-v="soft">Soft</button><button type="button" class="seg" data-v="strong">Strong</button></div></div>
+            <div class="arow flatonly"><span>Sleeves</span><div class="segs" data-k="sleeves"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="none">Sleeveless</button></div></div>
+            <div class="arow"><span>Top colour</span><div class="swatches" data-k="topColor"></div></div>
+            <div class="arow flatonly"><span>Pattern</span><div class="segs" data-k="pattern"><button type="button" class="seg" data-v="none">Plain</button><button type="button" class="seg" data-v="dots">Dots</button><button type="button" class="seg" data-v="stripes">Stripes</button><button type="button" class="seg" data-v="zigzag">Zigzag</button><button type="button" class="seg" data-v="checks">Checks</button></div></div>
+            <div class="arow flatonly"><span>Pattern colour</span><div class="swatches" data-k="patternColor"></div></div>
+            <div class="arow"><span>Bottom</span><div class="segs" data-k="bottom"><button type="button" class="seg" data-v="leggings">Trousers</button><button type="button" class="seg" data-v="shorts">Shorts</button></div><div class="swatches" data-k="bottomColor"></div></div>
+            <div class="arow flatonly"><span>Beard</span><div class="segs" data-k="beard"><button type="button" class="seg" data-v="no">No</button><button type="button" class="seg" data-v="yes">Yes</button></div></div>
+            <div class="arow flatonly"><span>Mat</span><div class="swatches" data-k="mat"></div></div>
+          </div>
           </div>
         </div>
         <div class="pcard">
@@ -4787,11 +4794,11 @@ async function startOnboarding(){
   a = await G.ask({text:'One more thing: shall I look like you? You can give me your skin, hair, clothes and patterns.', pose:'upsalute', input:false, chips:[{label:'Yes, dress me up', value:'avatar'}, {label:'Maybe later', value:'flat'}]}); if (a == null) return;
   prog(7);
   saveProfile({...answers, look: a, onboarded:true});
-  const next = await G.ask({text:`All set, ${answers.name}. ${a === 'avatar' ? 'My wardrobe is under “Figure” on the alignment page. ' : ''}Where shall we start?`, pose:'mountain', input:false, chips:a === 'avatar' ? [{label:'Dress the figure', value:'dress'}, {label:'Plan my first practice', value:'coach'}, {label:'Check my alignment', value:'check'}] : [{label:'Plan my first practice', value:'coach'}, {label:'Check my alignment', value:'check'}, {label:'Browse the poses', value:'lib'}]});
+  const next = await G.ask({text:`All set, ${answers.name}. ${a === 'avatar' ? 'My wardrobe is in your profile, under “Your figure”. ' : ''}Where shall we start?`, pose:'mountain', input:false, chips:a === 'avatar' ? [{label:'Dress the figure', value:'dress'}, {label:'Plan my first practice', value:'coach'}, {label:'Check my alignment', value:'check'}] : [{label:'Plan my first practice', value:'coach'}, {label:'Check my alignment', value:'check'}, {label:'Browse the poses', value:'lib'}]});
   stop();
   if (next === 'coach'){ switchView('coach'); setCoachMode('plan'); }
   else if (next === 'lib') switchView('lib');
-  else if (next === 'dress'){ switchView('check'); $('avatarBox').open = true; setTimeout(() => $('avatarBox').scrollIntoView({behavior:'smooth', block:'start'}), 100); }
+  else if (next === 'dress'){ switchView('profile'); setTimeout(() => $('lookCard').scrollIntoView({behavior:'smooth', block:'start'}), 100); }
   else switchView('check');
 }
 
@@ -4803,7 +4810,7 @@ function renderProfile(){
     pfBuilt = true; pfFig = figureAnimator($('pfFig'));
     $('pfName').addEventListener('change', () => saveProfile({name: $('pfName').value.trim().slice(0, 40)}));
     $('pfNotes').addEventListener('change', () => saveProfile({notes: $('pfNotes').value.slice(0, 1200)}));
-    $('pfLook').addEventListener('click', () => { switchView('check'); $('avatarBox').open = true; $('avatarBox').scrollIntoView({behavior:'smooth', block:'start'}); });
+    $('pfLook').addEventListener('click', () => $('lookCard').scrollIntoView({behavior:'smooth', block:'start'}));
     $('pfWelcome').addEventListener('click', () => { showWelcome(); });
     $('pfExport').addEventListener('click', () => {
       const data = {exportedAt: new Date().toISOString(), profile, history: getHist(), saved: getSaved(), avatar, planOpts};
@@ -4962,15 +4969,15 @@ try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', reth
 new MutationObserver(retheme).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
 // avatar builder
 (function(){
-  const box = $('avatarBox'), only = box.querySelector('.aonly');
+  const hosts = [$('avatarBox'), $('lookCard')], box = {querySelectorAll: q => hosts.flatMap(h => [...h.querySelectorAll(q)])}, only = $('lookCard').querySelector('.aonly');
   for (const sw of box.querySelectorAll('.swatches')){ const k = sw.dataset.k; for (const c of AVATAR_CHOICES[k]){ const b = document.createElement('button'); b.type = 'button'; b.style.background = c; b.dataset.v = c; b.setAttribute('aria-label', k + ' ' + c); sw.appendChild(b); } }
   for (const grp of box.querySelectorAll('.segs[data-k]')) dropdownify(grp, {right:true});
   const sync = () => {
     for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='camview' ? camView : k==='sceneset' ? scene : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===cur)); }
     only.hidden = false;
-    $('avatarSum').textContent = 'Illustration';
+    $('avatarSum').textContent = 'Scene, voice, camera';
   };
-  box.addEventListener('click', e => {
+  const onClick = e => {
     const b = e.target.closest('button[data-v]'); if (!b) return; const k = b.closest('[data-k]').dataset.k;
     if (k==='pace'){ pace = b.dataset.v; try { localStorage.setItem('sama.pace', pace); } catch {} sync(); return; }
     if (k==='engine'){ engine = b.dataset.v; try { localStorage.setItem('sama.engine', engine); } catch {} sync(); (async () => { try { await pickBackend(); photoCpu = false; $('model').textContent = `Pose models ready · ${tf.getBackend()}`; selfTest().catch(() => {}); } catch {} })(); return; }
@@ -4984,7 +4991,8 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
     avatar[k] = b.dataset.v;
     try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {}
     sync(); retheme();
-  });
+  };
+  for (const h of hosts) h.addEventListener('click', onClick);
   sync();
 })();
 const themeBtns = [...document.querySelectorAll('.theme button')];
