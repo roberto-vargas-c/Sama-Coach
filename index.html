@@ -4109,7 +4109,7 @@ let sess = null, audio = null;
 function beep(f = 660, d = .15){ try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); const o = audio.createOscillator(), g = audio.createGain();
   o.type = 'sine'; o.frequency.value = f*.75; g.gain.setValueAtTime(.0001, audio.currentTime); g.gain.exponentialRampToValueAtTime(.05, audio.currentTime+.03); g.gain.exponentialRampToValueAtTime(.0001, audio.currentTime+d+.25);
   o.connect(g).connect(audio.destination); o.start(); o.stop(audio.currentTime+d+.3); } catch {} }
-// ---------- the recorded voice guide: Aum and welcome, one script per pose, the other side, closing words and Aum ----------
+// ---------- the recorded voice guide: the opening, one script per pose, the other side, closing words ----------
 const VOICE_DIR = 'voice/';
 const BREATH_CLIPS = ['clip_breath_pair', 'clip_breath_long', 'clip_breath_inhale', 'clip_breath_exhale', 'clip_breath_keep', 'clip_breath_soften', 'clip_breath_belly', 'clip_breath_count'];
 const VOICE_AGAIN = new Set(["cat", "chair", "chairtwist", "chaturanga", "cow", "cowface", "crescentmoon", "deer", "dog", "eagle", "figurefour", "firelog", "forwardfold", "garland", "gate", "goddess", "halflift", "halfmoon", "halfsplits", "headtoknee", "highlunge", "humblewarrior", "kneetonose", "lizard", "lowlunge", "lungetwist", "mountain", "pigeon", "plank", "pyramid", "reclinedbigtoeside", "reclinedpigeon", "reversewarrior", "revtriangle", "savasana", "sideangle", "sidebend", "skandasana", "sleepingpigeon", "standingsplit", "star", "supinetwist", "threadneedle", "threeleggeddog", "toestand", "triangle", "updog", "upsalute", "warrior1", "warrior2", "warrior3", "widefold", "widefoldtwist"]); // poses that come back within a practice have a short 'back to …' line
@@ -4172,14 +4172,14 @@ function setMusic(on){ musicOn = on; try { localStorage.setItem('sama.music', on
 function setVoice(on){ voiceOn = on; try { localStorage.setItem('sama.voice', on ? 'on' : 'off'); } catch {} const b = $('sessVoice'); if (b) b.setAttribute('aria-pressed', String(on));
   if (!on){ const intro = sess && sess.phase === 'intro'; voiceStop(); if (intro){ sess.phase = 'prep'; sess.left = 3; renderSess(); } } musicDuck(); }
 // the opening: a greeting for the time of day, what kind of practice this is and how long, anything adapted for you,
-// where to start on the mat, then the Aum together. Only recorded clips play; without them it is the old Aum + welcome.
+// then the first pose. Only recorded clips play.
 const INTRO_FOCUS = {balanced:1, strength:1, flexibility:1, balance:1, backbends:1, hips:1, morning:1, evening:1, vinyasa:1, ashtanga:1, yin:1};
 function introClips(P){
   const have = id => VOICE_HAVE.has(id), o = P.opts || {}, h = new Date().getHours();
   const tod = h >= 5 && h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 21 ? 'evening' : 'night';
   const focus = o.focus === 'ashtanga' || P.ashtanga ? 'ashtanga' : o.focus === 'yin' || P.yin ? 'yin' : P.flow ? 'vinyasa' : o.focus;
   const intro = 'intro_' + (INTRO_FOCUS[focus] && !P.coach ? focus : 'general');
-  if (!have('clip_open_' + tod) || !have(intro)) return ['clip_aum_start']; // the first pose follows with "Now, prepare for…" 
+  if (!have('clip_open_' + tod) || !have(intro)) return []; // the first pose follows with "Now, prepare for…" 
   const out = ['clip_open_' + tod, intro];
   const secs = P.total || planSum(P), mins = [10, 20, 30, 45, 60, 90].reduce((b, m) => Math.abs(m - secs/60) < Math.abs(b - secs/60) ? m : b, 10);
   if (have('clip_len_' + mins)) out.push('clip_len_' + mins);
@@ -4187,14 +4187,13 @@ function introClips(P){
   if (easy.includes('period') && have('clip_note_period')) out.push('clip_note_period');
   else if (easy.some(e => e !== 'period') && have('clip_note_easy')) out.push('clip_note_easy');
   if (o.goal && have('clip_note_goal')) out.push('clip_note_goal');
-  if (have('clip_aum_lead')) out.push('clip_aum_lead');
-  out.push('clip_aum_start'); // then "From here, let's begin with…" and the first pose's own script, which says how to get into it
+  // (no Aum: it did not sit well with the rest of the audio) then "From here, let's begin with…" and the first pose's own script
   return out;
 }
 function startSession(P){
   beep(520, .01); musicStart();
   sess = {P, i:0, phase:'prep', left:TRANSITION, last:performance.now(), paused:false, remote:false};
-  try { voicePrefetch([...introClips(P), 'clip_begin', 'clip_otherside', ...LEAD_GENERIC, ...Object.values(LEAD_POSTURE), ...P.items.slice(0, 3).map(x => x.id), 'clip_end', 'clip_aum_end']); } catch {}
+  try { voicePrefetch([...introClips(P), 'clip_begin', 'clip_otherside', ...LEAD_GENERIC, ...Object.values(LEAD_POSTURE), ...P.items.slice(0, 3).map(x => x.id), 'clip_end']); } catch {}
   voice.said = new Set(); voiceStop(); voiceUnlock(); sess.boot = true;
   switchView('check'); $('sess').hidden = false; tvSend({t:'plan', plan:encodePlan(P)}); enterItem(); sess.boot = false;
   if (!voiceOn) voiceForItem();
@@ -4247,7 +4246,7 @@ function leadFor(x, prev){
     const special = ADV_INVERSION.has(x.id) ? 'clip_adv_inversion' : ADV_ARM.has(x.id) ? 'clip_adv_armbalance' : m.lvl >= 3 && (m.tags.includes('backbend') || m.tags.includes('flex')) && Math.random() < .5 ? 'clip_adv_deep' : null;
     if (special && have(special)) return special; const a = pickFrom(LEAD_ADV); if (a) return a;
   }
-  if (!prev) return have('clip_begin') ? 'clip_begin' : have('clip_to_prepare') ? 'clip_to_prepare' : null; // right after the Aum
+  if (!prev) return have('clip_begin') ? 'clip_begin' : have('clip_to_prepare') ? 'clip_to_prepare' : null; // right after the opening
   if (sess.P.flow) return null; // flows move breath by breath: no time for a lead-in
   let from = null, to = null; try { from = postureOf(prev.id); to = postureOf(x.id); } catch {}
   if (to && POSTURE_GROUP[from] !== POSTURE_GROUP[to] && LEAD_POSTURE[to] && have(LEAD_POSTURE[to])) return LEAD_POSTURE[to];
@@ -4285,7 +4284,7 @@ function nextItem(d){
 }
 function endSession(done){
   if (!sess) return; clearInterval(sess.timer);
-  voiceStop(); if (done && voiceOn && !sess.remote) voicePlay(['clip_end', 'clip_aum_end'], () => musicStop()); else musicStop();
+  voiceStop(); if (done && voiceOn && !sess.remote) voicePlay(['clip_end'], () => musicStop()); else musicStop();
   if ($('sessBreath')) $('sessBreath').hidden = true;
   if (done && !sess.remote) addHist({pose:'practice', score:null, hold:sess.P.total, at:Date.now(), label:`${(FOCUS[sess.P.opts.focus]||FOCUS.balanced).label} practice`});
   sess = null; $('sess').hidden = true; tvSend({t:'end'}); renderTv();
@@ -5013,7 +5012,7 @@ function profileSummary(){
 // It breathes while idle and melts into a blob and grows back out when it changes pose.
 // ---------- the feature reel: tap the logo; a short animated tour of what Sama does, drawn live with your own figure ----------
 const REEL = [
-  {title:'A practice that guides you', text:'Sama talks you through every pose with a calm voice, an Aum to begin and end, breath reminders and soft music.', scene:'studio', poses:['mountain','upsalute','forwardfold','halflift','dog'], beat:1500, fx:'voice'},
+  {title:'A practice that guides you', text:'Sama talks you through every pose with a calm voice, breath reminders and soft music.', scene:'studio', poses:['mountain','upsalute','forwardfold','halflift','dog'], beat:1500, fx:'voice'},
   {title:'You become the figure', text:'Turn on the camera and the figure moves with you. Your video never leaves your phone.', scene:'living', poses:['warrior2','reversewarrior','triangle'], beat:1700, fx:'camera'},
   {title:'Friendly corrections', text:'Small, kind cues for what to adjust, and a cheer when you are in line.', scene:'plain', poses:['tree'], beat:4200, fx:'checks'},
   {title:'165 poses, gentle to advanced', text:'Standing, seated, balances, backbends, inversions and wrist care, each with its story.', scene:'plain', poses:['crow','wheel','dancer','pigeon','headstand','lotus','halfmoon','camel'], beat:560},
