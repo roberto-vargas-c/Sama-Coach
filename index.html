@@ -2586,7 +2586,31 @@ function postureOf(id){
   return POSTURE_CACHE[id] = r;
 }
 // Waypoints between two poses: [{id, kind}] for each leg after `from`, ending with `to`. Cheapest route through the posture graph (lunges cost more so standing -> fold -> jump back wins).
-function transitionPath(fromId, toId, fromMir = false, toMir = false){
+// How far each thigh has to swing between two poses (degrees, the larger of the two legs), in the mat's frame. A two-sided pose may
+// be a mirror image of the other, so legs are paired either way and the smaller sweep counts.
+const SWEEP_CACHE = {};
+function thighSweep(a, b, ma = false, mb = false){
+  const key = a + (ma ? 'L' : '') + '>' + b + (mb ? 'L' : ''); if (key in SWEEP_CACHE) return SWEEP_CACHE[key];
+  const dirs = (id, m) => { const R = refFor(id, m, 0), c = camYawOf(R), sx = R.mirrored ? -1 : 1, co = Math.cos(-c), si = Math.sin(-c);
+    const w = v => { const x = sx*v[0]; return [x*co + v[2]*si, v[1], -x*si + v[2]*co]; };
+    return ['l','r'].map(sd => V.norm(V.sub(w(R.P[sd+'k']), w(R.P[sd+'h'])))); };
+  const A = dirs(a, ma), B = dirs(b, mb), ang = (u, v) => Math.acos(Math.max(-1, Math.min(1, V.dot(u, v))))*180/Math.PI;
+  return SWEEP_CACHE[key] = Math.min(Math.max(ang(A[0], B[0]), ang(A[1], B[1])), Math.max(ang(A[0], B[1]), ang(A[1], B[0])));
+}
+const SWEEP_LIMIT = 150, SWEEP_EASY = 100; // above LIMIT a route is replaced; among replacements, sweeps up to EASY count as equally easy
+function transitionPath(fromId, toId, fromMir = false, toMir = false, sweepFix = true){
+  const base = transitionPathBase(fromId, toId, fromMir, toMir);
+  if (!sweepFix) return base;
+  const worst = (path, a, ma) => { let w = 0, p = a, pm = ma; for (const st of path){ const m = st.mir ?? (st.id === toId ? toMir : pm); w = Math.max(w, thighSweep(p, st.id, pm, m)); p = st.id; pm = m; } return w; };
+  const w0 = worst(base, fromId, fromMir); if (w0 <= SWEEP_LIMIT) return base;
+  let best = base, bw = w0;
+  for (const h of new Set([...Object.values(POSTURE_HUB), 'tabletop', 'dog', 'child', 'staff'])){ if (h === fromId || h === toId) continue;
+    const p1 = transitionPathBase(fromId, h, fromMir, fromMir), p2 = transitionPathBase(h, toId, fromMir, toMir), cand = [...p1, ...p2].filter((st, i, arr) => !i || st.id !== arr[i-1].id);
+    const w = worst(cand, fromId, fromMir), better = Math.max(w, SWEEP_EASY) < Math.max(bw, SWEEP_EASY) || (Math.max(w, SWEEP_EASY) === Math.max(bw, SWEEP_EASY) && cand.length < best.length);
+    if (better && w < w0 - 30){ best = cand; bw = w; } } // the smallest sweep that a body can do, then the fewest steps
+  return best;
+}
+function transitionPathBase(fromId, toId, fromMir = false, toMir = false){
   const a = postureOf(fromId), b = postureOf(toId);
   const isAsym = id => { const p = POSES.find(q => q.id===id); return !!(p && p.asym); };
   const sideSwitch = fromMir !== toMir && (isAsym(fromId) || isAsym(toId));
@@ -2855,7 +2879,7 @@ function drawFlatFigure(g, R, av){
   const order = p => p.part==='head' || p.part==='neck' ? 9 : p.front ? 4 : (p.side && p.side===far) ? SUB[p.part] || 0
     : p.part==='upper' ? 1 : p.part==='torso' || p.part==='shoulders' ? 2 : p.part==='shin' || p.part==='foot' || p.part==='thigh' ? 3 + SUB[p.part] : p.part==='hips' || p.part==='seat' ? 3.5 : 4 + (SUB[p.part] || 0);
   const Kw = R.kp, hz = Kw[0] && Kw[0].w ? Kw[0].w[2] : null, nearSide = far === 'l' ? 'r' : far === 'r' ? 'l' : null;
-  // ...except an arm reaching straight up past the ear (Warrior I): there it stays behind, or its sleeve would cover the face
+  // an arm reaching up past the ear (Low Lunge, Chair, Warrior I) is the near one, so it lies over the side of the head as well
   const along = (() => { if (!nearSide) return 0; const sI = nearSide === 'l' ? 5 : 6, wI = nearSide === 'l' ? 9 : 10, ax = Kw[wI].x - Kw[sI].x, ay = Kw[wI].y - Kw[sI].y, hx = R.crown.x - R.neck.x, hy = R.crown.y - R.neck.y;
     return (ax*hx + ay*hy) / ((Math.hypot(ax, ay) || 1)*(Math.hypot(hx, hy) || 1)); })();
   const armUp = nearSide && along > .9 && Kw[nearSide === 'l' ? 9 : 10].y < Kw[nearSide === 'l' ? 5 : 6].y - R.scale*.15; // reaching up past the ear
@@ -2863,7 +2887,7 @@ function drawFlatFigure(g, R, av){
   const order0 = order;
   // the arm passes the side of the head, never across the face: keep a window around the face clear of it
   const faceHole = null; // the nearer arm simply lies over the head, as it does from the side
-  const orderF = p => armFront && p.side === nearSide && (p.part === 'upper' || p.part === 'fore' || p.part === 'hand') ? 9.5 : order0(p);
+  const orderF = p => (armFront || (armUp && !(R.blob > 0))) && p.side === nearSide && (p.part === 'upper' || p.part === 'fore' || p.part === 'hand') ? 9.5 : order0(p);
   for (const p of [...parts]) if (p.part === 'upper' && !(p.side && p.side === far)){ // second pass of the near upper arm, with a hole where the shoulder joint is
     const K = R.kp, sh = K[p.ks[0]], rr = sil.shoulder*R.scale*1.25;
     const again = gg => p(gg); again.part = 'upper'; again.side = p.side; again.ks = p.ks; again.front = true; again.hole = {x: sh.x, y: sh.y, r: rr}; parts.push(again);
