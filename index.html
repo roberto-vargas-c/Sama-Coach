@@ -2559,6 +2559,9 @@ function transitionPath(fromId, toId, fromMir = false, toMir = false){
   if (!(b in cost)) return [{id:toId, kind:'move'}];
   const steps = []; let c = b; while (prev[c]){ const [p,k] = prev[c]; steps.unshift({cat:c, kind:k}); c = p; }
   const out = steps.map((st,i) => ({id: i===steps.length-1 ? toId : POSTURE_HUB[st.cat], kind:st.kind}));
+  const LIE = new Set(['supine','bridge','shoulder']);
+  if (LIE.has(b) && toId !== POSTURE_HUB[b]) out.splice(out.length - 1, 0, {id:POSTURE_HUB[b], kind:'move'});
+  if (LIE.has(a) && fromId !== POSTURE_HUB[a]) out.unshift({id:POSTURE_HUB[a], kind:'move'});
   return out.filter((st,i) => st.id !== (i ? out[i-1].id : fromId) || i===out.length-1);
 }
 // Pace: how unhurried the figure moves. Calm is the default; floor and resting families move slower still.
