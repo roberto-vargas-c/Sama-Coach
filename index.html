@@ -2355,7 +2355,7 @@ function lerpRef(A, B, t, hop = 0, through = false){
     d[1] = A.fit.lowest - B.fit.lowest; // same mat height
     for (const n of Object.keys(PB)) if (Array.isArray(PB[n]) && PB[n].length===3 && !['face','up','sl','front'].includes(n)) PB[n] = add(PB[n], d);
     fitB.cx += d[0]; fitB.lowest += d[1]; anchorB = add(anchorB, [d[0], 0, d[2]]); matB = add(matB, [d[0], 0, d[2]]);
-    pins = pins.filter(j => len(sub(PA[j], PB[j])) < (/a$/.test(j) ? .6 : .35)); // a contact that lands far from where it started is re-placed, not planted (feet may slide a step)
+    pins = pins.filter(j => (hop && /w$/.test(j)) || len(sub(PA[j], PB[j])) < (/a$/.test(j) ? .6 : .35)); // in a jump the hands stay down even when they have to shift // a contact that lands far from where it started is re-placed, not planted (feet may slide a step)
   }
   // Turning is a rotation of the whole body about the hips, not a slide of every joint through the middle.
   const DIRS = ['face','up','sl','front'], rotY = (v, a) => { const c = Math.cos(a), s_ = Math.sin(a); return [v[0]*c + v[2]*s_, v[1], -v[0]*s_ + v[2]*c]; };
@@ -2471,6 +2471,19 @@ function lerpRef(A, B, t, hop = 0, through = false){
       const kp = add(perp(IK.joints[M] || P[M]), mul(perp(P[M]), .3)); if (len(kp) > 1e-4){ side = norm(kp); pinned = true; } }
     const cosA = Math.max(-1, Math.min(1, (l1*l1 + dist*dist - l2*l2)/(2*l1*dist))), along = l1*cosA, out = l1*Math.sin(Math.acos(cosA));
     const sgn = pinned || dot(sub(P[M], a), side) >= 0 ? 1 : -1; P[M] = add(a, add(mul(dn, along), mul(side, out*sgn))); P[E] = tgt; IK.joints[M] = P[M].slice(); };
+  // a jump on the hands: lift the hips and legs, the trunk only a little; the planted hands are solved back down below
+  if (hop > 0) for (const sd of ['l','r']){ const j = sd + 'w'; // a hand that is down at both ends of the jump stays down through it
+    if (!pins.includes(j) && A.fit.lowest - PA[j][1] < .08 && fitB.lowest - PB[j][1] < .08) pins.push(j); }
+  const handHop = hop > 0 && pins.some(j => /w$/.test(j));
+  if (handHop){ const h = hop*Math.sin(Math.PI*t);
+    for (const n of Object.keys(P)) if (Array.isArray(P[n]) && P[n].length===3 && !DIRS.includes(n)){
+      const wgt = /^[lr](h|k|a|he|ft)$/.test(n) ? 1 : .3; P[n] = [P[n][0], P[n][1] - h*wgt, P[n][2]]; }
+    // the arms must still reach the planted hands: if a shoulder has risen out of reach, the whole body comes down until it can
+    let drop = 0;
+    for (const j of pins.filter(j => /w$/.test(j))){ const sd = j[0], tg = PA[j].map((v,i) => L(v, PB[j][i])), sh = P[sd+'s'];
+      const mx = (bone(sd+'s', sd+'e', eArm) + bone(sd+'e', sd+'w', eArm))*.995, hd = Math.hypot(tg[0] - sh[0], tg[2] - sh[2]);
+      if (hd < mx) drop = Math.max(drop, (tg[1] - sh[1]) - Math.sqrt(mx*mx - hd*hd)); }
+    if (drop > 0) for (const n of Object.keys(P)) if (Array.isArray(P[n]) && P[n].length===3 && !DIRS.includes(n)) P[n] = [P[n][0], P[n][1] + drop, P[n][2]]; }
   for (const j of pins){
     const tgt = PA[j].map((v,i) => L(v, PB[j][i])), sd = j[0];
     if (/w$/.test(j)) reach2(sd+'s', sd+'e', sd+'w', bone(sd+'s', sd+'e', eArm), bone(sd+'e', sd+'w', eArm), tgt);
@@ -2488,7 +2501,7 @@ function lerpRef(A, B, t, hop = 0, through = false){
     for (const sd of ['l','r']) for (const [ends, rad, root, mid] of limbs){
       const pen = Math.max(...ends.map(x => P[sd+x][1] + rad)) - fl;
       // free limbs: remember where the knee or elbow really is this frame, so a bend that starts next frame starts from here
-      if (pen <= 1e-4 || hop){ if (!pins.includes(sd + ends[0])) IK.joints[sd+mid] = P[sd+mid].slice(); continue; }
+      if (pen <= 1e-4 || (hop && !(handHop && root === 'h'))){ if (!pins.includes(sd + ends[0])) IK.joints[sd+mid] = P[sd+mid].slice(); continue; } // in a jump on the hands the flying feet tuck instead of scraping the mat
       const end = sd + ends[0], keep = ends.slice(1).map(x => sub(P[sd+x], P[end]));
       reach2(sd+root, sd+mid, end, len(sub(P[sd+mid], P[sd+root])), len(sub(P[end], P[sd+mid])), [P[end][0], P[end][1] - pen, P[end][2]]);
       ends.slice(1).forEach((x, i) => { P[sd+x] = add(P[end], keep[i]); }); } }
@@ -2496,7 +2509,7 @@ function lerpRef(A, B, t, hop = 0, through = false){
   for (const n of Object.keys(P)) if (Array.isArray(P[n]) && P[n].length === 3) P[n] = rY(P[n], cam);
   const fit = {k:L(A.fit.k,fitB.k), cx:rY(anchorA.map((v,i) => L(v, anchorB[i])), cam)[0], lowest:L(A.fit.lowest, fitB.lowest)};
   // nothing sinks below the mat while moving
-  const low = lowestSurface(P), lift = (low - fit.lowest) + hop*Math.sin(Math.PI*t); // the body neither sinks into the mat nor floats above it
+  const low = lowestSurface(P), lift = (low - fit.lowest) + (handHop ? 0 : hop*Math.sin(Math.PI*t)); // the body neither sinks into the mat nor floats above it
   if (Math.abs(lift) > 1e-6){ for (const n of Object.keys(P)) if (Array.isArray(P[n]) && P[n].length===3 && !['face','up','sl','front'].includes(n)) P[n] = [P[n][0], P[n][1] - lift, P[n][2]]; }
   const out = projectWith(P, A.S, fit, false); out.camYaw = cam; out.parity = A.parity || 0;
   { const M = rY(matA.map((v, i) => L(v, matB[i])), cam), dX = (M[0] - fit.cx)*fit.k, dZ = M[2]*fit.k, u = [Math.cos(cam), -Math.sin(cam)], w = [-u[1], u[0]];
@@ -2638,8 +2651,13 @@ function transitionPathBase(fromId, toId, fromMir = false, toMir = false){
   const LIE = new Set(['supine','bridge','shoulder']);
   if (LIE.has(b) && toId !== POSTURE_HUB[b]) out.splice(out.length - 1, 0, {id:POSTURE_HUB[b], kind:'move'});
   if (LIE.has(a) && fromId !== POSTURE_HUB[a]) out.unshift({id:POSTURE_HUB[a], kind:'move'});
+  for (let i = 0; i < out.length; i++){ if (out[i].kind !== 'jump') continue;
+    const prevId = i ? out[i-1].id : fromId, pc = postureOf(prevId), tc = postureOf(out[i].id);
+    if (!JUMP_ENDS.has(out[i].id) && POSTURE_HUB[tc]){ out.splice(i + 1, 0, {id:out[i].id, kind:'move'}); out[i] = {...out[i], id:POSTURE_HUB[tc]}; }
+    if (!JUMP_ENDS.has(prevId) && POSTURE_HUB[pc]){ out.splice(i, 0, {id:POSTURE_HUB[pc], kind:'move'}); i++; } }
   return out.filter((st,i) => st.id !== (i ? out[i-1].id : fromId) || i===out.length-1);
 }
+const JUMP_ENDS = new Set(['forwardfold','halflift','plank','chaturanga','dog']);
 // Pace: how unhurried the figure moves. Calm is the default; floor and resting families move slower still.
 const PACE = {calm:1.45, flowing:1, quick:.7};
 let showOverlay = false, showInset = true; try { showOverlay = localStorage.getItem('sama.overlay') === 'on'; showInset = localStorage.getItem('sama.inset') !== 'off'; } catch {}
@@ -3070,7 +3088,11 @@ function matOffsetOf(R, id){
     if (FOLD_HANDS == null){ FOLD_HANDS = 0; const F = refFor('forwardfold', false, 0), cu = camYawOf(F), uu = [Math.cos(cu), -Math.sin(cu)], al1 = a => ((a.x - F.S/2)*uu[0] + (a.w ? a.w[2] : 0)*F.scale*uu[1])/F.scale,
         al = (i, j) => (al1(F.kp[i]) + al1(F.kp[j]))/2, feet = al(15, 16); FOLD_HANDS = al(9, 10) - feet;
       // the fold's farthest reach ahead of its feet (head included): the feet stand far enough in that it stays on the mat
-      FOLD_REACH = Math.max(0, ...F.kp.filter(Boolean).map(a => feet - al1(a))) + .12; }
+      FOLD_REACH = Math.max(0, ...F.kp.filter(Boolean).map(a => feet - al1(a))) + .12;
+      // the poses on the hands put their hands there; their head (Chaturanga, Up Dog) reaches further still
+      for (const h of MAT_HANDS){ if (!(REF_SPECS[h] || MOTION_SPECS[h])) continue; const Q = refFor(h, false, 0), cq = camYawOf(Q), uq = [Math.cos(cq), -Math.sin(cq)],
+          aq = a => ((a.x - Q.S/2)*uq[0] + (a.w ? a.w[2] : 0)*Q.scale*uq[1])/Q.scale, hands = (aq(Q.kp[9]) + aq(Q.kp[10]))/2;
+        FOLD_REACH = Math.max(FOLD_REACH, -FOLD_HANDS + Math.max(0, ...Q.kp.filter(Boolean).map(a => hands - aq(a))) + .12); } }
     const stepIn = Math.max(MAT_STEP_IN, FOLD_REACH + .04);
     const lead = MAT_FRONT.has(id) ? along(mid(15, 16)) : along(mid(9, 10)) - sgn*FOLD_HANDS*k;
     a0 = lead + sgn*(Lpx/2 - stepIn*k);
