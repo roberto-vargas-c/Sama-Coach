@@ -2270,8 +2270,12 @@ function lerpRef(A, B, t, hop = 0, through = false){
   let anchorA = rY([sxA*A.fit.cx, 0, (PA.lh[2] + PA.rh[2])/2], -cA), anchorB = rY([sxB*B.fit.cx, 0, (PB.lh[2] + PB.rh[2])/2], -cB);
   for (const n of Object.keys(PA)) if (Array.isArray(PA[n]) && PA[n].length === 3) PA[n] = rY(PA[n], -cA);
   for (const n of Object.keys(PB)) if (Array.isArray(PB[n]) && PB[n].length === 3) PB[n] = rY(PB[n], -cB);
+  // the hip lines point opposite ways: the end pose is the mirror-labelled one, so pair each limb with the one on its own side
+  const hipA = sub(PA.lh, PA.rh), hipB = sub(PB.lh, PB.rh), flipLR = (A.base || A) !== (B.base || B) && dot(hipA, hipB) < -.3*len(hipA)*len(hipB); // (a turn on the spot really turns)
+  if (flipLR){ const Q = {}; for (const [n, v] of Object.entries(PB)){ const m = /^(l|r)(h|s|e|w|k|a|ix|pi|th|he|ft|eye|ear)$/.exec(n); Q[m ? (m[1]==='l' ? 'r' : 'l') + m[2] : n] = v; }
+    if (Q.sl) Q.sl = mul(Q.sl, -1); for (const n of Object.keys(PB)) delete PB[n]; Object.assign(PB, Q); }
   // Whatever touches the mat in both poses stays planted: line the end pose up on those contacts, and pin them while the body moves.
-  let pins = sharedContacts(A.poseId, B.poseId).filter(j => !hop || /w$/.test(j)); const fitB = {k:B.fit.k, cx:sxB*B.fit.cx, lowest:B.fit.lowest};
+  let pins = sharedContacts(A.poseId, B.poseId, flipLR).filter(j => !hop || /w$/.test(j)); const fitB = {k:B.fit.k, cx:sxB*B.fit.cx, lowest:B.fit.lowest};
   if (pins.length){
     const d = [0,0,0]; for (const j of pins){ const v = sub(PA[j], PB[j]); d[0] += v[0]/pins.length; d[1] += v[1]/pins.length; d[2] += v[2]/pins.length; }
     d[1] = A.fit.lowest - B.fit.lowest; // same mat height
@@ -2313,10 +2317,16 @@ function lerpRef(A, B, t, hop = 0, through = false){
   // hanging to overhead sweeps out in front, not through the chest.
   // the belly of the torso (not the pelvis heading): hips flex toward it, which is the side the legs swing on
   const bellyW = norm(cross(sub(P.ls, P.rs), sub([(P.ls[0]+P.rs[0])/2,(P.ls[1]+P.rs[1])/2,(P.ls[2]+P.rs[2])/2], [(P.lh[0]+P.rh[0])/2,(P.lh[1]+P.rh[1])/2,(P.lh[2]+P.rh[2])/2])));
-  const frontL = Math.abs(turn) > .05 ? rotY(bellyW, yaw) : bellyW;
-  const swingDir = (a, b, f) => { const d0 = dot(a, b); if (d0 > -.9) return slerp(a, b, f);
-    let ax = cross(a, frontL); if (len(ax) < 1e-3) ax = cross(a, [0,0,1]); if (len(ax) < 1e-3) ax = cross(a, [1,0,0]); ax = norm(ax); // near-opposite: go the front way round
-    const th = Math.acos(Math.max(-1, Math.min(1, d0)))*f, c = Math.cos(th), s_ = Math.sin(th); return norm(add(add(mul(a, c), mul(cross(ax, a), s_)), mul(ax, dot(ax, a)*(1-c)))); };
+  const bellyOf = Q => norm(cross(sub(Q.ls, Q.rs), sub([(Q.ls[0]+Q.rs[0])/2,(Q.ls[1]+Q.rs[1])/2,(Q.ls[2]+Q.rs[2])/2], [(Q.lh[0]+Q.rh[0])/2,(Q.lh[1]+Q.rh[1])/2,(Q.lh[2]+Q.rh[2])/2])));
+  const bA = Math.abs(turn) > .05 ? rotY(bellyOf(PA), -yA) : bellyOf(PA), bB = Math.abs(turn) > .05 ? rotY(bellyOf(PB), -yB) : bellyOf(PB);
+  const frontL = len(add(bA, bB)) > .3 ? norm(add(bA, bB)) : bA; // fixed for the whole move: no mid-move flips
+  const swingDir = (a, b, f) => { const d0 = Math.max(-1, Math.min(1, dot(a, b))); if (d0 > -.9) return slerp(a, b, f);
+    // near-opposite: go the front way round, on a rotation that really ends at b (short way or long way about the a×b axis)
+    const th = Math.acos(d0); let ax = cross(a, b);
+    if (len(ax) < 1e-3){ ax = cross(a, frontL); if (len(ax) < 1e-3) ax = cross(a, [0,0,1]); if (len(ax) < 1e-3) ax = cross(a, [1,0,0]); }
+    ax = norm(ax); const rr = (v, k, an) => { const c = Math.cos(an), s_ = Math.sin(an); return norm(add(add(mul(v, c), mul(cross(k, v), s_)), mul(k, dot(k, v)*(1-c)))); };
+    if (dot(rr(a, ax, th/2), frontL) >= 0) return rr(a, ax, th*f);
+    return rr(a, mul(ax, -1), (2*Math.PI - th)*f); };
   const rodr = (a, ax, th) => { const c = Math.cos(th), s_ = Math.sin(th); return norm(add(add(mul(a, c), mul(cross(ax, a), s_)), mul(ax, dot(ax, a)*(1-c)))); };
   const thighDir = (a, b, f) => { // the hip flexes forward: if the short arc would carry the knee round the back, go the long way round the front
     const d0 = Math.max(-1, Math.min(1, dot(a, b))); if (d0 < -.9) return swingDir(a, b, f);
@@ -2326,29 +2336,57 @@ function lerpRef(A, B, t, hop = 0, through = false){
     return rodr(a, mul(ax, -1), (2*Math.PI - th)*f); };
   const limbDir = (root, end, f, kind) => { const a = norm(sub(PA[end], PA[root])), b = norm(sub(PB[end], PB[root])), sw = kind==='thigh' ? thighDir : swingDir;
     return Math.abs(turn) > .05 ? rotY(sw(rotY(a, yA), rotY(b, yB), f), -yaw) : sw(a, b, f); };
+  // lower limb direction in the frame of its upper limb: x along the upper limb, y toward the body's own left (hip or shoulder line)
+  const frameOf = (U, lat) => { const x = norm(U); let y = sub(lat, mul(x, dot(lat, x))); if (len(y) < 1e-3){ y = cross(x, [0,0,1]); if (len(y) < 1e-3) y = cross(x, [1,0,0]); } y = norm(y); return [x, y, cross(x, y)]; };
+  const toL = (F, v) => [dot(v, F[0]), dot(v, F[1]), dot(v, F[2])], fromL = (F, l) => add(add(mul(F[0], l[0]), mul(F[1], l[1])), mul(F[2], l[2]));
+  const hingeDir = (r, m, n, girdle, f) => { // r→m upper limb, m→n lower limb; girdle 'h' (hips) or 's' (shoulders)
+    const lat = Q => sub(Q['l'+girdle], Q['r'+girdle]);
+    const lA = toL(frameOf(sub(PA[m], PA[r]), lat(PA)), norm(sub(PA[n], PA[m]))), lB = toL(frameOf(sub(PB[m], PB[r]), lat(PB)), norm(sub(PB[n], PB[m])));
+    return fromL(frameOf(sub(P[m], P[r]), lat(P)), slerp(lA, lB, f)); };
+  const bone = (r, n, f) => { const a = len(sub(PA[n], PA[r])), b = len(sub(PB[n], PB[r])); return a + (b - a)*f; }; // the poses' own lengths
   for (const sd of ['l','r']){
-    P[sd+'e'] = add(P[sd+'s'], mul(limbDir(sd+'s', sd+'e', eArm), LEN.upper));
-    P[sd+'w'] = add(P[sd+'e'], mul(limbDir(sd+'e', sd+'w', eArm), LEN.fore));
-    for (const h of ['ix','pi','th']) P[sd+h] = add(P[sd+'w'], mul(limbDir(sd+'w', sd+h, eArm), .08));
-    P[sd+'k'] = add(P[sd+'h'], mul(limbDir(sd+'h', sd+'k', e, 'thigh'), LEN.thigh));
-    P[sd+'a'] = add(P[sd+'k'], mul(limbDir(sd+'k', sd+'a', e), LEN.shin));
-    for (const h of ['he','ft']) P[sd+h] = add(P[sd+'a'], mul(limbDir(sd+'a', sd+h, e), .08));
+    P[sd+'e'] = add(P[sd+'s'], mul(limbDir(sd+'s', sd+'e', eArm), bone(sd+'s', sd+'e', eArm)));
+    P[sd+'w'] = add(P[sd+'e'], mul(hingeDir(sd+'s', sd+'e', sd+'w', 's', eArm), bone(sd+'e', sd+'w', eArm)));
+    for (const h of ['ix','pi','th']) P[sd+h] = add(P[sd+'w'], mul(limbDir(sd+'w', sd+h, eArm), bone(sd+'w', sd+h, eArm)));
+    P[sd+'k'] = add(P[sd+'h'], mul(limbDir(sd+'h', sd+'k', e, 'thigh'), bone(sd+'h', sd+'k', e)));
+    P[sd+'a'] = add(P[sd+'k'], mul(hingeDir(sd+'h', sd+'k', sd+'a', 'h', e), bone(sd+'k', sd+'a', e)));
+    for (const h of ['he','ft']) P[sd+h] = add(P[sd+'a'], mul(limbDir(sd+'a', sd+h, e), bone(sd+'a', sd+h, e)));
   }
   // pinned limbs: re-solve them so the planted hand, knee or foot does not drift
+  // per-transition memory of where the solved knees/elbows were last frame (restarts when the transition does)
+  const IK = (() => { const m = A.__ik || (A.__ik = new WeakMap()); let st = m.get(B); if (!st || t < st.t || t === 0) m.set(B, st = {t, joints:{}}); st.t = t; return st; })();
   const reach2 = (R0, M, E, l1, l2, tgt) => { const a = P[R0], v = sub(tgt, a); let dist = len(v); const max = l1 + l2 - 1e-3; const dn = norm(v);
     if (dist > max){ tgt = add(a, mul(dn, max)); dist = max; }
     let n = cross(sub(P[M], a), sub(P[E], a)); if (len(n) < 1e-4) n = cross(dn, [0,0,1]); if (len(n) < 1e-4) n = cross(dn, [1,0,0]); n = norm(n);
-    const side = norm(cross(n, dn)), cosA = Math.max(-1, Math.min(1, (l1*l1 + dist*dist - l2*l2)/(2*l1*dist))), along = l1*cosA, out = l1*Math.sin(Math.acos(cosA));
-    const sgn = dot(sub(P[M], a), side) >= 0 ? 1 : -1; P[M] = add(a, add(mul(dn, along), mul(side, out*sgn))); P[E] = tgt; };
+    let side = norm(cross(n, dn)); let pinned = false;
+    // reference for the side: last frame's solved joint (stability) plus the freely swung joint (anatomy: knees forward, elbows back)
+    const perp = q => { const v = sub(q, a), w = sub(v, mul(dn, dot(v, dn))), l = len(w); return l > 1e-4 ? mul(w, 1/l) : [0,0,0]; };
+    const prevM = IK.joints[M] || P[M], kp = add(perp(prevM), mul(perp(P[M]), .3));
+    if (len(kp) > 1e-4){ side = norm(kp); pinned = true; {
+      // over the last part of the move, turn round the circle to where the joint is in the end pose, so nothing snaps at the end
+      const w0 = Math.max(0, Math.min(1, (t - .8)/(1 - .8))), w = w0*w0*(3 - 2*w0);
+      let vB = sub(PB[M], PB[R0]); if (Math.abs(turn) > .05) vB = rotY(rotY(vB, -yB), yaw);
+      const bp = sub(vB, mul(dn, dot(vB, dn)));
+      if (w > 0 && len(bp) > 1e-3){ const sb = norm(bp), ang = Math.atan2(dot(cross(side, sb), dn), dot(side, sb)); side = rodr(side, dn, ang*w); } } }
+    const cosA = Math.max(-1, Math.min(1, (l1*l1 + dist*dist - l2*l2)/(2*l1*dist))), along = l1*cosA, out = l1*Math.sin(Math.acos(cosA));
+    const sgn = pinned || dot(sub(P[M], a), side) >= 0 ? 1 : -1; P[M] = add(a, add(mul(dn, along), mul(side, out*sgn))); P[E] = tgt; IK.joints[M] = P[M].slice(); };
   for (const j of pins){
     const tgt = PA[j].map((v,i) => L(v, PB[j][i])), sd = j[0];
-    if (/w$/.test(j)) reach2(sd+'s', sd+'e', sd+'w', LEN.upper, LEN.fore, tgt);
-    else if (/a$/.test(j)) reach2(sd+'h', sd+'k', sd+'a', LEN.thigh, LEN.shin, tgt);
+    if (/w$/.test(j)) reach2(sd+'s', sd+'e', sd+'w', bone(sd+'s', sd+'e', eArm), bone(sd+'e', sd+'w', eArm), tgt);
+    else if (/a$/.test(j)) reach2(sd+'h', sd+'k', sd+'a', bone(sd+'h', sd+'k', e), bone(sd+'k', sd+'a', e), tgt);
     else if (/k$/.test(j)){ P[j] = add(P[sd+'h'], mul(norm(sub(tgt, P[sd+'h'])), LEN.thigh)); P[sd+'a'] = add(P[j], mul(norm(sub(P[sd+'a'], P[j])), LEN.shin)); }
     else if (/e$/.test(j)){ P[j] = add(P[sd+'s'], mul(norm(sub(tgt, P[sd+'s'])), LEN.upper)); P[sd+'w'] = add(P[j], mul(norm(sub(P[sd+'w'], P[j])), LEN.fore)); }
     if (/a$/.test(j)){ for (const h of ['he','ft']){ const off = PA[sd+h].map((v,i) => L(v - PA[j][i], PB[sd+h][i] - PB[j][i])); P[sd+h] = add(P[j], off); } } // a planted foot keeps its sole flat on the mat, no tiptoeing
   }
   for (let i=0;i<RIGID.length;i+=2){ const a = RIGID[i], b = a[0]+RIGID[i+1]; const dA = len(sub(PA[b],PA[a])), dB = len(sub(PB[b],PB[a])); P[b] = add(P[a], mul(norm(sub(P[b],P[a])), L(dA,dB))); }
+  { const fl = L(A.fit.lowest, fitB.lowest), limbs = [[['a','he','ft'], .034, 'h', 'k'], [['w','ix','pi','th'], .03, 's', 'e']];
+    for (const sd of ['l','r']) for (const [ends, rad, root, mid] of limbs){
+      const pen = Math.max(...ends.map(x => P[sd+x][1] + rad)) - fl;
+      // free limbs: remember where the knee or elbow really is this frame, so a bend that starts next frame starts from here
+      if (pen <= 1e-4 || hop){ if (!pins.includes(sd + ends[0])) IK.joints[sd+mid] = P[sd+mid].slice(); continue; }
+      const end = sd + ends[0], keep = ends.slice(1).map(x => sub(P[sd+x], P[end]));
+      reach2(sd+root, sd+mid, end, len(sub(P[sd+mid], P[sd+root])), len(sub(P[end], P[sd+mid])), [P[end][0], P[end][1] - pen, P[end][2]]);
+      ends.slice(1).forEach((x, i) => { P[sd+x] = add(P[end], keep[i]); }); } }
   const cam = cA + dCam*e; // back to the screen: the camera's turn at this moment
   for (const n of Object.keys(P)) if (Array.isArray(P[n]) && P[n].length === 3) P[n] = rY(P[n], cam);
   const fit = {k:L(A.fit.k,fitB.k), cx:rY(anchorA.map((v,i) => L(v, anchorB[i])), cam)[0], lowest:L(A.fit.lowest, fitB.lowest)};
@@ -2358,9 +2396,9 @@ function lerpRef(A, B, t, hop = 0, through = false){
   const out = projectWith(P, A.S, fit, false); out.camYaw = cam; return out;
 }
 // Contacts that touch the mat in both poses (as joint names), e.g. the hands and knees between cat and cow.
-function sharedContacts(a, b){
+function sharedContacts(a, b, flipB = false){
   const GA = GROUND[a] || MOTION_GROUND[a], GB = GROUND[b] || MOTION_GROUND[b]; if (!a || !b || !GA || !GB) return [];
-  const ga = GA.split(' '), gb = GB.split(' '), out = [];
+  const ga = GA.split(' '), gb = GB.split(' ').map(c => flipB && /^[lr][fhke]$/.test(c) ? (c[0]==='l' ? 'r' : 'l') + c[1] : c), out = [];
   for (const c of ga){ if (!gb.includes(c) || c==='hips' || c==='head') continue; const sd = c[0], k = c[1];
     out.push(k==='f' ? sd+'a' : k==='h' ? sd+'w' : k==='k' ? sd+'k' : sd+'e'); }
   return out;
@@ -3100,38 +3138,46 @@ function drawInset(){
   ctx.scale(size/R.S, size/R.S); drawScene(ctx, R); ctx.restore();
   ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+size,y,x+size,y+size,r); ctx.arcTo(x+size,y+size,x,y+size,r); ctx.arcTo(x,y+size,x,y,r); ctx.arcTo(x,y,x+size,y,r); ctx.closePath(); ctx.stroke(); ctx.restore();
 }
-// Browsing the library: up to Mountain and down into the new pose, with only hidden in-between shapes on the way (never another library pose).
-function browseSteps(fromId, toId, fromMir, toMir){
-        const q = (id, kind='move') => ({id, kind, mir:false, quick:true});
-        const rise = id => { // how a pose comes up to standing
-          const c = postureOf(id);
-          if (c==='shoulder') return [q('x_rollover'), q('x_restpose'), q('x_situp'), q('x_crouch')];
-          if (c==='supine' || c==='bridge') return [q('x_restpose'), q('x_situp'), q('x_crouch')];
-          if (c==='seated' || c==='squat') return [q('x_crouch')];
-          if (c==='head') return [q('x_tuck'), q('x_halfkneel')];
-          if (c==='kneel' || c==='child' || c==='kneelup') return [q('x_halfkneel')];
-          if (c==='dog' || c==='plank') return [q('x_bend', 'jump')];
-          if (c==='prone' || c==='arm' || c==='lungeh') return [q('x_bend')];
-          return []; // standing, folds, lunges: straight up
-        };
-        const steps = [];
-        if (fromId !== 'mountain'){ steps.push(...rise(fromId).filter(st => st.id !== fromId), {id:'mountain', kind:'move', mir:false}); }
-        if (!(toId==='mountain' && !toMir)){
-          const down = rise(toId).reverse().map(st => ({...st, kind:'move'})), c = postureOf(toId);
-          steps.push(...down, {id:toId, kind: (c==='dog' || c==='plank') ? 'jump' : 'move', mir:toMir}); }
-        return steps.filter((st,i) => !i || st.id !== steps[i-1].id || st.mir !== steps[i-1].mir); }
-// The legs of a movement transition: one tween per step of the path, with its length and any hop.
 function routeSegments(from, path, target, targetId, mirrored, guided){
-  const segs = []; let prevR = from;
+  // Facing: any pose can face either way along the mat (a half turn of the body, camera unchanged). Along the route the body keeps
+  // looking toward the same end of the mat; when that can't be told (lying on the back) the head, then the feet, keep their side.
+  // The pose the user picked always ends in its own standard place on the mat: if the route would arrive facing the other way,
+  // the figure turns round on the spot at the last pose where that is natural (sitting, kneeling, standing, on hands and feet).
   const isAsym = id => { const q = POSES.find(x => x.id===id); return !!(q && q.asym); };
-  for (const st of path){
-    let R = st.id===targetId && (st.mir ?? mirrored)===mirrored ? target : refFor(st.id, st.mir ?? mirrored);
-    if (!isAsym(st.id)){ // a symmetric pose can face either way: keep the head on the same side as before, otherwise take the nearer one
-      const alt = refFor(st.id, !R.mirrored), side = Q => { const d = Q.P.head[0] - (Q.P.lh[0]+Q.P.rh[0])/2; return Math.abs(d) > .15 ? Math.sign(d) : 0; }, sp = side(prevR);
-      if (sp && side(R) === -sp && side(alt) === sp) R = alt; else if (moveAmount(prevR, alt) < moveAmount(prevR, R) - .02) R = alt; }
-    const stone = !guided && st.id !== targetId && st.id !== 'mountain';
-    segs.push({from:prevR, to:R, dur:Math.round(segmentDuration(prevR, R, st.kind) * (st.quick ? .55 : stone ? .75 : 1)), hop: st.kind==='jump' ? .13 : 0}); prevR = R;
+  const turned = Q => { const T = projectRef(rotateY(Q.P, 180), REF_S, Q.mirrored);
+    for (const k of ['poseId','angle','viewAngle','otherSide','matYaw','camYaw','kp0']) T[k] = Q[k]; T.turned = !Q.turned; T.base = Q.base || Q; return T; };
+  const other = Q => Q.turned ? Q.base : turned(Q);
+  const sx = Q => Q.mirrored ? -1 : 1, hipX = Q => (Q.P.lh[0]+Q.P.rh[0])/2;
+  const sideOf = (Q, x) => { const d = sx(Q)*(x - hipX(Q)); return Math.abs(d) > .15 ? Math.sign(d) : 0; };
+  const facing = Q => { const fx = sx(Q)*(Q.P.front ? Q.P.front[0] : 0); return Math.abs(fx) > .5 ? Math.sign(fx) : 0; };
+  const head = Q => sideOf(Q, Q.P.head[0]), feet = Q => sideOf(Q, (Q.P.la[0]+Q.P.ra[0])/2);
+  const orient = (prev, R) => { const alt = other(R), cue = [facing, head, feet].find(f => f(prev) && (f(R) || f(alt)));
+    if (cue) return cue(R) !== cue(prev) && cue(alt) === cue(prev) ? alt : R;
+    return !isAsym(R.poseId) && moveAmount(prev, alt) < moveAmount(prev, R) - .02 ? alt : R; };
+  const TURN_OK = new Set(['stand','fold','squat','lunge','lungeh','kneel','kneelup','seated','child','plank','dog','arm']);
+  const TURN_RANK = {seated:0, stand:0, squat:0, kneelup:0, fold:1, lunge:2, kneel:2, child:3, lungeh:4, plank:4, dog:4, arm:4};
+  const turnLeg = Q => ({from:Q, to:other(Q), dur:Math.round(1400*(PACE[pace] || 1)), hop:0, turnOnSpot:true});
+  const build = turnAt => { // turnAt: index in path after which the figure turns on the spot (-1: before setting off)
+    const segs = []; let prevR = from;
+    if (turnAt === -1){ segs.push(turnLeg(from)); prevR = segs[0].to; }
+    path.forEach((st, i) => {
+      let R = st.id===targetId && (st.mir ?? mirrored)===mirrored ? target : refFor(st.id, st.mir ?? mirrored);
+      R = orient(prevR, R);
+      const stone = !guided && st.id !== targetId && st.id !== 'mountain';
+      segs.push({from:prevR, to:R, dur:Math.round(segmentDuration(prevR, R, st.kind) * (st.quick ? .55 : stone ? .75 : 1)), hop: st.kind==='jump' ? .13 : 0}); prevR = R;
+      if (i === turnAt){ const tl = turnLeg(R); segs.push(tl); prevR = tl.to; }
+    });
+    return segs;
+  };
+  let segs = build(null);
+  if (segs[segs.length-1].to.turned){
+    // where to turn: sitting or standing first, then folded or kneeling, last on hands and feet; later in the route before earlier
+    const idx = [...path.keys()].reverse().concat([-1]).map(k => ({k, id: k === -1 ? from.poseId : path[k].id})).filter(c => c.id && TURN_OK.has(postureOf(c.id)))
+      .map(c => ({...c, rank: TURN_RANK[postureOf(c.id)] ?? 5})).sort((a, b) => a.rank - b.rank || b.k - a.k);
+    for (const {k} of idx){ const alt = build(k); if (!alt[alt.length-1].to.turned){ segs = alt; break; } }
+    if (segs[segs.length-1].to.turned){ const last = segs[segs.length-1].to; segs.push(turnLeg(last)); }
   }
+  const end = segs[segs.length-1]; if (!end.to.turned && end.to.base) end.to = end.to.base; // land on the very reference the app shows next
   return segs;
 }
 function showReference(mirrored = refMirror){
@@ -3162,11 +3208,9 @@ function showReference(mirrored = refMirror){
     tween = {raf: 0}; step(performance.now()); return; // first frame now, so the stage never shows a blank frame
   }
   // route through the postures in between (fold, jump back to plank, ...), one tween per leg of the journey
-  // Browsing the library: always settle back into Mountain and move on from there (calm and predictable).
-  // In a guided practice the figure takes the real route between the poses (folds, jumps, side changes).
-  const path = !from.poseId ? [{id:pose.id, kind:'move'}]
-    : sess ? transitionPath(from.poseId, pose.id, from.mirrored, mirrored)
-    : browseSteps(from.poseId, pose.id, from.mirrored, mirrored);
+  // Browsing or practising, the figure takes the real route between the two poses (folds, jumps, side changes, a turn on the spot),
+  // never a detour through Mountain. Browsing plays it as one continuous movement; a practice pauses a breath at each pose on the way.
+  const path = !from.poseId ? [{id:pose.id, kind:'move'}] : transitionPath(from.poseId, pose.id, from.mirrored, mirrored);
   const segs = routeSegments(from, path, target, pose.id, mirrored, !!sess);
   const finalR = segs[segs.length-1].to;
   tween = {raf:0};
@@ -5807,7 +5851,7 @@ for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', (
 // ---------- boot ----------
 renderRail(); renderHist(); showReference();
 if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !profile.onboarded && !(() => { try { return localStorage.getItem('sama.welcomed'); } catch { return null; } })()) showWelcome();
-window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, browseSteps, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
+window.__sama = {get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
 function retheme(){
   for (const k in THUMBS) delete THUMBS[k];
   if (lib.built && lib.pose && $('poseDlg').open) drawPd();
