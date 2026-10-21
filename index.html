@@ -119,7 +119,13 @@ body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -
 .sbar{height:4px;background:var(--line);border-radius:4px;overflow:hidden}
 .sbar span{display:block;height:100%;width:0;background:var(--accent);transition:width .2s linear}
 .srow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.srow b{display:block;font-size:17px}
+.srow b,.shead b{display:block;font-size:17px}
+/* the pose name on its own line, the timer always right below it (a long name can't push it around) */
+.shead{display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:14px}
+.shead .sname{grid-column:1 / -1;min-width:0}
+.shead .sname b{overflow-wrap:anywhere}
+.shead .stime{grid-column:1;justify-self:start;line-height:1.15}
+.shead .sbreath{grid-column:2;justify-self:end;margin:0}
 .sstep,.snext{font-size:12.5px;color:var(--muted)}
 .sbreath{display:inline-flex;align-items:center;gap:8px;margin-left:auto;margin-right:14px;font-size:13px;font-weight:600;color:var(--muted)}
 .sbreath i{width:22px;height:22px;border-radius:50%;background:var(--accent);opacity:.35;transform:scale(.45);transition:transform 5s ease-in-out,opacity 5s ease-in-out}
@@ -708,7 +714,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
     <section class="stagecol">
       <div class="sess" id="sess" hidden>
         <div class="sbar"><span id="sessBar"></span></div>
-        <div class="srow"><div><span class="sstep" id="sessStep"></span><b id="sessPose"></b></div><span class="sbreath" id="sessBreath" hidden aria-live="off"><i></i><span></span></span><span class="stime" id="sessTime"></span></div>
+        <div class="shead"><div class="sname"><span class="sstep" id="sessStep"></span><b id="sessPose"></b></div><span class="stime" id="sessTime"></span><span class="sbreath" id="sessBreath" hidden aria-live="off"><i></i><span></span></span></div>
         <div class="srow"><span class="snext" id="sessNext"></span>
           <div class="sbtns"><button type="button" id="sessPrev" aria-label="Previous pose">‹</button><button type="button" id="sessPause">Pause</button><button type="button" id="sessNextBtn" aria-label="Next pose">›</button><button type="button" id="sessCam" aria-pressed="false" aria-label="Live camera" title="Live camera: the figure follows you"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button><button type="button" id="sessVoice" aria-pressed="true" aria-label="Voice guide" title="Voice guide"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="vwave" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button><button type="button" id="sessMusic" aria-pressed="true" aria-label="Background music" title="Background music"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path class="vslash" d="M3 3l18 18"/></svg></button><button type="button" id="sessTv" aria-label="Show on TV" title="Show on TV"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button><button type="button" id="sessEnd">End</button></div></div>
       </div>
