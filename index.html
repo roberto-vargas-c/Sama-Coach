@@ -2882,6 +2882,24 @@ function viewLabel(R){ const c = Math.round(camYawOf(R)*180/Math.PI)*(R.mirrored
 // The other side of a two-sided pose: reflect the body through its own middle (across the plane between the hips),
 // so it keeps facing the same way on the mat and only swaps legs, arms or the side it lies on.
 const DIRS3 = new Set(['face','up','front','sl']);
+function matMirror(P, id){
+  const yaw = matYawOf(P, id).yaw*Math.PI/180, c = Math.cos(yaw), s_ = Math.sin(yaw);
+  const to = v => [v[0]*c + v[2]*s_, v[1], -v[0]*s_ + v[2]*c], back = v => [v[0]*c - v[2]*s_, v[1], v[0]*s_ + v[2]*c];
+  const zc = to(P.lh.map((v, i) => (v + P.rh[i])/2))[2], out = {};
+  for (const [n, v] of Object.entries(P)){
+    if (!Array.isArray(v) || v.length !== 3){ out[n] = v; continue; }
+    const m = to(v); m[2] = DIRS3.has(n) ? -m[2] : 2*zc - m[2]; out[n] = back(m);
+  }
+  MAT_YAW_CACHE.set(out, matYawOf(P, id)); return out; // same place on the mat
+}
+// does the pose point along the mat (so its mirror image would face the back)? by the same rule per family that transitions use
+const ALONG_CACHE = {};
+function facesAlongMat(id){
+  if (id in ALONG_CACHE) return ALONG_CACHE[id];
+  const R = refFor(id, false, 0), P = R.P, hip = (P.lh[0] + P.rh[0])/2, rule = {stand:'chest', fold:'chest', lunge:'chest', squat:'chest', kneelup:'chest', seated:'seat'}[postureOf(id)] || 'head';
+  const front = P.front ? Math.abs(P.front[0]) > .5 : false, headOff = Math.abs(P.head[0] - hip) > .15, feetOff = Math.abs((P.la[0] + P.ra[0])/2 - hip) > .15;
+  return ALONG_CACHE[id] = rule === 'chest' ? front : rule === 'seat' ? (front || feetOff) : headOff;
+}
 function otherSide(P){
   const c = P.lh.map((v,i) => (v + P.rh[i])/2); let L = P.lh.map((v,i) => v - P.rh[i]), l = Math.hypot(...L);
   if (l < 1e-6){ L = P.ls.map((v,i) => v - P.rs[i]); l = Math.hypot(...L) || 1; } L = L.map(v => v/l);
@@ -2981,7 +2999,14 @@ const isTwoSided = id => { const q = POSES.find(x => x.id === id); return !!(q &
 const refFor = (id, mirrored = false, angle = refAngle) => {
   const Pb = P3[id] || (P3[id] = applyPoseFix(id, build3d(REF_SPECS[id] || MOTION_SPECS[id], GROUND[id] || MOTION_GROUND[id] || '')));
   const P0 = isTwoSided(id) ? (P3[id + '|R'] || (P3[id + '|R'] = rightLead(Pb, id))) : Pb;
-  const swap = mirrored && isTwoSided(id) && hipsAlongDepth(P0), Pm = swap ? (P3[id + '|other'] || (P3[id + '|other'] = otherSide(P0))) : P0, flip = mirrored && !swap;
+  // The other side of a two-sided pose. A pose that points along the mat (it faces the front with its chest, head, legs or feet)
+  // is reflected across the mat's long midline: it stays in its place, keeps facing the front and only the sides trade over (the
+  // far side shows). A pose that faces across the mat (Triangle, Warrior II, side bends) is shown as its mirror image, the way you
+  // turn your feet the other way and stay facing the same side of the room.
+  // A pose seen from the front of the mat (Mountain, Tree) is reflected the same way: on screen that is its mirror image, but the
+  // camera stays put (a screen mirror used to swing the camera half way round the mat between the two sides).
+  const frontView = Math.abs(Math.abs(matYawOf(P0, id).cam) - 90) < 1;
+  const swap = mirrored && (isTwoSided(id) && (hipsAlongDepth(P0) || facesAlongMat(id)) || frontView), Pm = swap ? (P3[id + '|other'] || (P3[id + '|other'] = isTwoSided(id) && hipsAlongDepth(P0) ? otherSide(P0) : matMirror(P0, id))) : P0, flip = mirrored && !swap;
   const M = matYawOf(Pm, id), view = (((angle + M.cam + M.yaw) % 360) + 540) % 360 - 180; // the user's turn on top of the pose's best view
   const R = projectRef(view ? rotateY(Pm, view) : Pm, REF_S, flip); R.poseId = id; R.angle = angle; R.viewAngle = view; R.otherSide = swap; R.matYaw = M.yaw; R.camYaw = camYawOf(R); if (!mirrored) R.lead = LEAD_INFO.get(P0) || null;
   R.parity = ((P0 !== Pb) ? 1 : 0) ^ (swap ? 1 : 0) ^ (flip ? 1 : 0); // 1: the skeleton is a mirror image (labels kept)
