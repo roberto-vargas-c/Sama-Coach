@@ -2451,7 +2451,9 @@ function lerpRef(A, B, t, hop = 0, through = false){
   // nothing sinks below the mat while moving
   const low = lowestSurface(P), lift = (low - fit.lowest) + hop*Math.sin(Math.PI*t); // the body neither sinks into the mat nor floats above it
   if (Math.abs(lift) > 1e-6){ for (const n of Object.keys(P)) if (Array.isArray(P[n]) && P[n].length===3 && !['face','up','sl','front'].includes(n)) P[n] = [P[n][0], P[n][1] - lift, P[n][2]]; }
-  const out = projectWith(P, A.S, fit, false); out.camYaw = cam; out.parity = A.parity || 0; return out;
+  const out = projectWith(P, A.S, fit, false); out.camYaw = cam; out.parity = A.parity || 0;
+  out.facePose = t < .5 ? (A.poseId || A.facePose) : (B.poseId || B.facePose); // a frame mid-move faces like the pose it is nearest to
+  return out;
 }
 // Contacts that touch the mat in both poses (as joint names), e.g. the hands and knees between cat and cow.
 function sharedContacts(a, b, flipB = false){
@@ -3236,7 +3238,7 @@ function routeSegments(from, path, target, targetId, mirrored, guided){
     if (!(bent('l') && bent('r') && fl - P.lk[1] < .14 && fl - P.rk[1] < .14)) return 0;
     const d = sx(Q)*((P.la[0]+P.ra[0])/2 - (P.lk[0]+P.rk[0])/2); return Math.abs(d) > .15 ? -Math.sign(d) : 0; };
   const FAMILY_FACE = {stand:'chest', fold:'chest', lunge:'chest', squat:'chest', kneelup:'chest', plank:'head', dog:'head', prone:'head', kneel:'head', child:'head', arm:'head', lungeh:'head', head:'head', seated:'seat', supine:'back', bridge:'back', shoulder:'back'};
-  const ruleFace = Q => { const r = FAMILY_FACE[postureOf(Q.poseId)] || 'chest', k = kneelFace(Q); if (k) return k;
+  const ruleFace = Q => { const id = Q.poseId || Q.facePose, k = kneelFace(Q); if (k || !id) return k; const r = FAMILY_FACE[postureOf(id)] || 'chest';
     if (r === 'chest') return facing(Q); if (r === 'head') return head(Q); if (r === 'back') return -head(Q);
     return facing(Q) || feet(Q); }; // seated
   const orient = (prev, R) => { const alt = other(R), cue = [ruleFace].find(f => f(prev) && (f(R) || f(alt)));
@@ -3301,7 +3303,8 @@ function showReference(mirrored = refMirror){
   // Browsing or practising, the figure takes the real route between the two poses (folds, jumps, side changes, a turn on the spot),
   // never a detour through Mountain. Browsing plays it as one continuous movement; a practice pauses a breath at each pose on the way.
   const path = !from.poseId ? [{id:pose.id, kind:'move'}] : transitionPath(from.poseId, pose.id, from.mirrored, mirrored);
-  const segs = routeSegments(from, path, target, pose.id, mirrored, !!sess);
+  let segs; try { segs = routeSegments(from, path, target, pose.id, mirrored, !!sess); }
+  catch (err){ console.warn('route', err); segs = [{from, to:target, dur:Math.round(1400*(PACE[pace] || 1)), hop:0}]; } // never leave the figure frozen
   const finalR = segs[segs.length-1].to;
   tween = {raf:0};
   if (!sess && segs.length > 1){
