@@ -122,7 +122,7 @@ body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -
 .srow b,.shead b{display:block;font-size:17px}
 /* the pose name on its own line, the timer always right below it (a long name can't push it around) */
 .shead{display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:14px}
-.shead .sname{grid-column:1 / -1;min-width:0}
+.shead .sname{grid-column:1 / -1;min-width:0;font-size:14px;line-height:1.3}
 .shead .sname b{overflow-wrap:anywhere}
 .shead .stime{grid-column:1;justify-self:start;line-height:1.15}
 .shead .sbreath{grid-column:2;justify-self:end;margin:0}
@@ -164,6 +164,8 @@ body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -
 .stage{position:relative;background:var(--stage);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;aspect-ratio:1;max-height:72vh;width:100%}
 .stage.sample{background:var(--figbg)}
 .stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;max-width:100%}
+#cvBg{display:none}
+body.practice .stage.sample #cvBg{display:block} /* full screen: the scene carries on past the figure's square to the edges */
 #rotBtn{right:auto;left:10px;top:40px}
 .sidebtn{position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.55);color:#fff;border:none;font:inherit;font-size:12px;font-weight:600;letter-spacing:.04em;padding:5px 9px;border-radius:6px;cursor:pointer}
 .tag{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:6px}
@@ -362,6 +364,7 @@ body.practice .stap{display:grid}
 body.practice #sessPrev,body.practice #sessPause,body.practice #sessNextBtn{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);border:0}
 body.practice .grid{grid-template-columns:1fr;gap:10px}
 body.practice .stage{aspect-ratio:auto;height:calc(100dvh - 148px);max-height:none;border-radius:14px}
+body.practice .wrap{max-width:none} /* full screen: the stage and its scene use the whole width */
 body.practice .sess{padding:8px 12px;gap:4px}
 body.practice .panel{gap:10px}
 body:not(.practice) .sess{order:0}
@@ -719,7 +722,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
           <div class="sbtns"><button type="button" id="sessPrev" aria-label="Previous pose">‹</button><button type="button" id="sessPause">Pause</button><button type="button" id="sessNextBtn" aria-label="Next pose">›</button><button type="button" id="sessCam" aria-pressed="false" aria-label="Live camera" title="Live camera: the figure follows you"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button><button type="button" id="sessVoice" aria-pressed="true" aria-label="Voice guide" title="Voice guide"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="vwave" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button><button type="button" id="sessMusic" aria-pressed="true" aria-label="Background music" title="Background music"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path class="vslash" d="M3 3l18 18"/></svg></button><button type="button" id="sessTv" aria-label="Show on TV" title="Show on TV"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button><button type="button" id="sessEnd">End</button></div></div>
       </div>
       <div class="stage">
-        <canvas id="cv" width="600" height="800" aria-label="Your pose with alignment overlay"></canvas>
+        <canvas id="cvBg" aria-hidden="true"></canvas><canvas id="cv" width="600" height="800" aria-label="Your pose with alignment overlay"></canvas>
         <div class="stap" id="sTap" aria-hidden="true"><i data-a="prev"></i><i data-a="pause"></i><i data-a="next"></i><span class="sfb" id="sFb"></span></div>
         <span class="tag" id="tag">Sample</span>
         <button class="sidebtn" id="rotBtn" type="button" title="Turn the figure" aria-label="Turn the figure"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 3v5h-5"/></svg><span id="rotLbl">Front</span></button><button class="sidebtn" id="sideBtn" type="button" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg>Other side</button>
@@ -3097,7 +3100,23 @@ function drawEnvironment(g, kind, floorY = SCENE_FLOOR){
   return true;
 }
 
-function drawSampleScene(){ if (!curRef) return; if (drawEnvironment(ctx, scene)) drawFigureScene(ctx, curRef, 'transparent', css('--fig'), css('--mat')); else drawScene(ctx, curRef); }
+// In practice the stage is wider (or taller) than the figure's square: paint the same scene behind it, at the same scale
+// and position, so the room, beach or park fills the whole screen instead of stopping at the square's edges.
+const stageBg = $('cvBg'); let stageBgKey = '';
+function drawStageBg(){
+  if (!stageBg || !document.body.classList.contains('practice') || mode !== 'sample') return;
+  const st = cv.parentNode, dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(st.clientWidth*dpr), H = Math.round(st.clientHeight*dpr);
+  const key = [W, H, scene, document.documentElement.dataset.theme || '', css('--figbg')].join('|'); if (!W || !H || key === stageBgKey) return; stageBgKey = key;
+  stageBg.width = W; stageBg.height = H; const g = stageBg.getContext('2d'), side = Math.min(W, H);
+  g.fillStyle = css('--figbg'); g.fillRect(0, 0, W, H);
+  g.setTransform(side/REF_S, 0, 0, side/REF_S, (W - side)/2, (H - side)/2); drawEnvironment(g, scene); g.setTransform(1, 0, 0, 1, 0, 0);
+}
+function fitPracticeStage(){ // the stage runs from under the practice bar to the bottom of the screen, whatever the bar's height
+  const st = cv.parentNode; if (!document.body.classList.contains('practice')){ st.style.height = ''; return; }
+  st.style.height = Math.max(240, Math.round(window.innerHeight - st.getBoundingClientRect().top - 12)) + 'px';
+}
+window.addEventListener('resize', () => { fitPracticeStage(); stageBgKey = ''; drawStageBg(); });
+function drawSampleScene(){ if (!curRef) return; drawStageBg(); if (drawEnvironment(ctx, scene)) drawFigureScene(ctx, curRef, 'transparent', css('--fig'), css('--mat')); else drawScene(ctx, curRef); }
 // the reference figure as a small inset while the stage shows you (camera, photo or clip)
 function drawInset(){
   if (!showInset || !pose) return;
@@ -4371,7 +4390,7 @@ function startSession(P){
   try { window.SamaNative && window.SamaNative.immersive && window.SamaNative.immersive(true); } catch {}
   if (!document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(() => {});
   window.dispatchEvent(new Event('resize'));
-  window.scrollTo({top:0, behavior:'smooth'});
+  window.scrollTo({top:0, behavior:'smooth'}); setTimeout(() => window.dispatchEvent(new Event('resize')), 700);
   clearInterval(sess.timer); sess.timer = setInterval(tick, 200);
 }
 function enterItem(){
@@ -4544,7 +4563,7 @@ function endSession(done){
   if (done && !sess.remote) addHist({pose:'practice', score:null, hold:sess.P.total, at:Date.now(), label:`${(FOCUS[sess.P.opts.focus]||FOCUS.balanced).label} practice`});
   sess = null; $('sess').hidden = true; tvSend({t:'end'}); renderTv();
   try { window.SamaNative && window.SamaNative.keepAwake(false); } catch {}
-  document.body.classList.remove('practice');
+  document.body.classList.remove('practice'); try { fitPracticeStage(); } catch {}
   try { window.SamaNative && window.SamaNative.immersive && window.SamaNative.immersive(false); } catch {}
   if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
   window.dispatchEvent(new Event('resize'));
