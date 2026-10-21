@@ -1764,9 +1764,8 @@ const POSES = [
   {g:"Hands", l:"Hand holds the foot", t:"dist", p:["lw", "la"], max:65, hi:"Hold the outside of the foot with the opposite hand."},
   {g:"Torso", l:"Chest turns open", t:"tilt", p:["mh", "ms"], tg:20, tol:25, lo:"Press the supporting hand down and turn the chest away from the leg."}]},
  {id:"heron", cat:"Seated & floor", name:"Heron", sk:"Krounchasana", view:"side", asym:true, sideView:true, checks:[
-  {g:"Legs", l:"Lifted leg straight", t:"angle", p:["lh", "lk", "la"], tg:174, tol:10, lo:"Straighten the lifted leg toward the ceiling."},
-  {g:"Torso", l:"Spine tall", t:"tilt", p:["mh", "ms"], tg:5, tol:12, hi:"Sit tall; draw the leg toward you rather than rounding to it."},
-  {g:"Hands", l:"Hands hold the foot", t:"dist", p:["lw", "la"], max:20, hi:"Hold the foot with both hands, or a strap."}]},
+  {g:"Legs", l:"Knee hugged in", t:"angle", p:["Xh", "Xk", "Xa"], sides:true, tg:15, tol:25, hi:"Bend the knee and draw the shin in close; straighten it toward the ceiling only once the spine stays tall."},
+  {g:"Torso", l:"Spine tall", t:"tilt", p:["mh", "ms"], tg:5, tol:12, hi:"Sit tall; draw the leg toward you rather than rounding to it."}]},
  {id:"halfhero", cat:"Seated & floor", name:"Half Hero Fold", sk:"Trianga Mukhaikapada Paschimottanasana", view:"side", asym:true, sideView:true, checks:[
   {g:"Legs", l:"Straight leg long", t:"angle", p:["lh", "lk", "la"], tg:176, tol:10, lo:"Keep the extended leg straight, foot flexed."},
   {g:"Legs", l:"Folded leg beside the hip", t:"angle3", p:["rh", "rk", "ra"], tg:25, tol:15, hi:"Fold the other leg so the foot rests beside the hip, toes back."},
