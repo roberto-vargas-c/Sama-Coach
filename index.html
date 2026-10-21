@@ -2347,7 +2347,11 @@ function lerpRef(A, B, t, hop = 0, through = false){
     const tA = inL(PA, sub(sm(PA), hm(PA)), yA), tB = inL(PB, sub(sm(PB), hm(PB)), yB), lA = len(tA), lB = len(tB);
     if (lA > .1 && lB > .1){ const fH = inL(PA, PA.face, yA), d = outL(upArc(norm(tA), norm(tB), e, [fH[0], 0, fH[2]]));
       const dv = sub(add(hm(P), mul(d, lA + (lB - lA)*e)), sm(P)); P.ls = add(P.ls, dv); P.rs = add(P.rs, dv); } }
-  P.up = outL(upArc(inL(PA, PA.up, yA), inL(PB, PB.up, yB), eH)); P.face = outL(upArc(inL(PA, PA.face, yA), inL(PB, PB.face, yB), eH)); P.sl = dirLerp('sl', e); P.front = dirLerp('front', e);
+  { const tf = Q => { const hm_ = Q.lh.map((v,i) => (v + Q.rh[i])/2), sm_ = Q.ls.map((v,i) => (v + Q.rs[i])/2), x_ = norm(sub(sm_, hm_));
+      let y_ = sub(sub(Q.ls, Q.rs), mul(x_, dot(sub(Q.ls, Q.rs), x_))); y_ = len(y_) > 1e-3 ? norm(y_) : norm(cross(x_, Math.abs(x_[1]) < .9 ? [0,1,0] : [1,0,0])); return [x_, y_, cross(x_, y_)]; };
+    const toT = (F, v) => [dot(v, F[0]), dot(v, F[1]), dot(v, F[2])], fromT = (F, l) => norm(add(add(mul(F[0], l[0]), mul(F[1], l[1])), mul(F[2], l[2])));
+    const FA = tf(PA), FB = tf(PB), FP = tf(P);
+    P.up = fromT(FP, slerp(toT(FA, PA.up), toT(FB, PB.up), eH)); P.face = fromT(FP, slerp(toT(FA, PA.face), toT(FB, PB.face), eH)); } P.sl = dirLerp('sl', e); P.front = dirLerp('front', e);
   { const sc = [(P.ls[0]+P.rs[0])/2, (P.ls[1]+P.rs[1])/2, (P.ls[2]+P.rs[2])/2], hd = P.up, fc = P.face, slv = P.sl;
     P.head = add(sc, mul(hd, .21)); P.neck = add(sc, mul(hd, .07)); P.crown = add(P.head, mul(hd, .13));
     P.nose = add(P.head, mul(fc, .09));
