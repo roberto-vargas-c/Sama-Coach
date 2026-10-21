@@ -179,6 +179,25 @@ body.practice .stage.sample #cvBg{display:block} /* full screen: the scene carri
 .actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .btn{display:flex;align-items:center;justify-content:center;gap:7px;min-height:46px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-weight:600;font-size:14px;cursor:pointer;text-align:center}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+/* ---------- first-time tour: a spotlight on one part of the app at a time, with a short note ---------- */
+.tour{position:fixed;inset:0;z-index:90;pointer-events:none}
+.tour[hidden]{display:none}
+.tourHole{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(20,16,13,.62);transition:left .35s ease,top .35s ease,width .35s ease,height .35s ease;pointer-events:none}
+.tourHole::after{content:"";position:absolute;inset:-4px;border-radius:16px;border:2px solid var(--accent);opacity:.9}
+.tourCard{position:fixed;width:min(340px,calc(100vw - 32px));background:var(--surface);color:var(--ink);border-radius:18px;padding:16px 16px 14px;box-shadow:0 24px 60px -18px rgba(0,0,0,.5);pointer-events:auto;transition:left .35s ease,top .35s ease;display:flex;flex-direction:column;gap:8px}
+.tourCard .tstep{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tourCard h3{margin:0;font-family:var(--f-display, Georgia, serif);font-weight:400;font-size:21px;line-height:1.2}
+.tourCard p{margin:0;font-size:15px;line-height:1.45;color:var(--ink)}
+.tourCard .trow{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:6px}
+.tourCard .trow .btn{min-height:40px;padding:6px 14px}
+.tourCard .tskip{background:none;border:0;color:var(--muted);font:inherit;font-size:14px;cursor:pointer;padding:8px 4px;text-decoration:underline;text-underline-offset:3px}
+.tourDots{display:flex;gap:5px}.tourDots i{width:6px;height:6px;border-radius:50%;background:var(--line)}.tourDots i.on{background:var(--accent)}
+.tapTip{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1.2fr 1fr;z-index:5;background:rgba(20,16,13,.45);color:#fff;font-weight:600;text-align:center;cursor:pointer;animation:tipIn .4s ease}
+.tapTip div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border-right:1px dashed rgba(255,255,255,.45);font-size:15px;padding:8px}
+.tapTip div:last-child{border-right:0}.tapTip b{font-size:34px;line-height:1}
+.tapTip small{grid-column:1 / -1;position:absolute;bottom:14px;left:0;right:0;font-weight:500;opacity:.85}
+@keyframes tipIn{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion: reduce){.tourHole,.tourCard{transition:none}.tapTip{animation:none}}
 .btn svg{flex:0 0 auto}
 .btn{position:relative;overflow:hidden}
 .actions .live{grid-column:1/-1}
@@ -672,6 +691,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
     <button class="btn small olater" type="button" id="oSkip">Skip for now</button>
   </div>
 </div>
+<div class="tour" id="tour" hidden><div class="tourHole" id="tourHole"></div><div class="tourCard" id="tourCard" role="dialog" aria-modal="false" aria-labelledby="tourTitle"><span class="tstep" id="tourStep"></span><h3 id="tourTitle"></h3><p id="tourText"></p><div class="trow"><button class="tskip" id="tourSkip" type="button">Skip tour</button><div class="tourDots" id="tourDots" aria-hidden="true"></div><span style="display:flex;gap:8px"><button class="btn" id="tourBack" type="button">Back</button><button class="btn primary" id="tourNext" type="button">Next</button></span></div></div></div>
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -989,7 +1009,10 @@ Savasana, 3 min"></textarea>
           <ul class="saved" id="pfSaved"></ul>
         </div>
         <div class="pcard">
-          <h2>Your data</h2>
+          <h2>Getting around</h2>
+          <p class="hint">A short walk through the app, the same one you saw the first time.</p>
+          <div class="crow"><button class="btn small" id="pfTour" type="button">Show the app tour</button></div>
+          <h2 style="margin-top:14px">Your data</h2>
           <p class="hint">Everything Sama knows about you, as one file; or wipe it from this device.</p>
           <div class="crow"><button class="btn small" id="pfExport" type="button">Download my data</button><button class="btn small danger" id="pfDelete" type="button">Delete my data</button></div>
           <h4>Movement recordings</h4>
@@ -4386,7 +4409,7 @@ function startSession(P){
   if (!voiceOn) voiceForItem();
   if (voiceOn){ sess.phase = 'intro'; sess.left = 1; renderSess(); voicePlay(introClips(P), () => { if (sess && sess.phase === 'intro'){ sess.phase = 'prep'; sess.left = 3; renderSess(); voiceForItem(); } }); }
   try { window.SamaNative && window.SamaNative.keepAwake(true); } catch {}
-  document.body.classList.add('practice'); closeMenus();
+  document.body.classList.add('practice'); closeMenus(); setTimeout(tapTipOnce, 900);
   try { window.SamaNative && window.SamaNative.immersive && window.SamaNative.immersive(true); } catch {}
   if (!document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(() => {});
   window.dispatchEvent(new Event('resize'));
@@ -5450,7 +5473,7 @@ function hideWelcome(then){
   setTimeout(() => { w.hidden = true; w.classList.remove('leaving'); clearInterval(w._tour); document.body.style.overflow = ''; then && then(); }, 420);
 }
 $('wStart').addEventListener('click', () => hideWelcome(startOnboarding));
-$('wSkip').addEventListener('click', () => hideWelcome(() => { if (!profile.onboarded) saveProfile({onboarded:true}); }));
+$('wSkip').addEventListener('click', () => hideWelcome(() => { if (!profile.onboarded) saveProfile({onboarded:true}); if (!tourDone()) setTimeout(startTour, 300); }));
 for (const b of document.querySelectorAll('#wAuth [data-auth]')) b.addEventListener('click', () => authSignIn(b.dataset.auth));
 
 // ---------- onboarding: the guide asks a few things once ----------
@@ -5495,6 +5518,7 @@ async function startOnboarding(){
   else if (next === 'lib') switchView('lib');
   else if (next === 'dress'){ switchView('profile'); $('lookCard').open = true; setTimeout(() => $('lookCard').scrollIntoView({behavior:'smooth', block:'start'}), 100); }
   else switchView('check');
+  if (!tourDone()) setTimeout(startTour, next === 'dress' || next === 'coach' || next === 'lib' ? 1200 : 500); // then a short walk through the app
 }
 
 // ---------- cycle: on this device only ----------
@@ -5918,7 +5942,56 @@ for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', (
 // ---------- boot ----------
 renderRail(); renderHist(); showReference();
 if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !profile.onboarded && !(() => { try { return localStorage.getItem('sama.welcomed'); } catch { return null; } })()) showWelcome();
-window.__sama = {transitionCues, CUE_TEXT, get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, browseSteps, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
+else if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && profile.onboarded && !tourDone()) setTimeout(startTour, 2600); // people who joined before the tour existed see it once
+// ---------- first-time tour ----------
+const TOUR = [
+  {view:'check', sel:'.tabs', title:'Four places to start', text:'Check a single pose, plan a whole practice, browse the library, or talk with your coach. Switch any time.'},
+  {view:'check', sel:'#rail', title:'Pick a pose', text:'Tap any pose to see how it’s done. The families and levels above narrow the list.'},
+  {view:'check', sel:'.stage', title:'Your guide on the mat', text:'Sama shows each pose on a mat. Turn the figure to see it from the front or the side, or switch to the other side.'},
+  {view:'check', sel:'#liveBtn', title:'Check your alignment', text:'Turn on your camera and Sama compares your joints with the pose as you hold it. The video never leaves your device.'},
+  {view:'plan', sel:'#planStart', title:'A guided practice', text:'Choose how long, what to focus on and your level, then start. A calm voice talks you through every pose and every move between them.'},
+  {view:'coach', sel:'#coachModes', title:'Your coach', text:'Plan a practice together, get feedback on your checks, review a routine, or map a road to a pose you dream of.'},
+  {view:'check', sel:'#pBtn', title:'Your profile', text:'Your progress, your figure, your cycle and calendar, and all settings. You can replay this tour from there.'},
+];
+const tour = {i:0, on:false};
+function tourDone(){ try { return localStorage.getItem('sama.tour') === 'done'; } catch { return true; } }
+function startTour(){
+  if (sess) return; tour.i = 0; tour.on = true; $('tour').hidden = false;
+  $('tourDots').innerHTML = TOUR.map(() => '<i></i>').join(''); showTourStep();
+}
+function endTour(){ tour.on = false; $('tour').hidden = true; try { localStorage.setItem('sama.tour', 'done'); } catch {} switchView('check'); window.scrollTo({top:0, behavior:'smooth'}); }
+function placeTour(){
+  if (!tour.on) return; const st = TOUR[tour.i], el = document.querySelector(st.sel), hole = $('tourHole'), card = $('tourCard');
+  if (!el || !el.getClientRects().length){ hole.style.cssText = 'left:50%;top:50%;width:0;height:0'; card.style.left = Math.max(16, (innerWidth - card.offsetWidth)/2) + 'px'; card.style.top = Math.max(16, (innerHeight - card.offsetHeight)/2) + 'px'; return; }
+  const r = el.getBoundingClientRect(), pad = 6, top = Math.max(8, r.top - pad), bottom = Math.min(innerHeight - 8, r.bottom + pad);
+  Object.assign(hole.style, {left:(r.left - pad) + 'px', top:top + 'px', width:(r.width + 2*pad) + 'px', height:Math.max(0, bottom - top) + 'px'});
+  const ch = card.offsetHeight, cw = card.offsetWidth, below = innerHeight - bottom, above = top;
+  let y = below >= ch + 20 ? bottom + 12 : above >= ch + 20 ? top - ch - 12 : innerHeight - ch - 16; // under the spot if there's room, else above, else at the bottom of the screen
+  let x = Math.min(innerWidth - cw - 16, Math.max(16, r.left + r.width/2 - cw/2));
+  card.style.left = x + 'px'; card.style.top = Math.max(16, y) + 'px';
+}
+function showTourStep(){
+  const st = TOUR[tour.i]; switchView(st.view);
+  $('tourStep').textContent = `${tour.i + 1} of ${TOUR.length}`; $('tourTitle').textContent = st.title; $('tourText').textContent = st.text;
+  $('tourBack').hidden = tour.i === 0; $('tourNext').textContent = tour.i === TOUR.length - 1 ? 'Let’s begin' : 'Next';
+  [...$('tourDots').children].forEach((d, j) => d.classList.toggle('on', j === tour.i));
+  setTimeout(() => { const el = document.querySelector(st.sel); if (el){ const r = el.getBoundingClientRect(); if (r.top < 70 || r.bottom > innerHeight - 220) el.scrollIntoView({block: r.height > innerHeight*.5 ? 'start' : 'center', behavior:'smooth'}); }
+    placeTour(); setTimeout(placeTour, 450); $('tourNext').focus({preventScroll:true}); }, 80);
+}
+$('tourNext').addEventListener('click', () => { if (tour.i < TOUR.length - 1){ tour.i++; showTourStep(); } else endTour(); });
+$('tourBack').addEventListener('click', () => { if (tour.i > 0){ tour.i--; showTourStep(); } });
+$('tourSkip').addEventListener('click', endTour);
+document.addEventListener('keydown', e => { if (!tour.on) return; if (e.key === 'Escape') endTour(); else if (e.key === 'ArrowRight') $('tourNext').click(); else if (e.key === 'ArrowLeft') $('tourBack').click(); });
+window.addEventListener('resize', placeTour); window.addEventListener('scroll', placeTour, {passive:true});
+$('pfTour').addEventListener('click', () => { window.scrollTo({top:0}); startTour(); });
+// the first guided practice: where to tap (right next, middle pause, left back), shown once over the picture
+function tapTipOnce(){
+  try { if (localStorage.getItem('sama.taptip') === 'done') return; localStorage.setItem('sama.taptip', 'done'); } catch { return; }
+  const t = document.createElement('div'); t.className = 'tapTip'; t.setAttribute('role', 'note');
+  t.innerHTML = '<div><b>‹</b>Tap here<br>to go back</div><div><b>❙❙</b>Tap the middle<br>to pause</div><div><b>›</b>Tap here<br>for the next pose</div><small>Tap anywhere to start</small>';
+  const close = () => { t.remove(); }; t.addEventListener('click', close); setTimeout(close, 6500); cv.parentNode.append(t);
+}
+window.__sama = {startTour, transitionCues, CUE_TEXT, get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, browseSteps, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
 function retheme(){
   for (const k in THUMBS) delete THUMBS[k];
   if (lib.built && lib.pose && $('poseDlg').open) drawPd();
