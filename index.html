@@ -64,6 +64,20 @@ body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -
 .tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
 .view-wrap{display:flex;flex-direction:column;gap:16px}
 .planner{display:grid;grid-template-columns:1fr;gap:24px}
+/* ready-made and saved practices: a row of cards above the planner, scrolling sideways */
+.presets{grid-column:1 / -1;display:flex;flex-direction:column;gap:10px;min-width:0}
+.presets h2{margin:6px 0 0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;font-family:inherit}
+.prow2{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(240px,260px);gap:12px;overflow-x:auto;padding:2px 2px 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.pcardp{scroll-snap-align:start;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;text-align:left;color:var(--ink);position:relative}
+.pcardp .pstrip{display:flex;gap:2px;height:44px;align-items:flex-end;overflow:hidden}
+.pcardp .pstrip canvas{width:44px;height:44px;flex:none;border-radius:8px}
+.pcardp b{font-size:16px;line-height:1.25}
+.pcardp .pm2{font-size:12.5px;color:var(--muted)}
+.pcardp p{margin:0;font-size:13.5px;line-height:1.4;color:var(--ink);opacity:.85;flex:1}
+.pcardp .pact{display:flex;gap:8px}
+.pcardp .pact .btn{min-height:38px;padding:6px 10px;flex:1;font-size:14px;white-space:nowrap}
+.pcardp .px{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer}
+.pcardp.empty{justify-content:center;color:var(--muted);font-size:14px;min-height:120px;border-style:dashed}
 @media (min-width:860px){.planner{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);align-items:start}}
 .pform{display:flex;flex-direction:column;gap:18px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
 .prow h3{margin-bottom:8px}
@@ -123,7 +137,10 @@ body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -
 /* the pose name on its own line, the timer always right below it (a long name can't push it around) */
 .shead{display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:14px}
 .shead .sname{grid-column:1 / -1;min-width:0;font-size:14px;line-height:1.3}
-.shead .sname b{overflow-wrap:anywhere}
+.shead .sname b,.shead .sstep{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sess .srow{flex-wrap:nowrap}
+#sess .snext{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} /* long names are cut with … so the buttons never move */
+#sess .sbtns{flex:none}
 .shead .stime{grid-column:1;justify-self:start;line-height:1.15}
 .shead .sbreath{grid-column:2;justify-self:end;margin:0}
 .sstep,.snext{font-size:12.5px;color:var(--muted)}
@@ -829,6 +846,12 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
   </div>
 
   <section id="viewPlan" class="planner" hidden>
+    <div class="presets">
+      <h2>Ready-made practices</h2>
+      <div class="prow2" id="presetRow"></div>
+      <h2>Your saved practices</h2>
+      <div class="prow2" id="savedRow"></div>
+    </div>
     <div class="pform">
       <div class="cyctoday cyctip" id="cycleTip" hidden></div>
       <div class="prow"><h3>Length</h3><div class="segs" id="pDur"></div></div>
@@ -845,8 +868,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
       </div>
       <div class="pstart"><button class="btn primary" id="planStart" type="button">Start guided practice</button><button class="btn" id="planTv" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Show on TV</button></div>
       <ol class="plist" id="planList"></ol>
-      <h3>Saved practices</h3>
-      <ul class="saved" id="savedList"></ul>
+      <ul class="saved" id="savedList" hidden></ul>
     </div>
   </section>
   <section id="viewLib" class="lib" hidden>
@@ -4431,17 +4453,45 @@ function filterPicker(){
 // saved practices (on this device)
 const SK = 'plumb.saved.v1';
 const getSaved = () => { try { return JSON.parse(localStorage.getItem(SK)||'[]'); } catch { return []; } };
+// ready-made practices: fixed recipes (same seed every time, so each one is always the same sequence), built when shown
+const PRESETS = [
+  {name:'Kind to your back', desc:'Slow and gentle, easy on the lower back. Good on any day.', opts:{minutes:20, level:1, focus:'evening', easy:['back'], goal:null, seed:101}},
+  {name:'Morning wake-up', desc:'Get the blood moving and the spine awake.', opts:{minutes:10, level:1, focus:'morning', easy:[], goal:null, seed:202}},
+  {name:'Sun salutation flow', desc:'Breath by breath, a vinyasa that builds warmth.', opts:{minutes:20, level:2, focus:'vinyasa', easy:[], goal:null, seed:303}},
+  {name:'Strong and steady', desc:'Standing strength, plank work and core.', opts:{minutes:30, level:2, focus:'strength', easy:[], goal:null, seed:404}},
+  {name:'Open hips', desc:'Lunges, pigeon and long hip stretches.', opts:{minutes:30, level:1, focus:'hips', easy:[], goal:null, seed:505}},
+  {name:'Find your balance', desc:'One-legged poses, slowly built up.', opts:{minutes:20, level:2, focus:'balance', easy:[], goal:null, seed:606}},
+  {name:'Evening wind-down', desc:'Soft stretches and long breaths before bed.', opts:{minutes:20, level:1, focus:'evening', easy:[], goal:null, seed:707}},
+  {name:'Yin, deep rest', desc:'A few long, quiet floor holds.', opts:{minutes:30, level:1, focus:'yin', easy:[], goal:null, seed:808}},
+  {name:'Ashtanga primary', desc:'The classic series, five breaths a pose.', opts:{minutes:45, level:2, focus:'ashtanga', easy:[], goal:null, seed:909}},
+];
+const PRESET_CACHE = {};
+const LEVEL_WORD = ['', 'Gentle', 'Steady', 'Strong'];
+function practiceCard(title, P, desc, onRemove){
+  const c = document.createElement('div'); c.className = 'pcardp';
+  const strip = document.createElement('div'); strip.className = 'pstrip'; strip.setAttribute('aria-hidden', 'true');
+  const ids = [...new Set(P.items.map(x => x.id))]; const pick = ids.length <= 5 ? ids : [0, .25, .5, .75, .999].map(f => ids[Math.floor(f*ids.length)]);
+  for (const id of pick) strip.appendChild(thumb(id, 44));
+  const b = document.createElement('b'); b.textContent = title;
+  const m = document.createElement('span'); m.className = 'pm2'; const o = P.opts || {}; m.textContent = [fmtMin(P.total || planSum(P)), FOCUS[o.focus] ? FOCUS[o.focus].label : '', LEVEL_WORD[o.level] || ''].filter(Boolean).join(' · ');
+  c.append(strip, b, m);
+  if (desc){ const p = document.createElement('p'); p.textContent = desc; c.append(p); }
+  const act = document.createElement('div'); act.className = 'pact';
+  const go = document.createElement('button'); go.type = 'button'; go.className = 'btn primary'; go.textContent = 'Start'; go.addEventListener('click', () => { plan = P; startSession(P); });
+  const open = document.createElement('button'); open.type = 'button'; open.className = 'btn'; open.textContent = 'See poses';
+  open.addEventListener('click', () => { plan = P; planOpts = {...planOpts, ...(P.opts || {})}; renderPlannerForm(); renderPlan(); const t = $('planList'); if (t) t.closest('.pout').scrollIntoView({behavior:'smooth', block:'start'}); });
+  act.append(go, open); c.append(act);
+  if (onRemove){ const x = document.createElement('button'); x.type = 'button'; x.className = 'px'; x.setAttribute('aria-label', 'Remove ' + title); x.textContent = '×'; x.addEventListener('click', onRemove); c.append(x); }
+  return c;
+}
+function renderPresets(){
+  const row = $('presetRow'); if (!row || row.childElementCount) return;
+  for (const pr of PRESETS){ try { const P = PRESET_CACHE[pr.name] || (PRESET_CACHE[pr.name] = buildPlan(pr.opts)); P.label = pr.name; row.appendChild(practiceCard(pr.name, P, pr.desc)); } catch (e){ console.warn('preset', pr.name, e); } }
+}
 function renderSaved(){
-  const ul = $('savedList'), all = getSaved(); ul.textContent = '';
-  if (!all.length){ const li = document.createElement('li'); li.className = 'd'; li.textContent = 'Practices you save are kept on this device.'; ul.appendChild(li); return; }
-  all.forEach((s, i) => {
-    const li = document.createElement('li');
-    li.innerHTML = '<button type="button" class="linkish"></button><span class="d"></span><button type="button" class="x" aria-label="Remove">×</button>';
-    li.querySelector('.linkish').textContent = s.name; li.querySelector('.d').textContent = fmtMin(s.plan.total);
-    li.querySelector('.linkish').addEventListener('click', () => { plan = s.plan; planOpts = {...planOpts, ...s.plan.opts}; renderPlannerForm(); renderPlan(); window.scrollTo({top:0, behavior:'smooth'}); });
-    li.querySelector('.x').addEventListener('click', () => { const a = getSaved(); a.splice(i,1); try { localStorage.setItem(SK, JSON.stringify(a)); } catch {} renderSaved(); });
-    ul.appendChild(li);
-  });
+  const row = $('savedRow'), all = getSaved(); if (!row) return; row.textContent = '';
+  if (!all.length){ const e = document.createElement('div'); e.className = 'pcardp empty'; e.textContent = 'Practices you save, from the planner or the coach, show up here.'; row.appendChild(e); return; }
+  all.forEach((s, i) => row.appendChild(practiceCard(s.name, s.plan, '', () => { const a = getSaved(); a.splice(i, 1); try { localStorage.setItem(SK, JSON.stringify(a)); } catch {} renderSaved(); try { cloudPush(); } catch {} })));
 }
 $('planShuffle').addEventListener('click', () => { planOpts.seed = (planOpts.seed*7919 + 17) % 1000003; makePlan(); });
 $('planSave').addEventListener('click', () => {
@@ -6072,6 +6122,7 @@ function switchView(v){
   if (v==='coach') renderCoach();
   if (v==='profile') renderProfile();
   if (v==='plan' && !plan) makePlan();
+  if (v==='plan'){ renderPresets(); renderSaved(); }
   if (v==='lib') renderLib();
 }
 for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', () => switchView(b.dataset.view));
