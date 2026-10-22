@@ -64,6 +64,14 @@ body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -
 .theme button{border:none;background:none;color:var(--muted);font:inherit;font-size:12.5px;font-weight:600;height:28px;min-width:28px;padding:0 9px;border-radius:999px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .theme button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .theme button[aria-checked="true"]{background:var(--accent-soft);color:var(--accent)}
+.langpick{position:relative}
+.langbtn{display:flex;align-items:center;gap:5px;height:36px;padding:0 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow);color:var(--ink);font:inherit;font-size:12.5px;font-weight:700;letter-spacing:.04em;cursor:pointer}
+.langbtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.langmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:40;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 40px -16px rgba(0,0,0,.35);padding:6px;min-width:150px;display:flex;flex-direction:column}
+.langmenu[hidden]{display:none}
+.langmenu button{border:none;background:none;text-align:left;font:inherit;font-size:15px;color:var(--text);padding:10px 12px;border-radius:10px;cursor:pointer}
+.langmenu button:hover{background:var(--accent-soft)}
+.langmenu button[aria-checked="true"]{color:var(--accent);font-weight:700}
 .privacy .dot{width:7px;height:7px;border-radius:50%;background:var(--good)}
 .rail{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;margin:0 calc(-1 * max(16px, env(safe-area-inset-left, 0px)));padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
 .tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow);padding:4px;align-self:flex-start;max-width:100%}
@@ -761,6 +769,10 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
     </div>
     <div class="topr">
       <div class="privacy"><span class="dot"></span>The pose model runs on your device. Photos and clips are never uploaded. <a href="/privacy.html" style="color:inherit">Privacy</a> · <a href="/features/" style="color:inherit">Features</a></div>
+      <div class="langpick" translate="no">
+        <button type="button" class="langbtn" id="langBtn" aria-haspopup="menu" aria-expanded="false" aria-label="Language"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></svg><span id="langCode">EN</span></button>
+        <div class="langmenu" id="langMenu" role="menu" hidden><button type="button" role="menuitemradio" data-l="en">English</button><button type="button" role="menuitemradio" data-l="es">Español</button><button type="button" role="menuitemradio" data-l="de">Deutsch</button></div>
+      </div>
       <div class="theme" role="radiogroup" aria-label="Theme">
         <button type="button" data-t="auto" aria-label="Follow system theme" title="Follow system">Auto</button>
         <button type="button" data-t="light" aria-label="Light theme" title="Light"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></button>
@@ -6576,6 +6588,16 @@ const SUPPORT = (() => {
   const mark = () => { for (const b of box.children) b.setAttribute('aria-pressed', String(!!window.SamaI18n && b.dataset.l === SamaI18n.lang)); };
   box.addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (b && window.SamaI18n) SamaI18n.setLang(b.dataset.l).then(mark); });
   mark(); document.addEventListener('sama:lang', mark); })();
+(function(){ // the language button in the top bar
+  const btn = $('langBtn'), menu = $('langMenu'); if (!btn) return;
+  const mark = () => { const l = window.SamaI18n ? SamaI18n.lang : 'en'; $('langCode').textContent = l.toUpperCase(); for (const b of menu.children) b.setAttribute('aria-checked', String(b.dataset.l === l)); };
+  const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+  btn.addEventListener('click', e => { e.stopPropagation(); menu.hidden = !menu.hidden; btn.setAttribute('aria-expanded', String(!menu.hidden));
+    if (!menu.hidden){ const r = btn.getBoundingClientRect(), wide = r.left + 170 > innerWidth - 8; menu.style.left = wide ? 'auto' : '0'; menu.style.right = wide ? '0' : 'auto'; } });
+  menu.addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (!b) return; close(); if (window.SamaI18n) SamaI18n.setLang(b.dataset.l).then(mark); });
+  document.addEventListener('click', e => { if (!menu.hidden && !e.target.closest('.langpick')) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  mark(); document.addEventListener('sama:lang', mark); })();
 function voiceLangNotes(){ const on = !!(window.SamaI18n && SamaI18n.lang !== 'en'); for (const el of document.querySelectorAll('.voicelang')) el.hidden = !on; }
 voiceLangNotes(); document.addEventListener('sama:lang', voiceLangNotes);
 // "Did you know?" tips: one small card at a time, never during a practice, the camera, the tour or the welcome, at most
@@ -6593,8 +6615,8 @@ const DYK = (() => {
       text:'Add when your last period started and practices turn softer on your period and stronger when your energy is up. It stays on this device.',
       go:() => { switchView('profile'); const c = $('cycleCard'); if (c) c.hidden = false; return $('cycStart')?.closest('.crow') || c; }},
     {id:'lang', when:() => !!(window.SamaI18n && SamaI18n.lang === 'en'), title:'Sama speaks Spanish and German too',
-      text:'Switch the language at the top of Settings. The voice guide in practices stays in English for now.',
-      go:() => settingsRow('lang')},
+      text:'Tap the globe at the top to switch. The voice guide in practices stays in English for now.',
+      go:() => { switchView('check'); window.scrollTo({top:0}); return $('langBtn'); }},
     {id:'camat', title:'Put the phone in front of the mat or beside it',
       text:'Sama works out where the camera is and checks the pose from that side. You can also set it yourself in Settings.',
       go:() => settingsRow('camat')},
