@@ -226,11 +226,15 @@ else (async () => {
   catch { bar.textContent = 'Couldn’t load the sign-in. Reload the page.'; return; }
   firebase.initializeApp({apiKey:"AIzaSyAV5OGxdOG7Q4wnmNRYS0esamwI5uBeU6U", authDomain:"sama-coach-ef83b.firebaseapp.com", projectId:"sama-coach-ef83b", storageBucket:"sama-coach-ef83b.firebasestorage.app", messagingSenderId:"1090152739769", appId:"1:1090152739769:web:af4d5bfed4300079ddfc68"}); const auth = firebase.auth(), fs = firebase.firestore(); let unsub = null;
   const btn = (label, cls, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; if (cls) b.className = cls; b.addEventListener('click', fn); return b; };
-  try { await auth.getRedirectResult(); } catch {}
+  let lastErr = '';
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
   auth.onAuthStateChanged(async u => {
     bar.textContent = ''; if (unsub){ unsub(); unsub = null; }
     if (!u){ db = null; for (const k of Object.keys(reports)) delete reports[k]; render();
-      const t = document.createElement('span'); t.textContent = 'Sign in with the owner’s Google account to see reports from the app and save verdicts.'; bar.append(t, btn('Sign in with Google', '', async () => { const pr = new firebase.auth.GoogleAuthProvider(); try { await auth.signInWithPopup(pr); } catch (e){ if (e && /popup/.test(e.code || '')) auth.signInWithRedirect(pr); else t.textContent = 'Sign-in failed: ' + (e && e.message || e); } })); return; }
+      const t = document.createElement('span'); t.textContent = 'Sign in with the owner’s Google account to see reports from the app and save verdicts.'; if (lastErr) t.textContent = lastErr;
+      bar.append(t, btn('Sign in with Google', '', async () => { const pr = new firebase.auth.GoogleAuthProvider(); pr.setCustomParameters({prompt:'select_account'}); t.textContent = 'Opening Google sign-in…';
+        try { const r = await auth.signInWithPopup(pr); if (!r || !r.user) t.textContent = 'Sign-in did not finish. Try again.'; }
+        catch (e){ const c = e && e.code || ''; lastErr = c === 'auth/popup-blocked' ? 'Your browser blocked the sign-in window. Allow pop-ups for this site and try again.' : c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request' ? 'The sign-in window was closed before it finished.' : c === 'auth/unauthorized-domain' ? 'This address is not on Firebase’s list of authorized domains (Authentication → Settings).' : 'Sign-in failed (' + (c || 'error') + '): ' + (e && e.message || e); t.textContent = lastErr; } })); return; }
     db = fs; const who = document.createElement('span'); who.innerHTML = '<span class="live"><i></i>Live</span> · '; who.append(document.createTextNode('Signed in as ' + (u.email || 'you'))); bar.append(who, btn('Sign out', 'ghost', () => auth.signOut()));
     loadVerdicts();
     unsub = fs.collection('poseReports').orderBy('at', 'desc').limit(500).onSnapshot(snap => {
