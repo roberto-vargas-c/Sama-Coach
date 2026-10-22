@@ -144,6 +144,11 @@
       ],
       "destination": "https://sama.rest/:path*",
       "permanent": false
+    },
+    {
+      "source": "/support",
+      "destination": "https://ko-fi.com/roberto_vargas",
+      "permanent": false
     }
   ]
 }
