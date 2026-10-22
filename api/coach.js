@@ -4,9 +4,13 @@
 
 const MAX_BODY = 200_000;          // bytes of JSON per request
 const MAX_MESSAGES = 60;
-const DEFAULT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const DEFAULT_MODEL = process.env.OPENAI_MODEL || 'gpt-6.1-sol';
+const FALLBACK_MODEL = process.env.OPENAI_FALLBACK_MODEL || 'gpt-4o-mini'; // used once if the main model refuses the request
+const REASONING_EFFORT = process.env.OPENAI_REASONING_EFFORT || 'low';     // low keeps the coach quick; medium/high think longer
+// Reasoning models (gpt-5/6 families, o-series) take no temperature, count their thinking in max_completion_tokens, and take a reasoning effort.
+const isReasoning = m => /^(gpt-5|gpt-6|o\d)/.test(m);
 const BASE_URL = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, ''); // any OpenAI-compatible endpoint
-const ALLOWED_MODELS = (process.env.OPENAI_ALLOWED_MODELS || 'gpt-4o-mini,gpt-4o,gpt-4.1-mini,gpt-4.1').split(',').map(s => s.trim());
+const ALLOWED_MODELS = (process.env.OPENAI_ALLOWED_MODELS || 'gpt-6.1-sol,gpt-4o-mini,gpt-4o,gpt-4.1-mini,gpt-4.1').split(',').map(s => s.trim());
 
 function cors(res){
   // Same-origin calls need none of this; it only matters for local tooling and previews.
@@ -40,17 +44,28 @@ module.exports = async function handler(req, res){
   if (total > MAX_BODY) return res.status(413).json({error:'too_large'});
 
   const model = ALLOWED_MODELS.includes(body.model) ? body.model : DEFAULT_MODEL;
-  const payload = {model, messages, temperature: typeof body.temperature === 'number' ? Math.max(0, Math.min(1.5, body.temperature)) : 0.7, max_tokens: Math.min(4000, +body.max_tokens || 1800)};
-  if (body.json) payload.response_format = {type:'json_object'};
+  const answer = Math.min(4000, +body.max_tokens || 1800);
+  const build = m => {
+    const p = {model: m, messages};
+    if (isReasoning(m)){ p.reasoning_effort = REASONING_EFFORT; p.max_completion_tokens = answer + 8000; } // room to think, then answer
+    else { p.temperature = typeof body.temperature === 'number' ? Math.max(0, Math.min(1.5, body.temperature)) : 0.7; p.max_tokens = answer; }
+    if (body.json) p.response_format = {type:'json_object'};
+    return p;
+  };
 
   const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 55_000);
+  const call = m => fetch(BASE_URL + '/chat/completions', {
+    method:'POST', signal: ctl.signal,
+    headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + key},
+    body: JSON.stringify(build(m)),
+  });
   try {
-    const r = await fetch(BASE_URL + '/chat/completions', {
-      method:'POST', signal: ctl.signal,
-      headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + key},
-      body: JSON.stringify(payload),
-    });
-    const data = await r.json().catch(() => ({}));
+    let used = model, r = await call(model), data = await r.json().catch(() => ({}));
+    // a model the account can't use yet, or one that rejects a parameter: answer with the fallback instead of failing
+    if (!r.ok && [400, 403, 404].includes(r.status) && FALLBACK_MODEL && FALLBACK_MODEL !== model){
+      console.warn('coach: ' + model + ' refused (' + r.status + '): ' + (data && data.error && data.error.message) + '; using ' + FALLBACK_MODEL);
+      used = FALLBACK_MODEL; r = await call(used); data = await r.json().catch(() => ({}));
+    }
     if (!r.ok){
       const msg = data && data.error && data.error.message ? data.error.message : 'OpenAI returned ' + r.status;
       return res.status(r.status === 429 ? 429 : 502).json({error: r.status === 429 ? 'rate_limited' : 'upstream', message: msg});
@@ -58,7 +73,7 @@ module.exports = async function handler(req, res){
     const choice = data.choices && data.choices[0];
     const text = choice && choice.message && choice.message.content || '';
     if (!text) return res.status(502).json({error:'empty', message:'The model returned no text.'});
-    return res.status(200).json({text, model: data.model || model, truncated: choice.finish_reason === 'length', usage: data.usage || null});
+    return res.status(200).json({text, model: data.model || used, truncated: choice.finish_reason === 'length', usage: data.usage || null});
   } catch (e){
     const aborted = e && e.name === 'AbortError';
     return res.status(aborted ? 504 : 502).json({error: aborted ? 'timeout' : 'upstream', message: aborted ? 'The model took too long.' : String(e.message || e)});
