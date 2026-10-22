@@ -49,6 +49,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px}
 .empty{color:var(--muted);padding:30px 0;text-align:center}
 .views.three{grid-template-columns:1fr 1fr 1fr}
 .ph{position:relative}.ph canvas{width:100%;aspect-ratio:1;border-radius:12px;background:var(--stage);display:block;max-width:100%}
+.phs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ph{display:flex;flex-direction:column;gap:3px;align-items:flex-start}.ph canvas{cursor:pointer}
 .phrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
 .lnk{border:none;background:none;color:var(--accent);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;padding:2px 0}
 .lnk:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -130,7 +131,8 @@ function card(p){
    <div class="views"><figure><div class="fig"><img alt="" loading="lazy" width="400" height="400"><canvas class="sk" width="400" height="400"></canvas></div><figcaption>As the app opens it</figcaption></figure><figure><div class="fig"><img alt="" loading="lazy" width="400" height="400"><canvas class="sk" width="400" height="400"></canvas></div><figcaption></figcaption></figure></div>
    <div class="reps" hidden></div>
    <div class="checks"></div>
-   <div class="phrow"><button type="button" class="lnk addph">Add a photo of the pose</button><input type="file" accept="image/*" hidden><button type="button" class="lnk rmph" hidden>Remove photo</button><span class="phst"></span></div>
+   <div class="phs"></div>
+   <div class="phrow"><button type="button" class="lnk addph">Add a photo of the pose</button><input type="file" accept="image/*" multiple hidden><span class="phst"></span></div>
    <div class="verdict"><button type="button" class="v ok">Looks right</button><button type="button" class="v no">Wrong</button><input class="note" type="text" placeholder="What is off? e.g. back heel lifts"></div><div class="st"></div>`;
   el.querySelector('h2').textContent = p.name; el.querySelector('.ttl span').textContent = [p.sk, p.cat].filter(Boolean).join(' · ');
   const im = el.querySelectorAll('img'); im[0].src = p.v1; im[0].alt = p.name + ', the view the app opens with'; im[1].src = p.v2; im[1].alt = p.name + ', ' + p.l2.toLowerCase();
@@ -157,30 +159,44 @@ function card(p){
     try { await put(p.id, d); st.textContent = 'Saved'; } catch (e){ st.textContent = `Couldn’t save (${e && e.code || 'error'}). Try again.`; } };
   ok.addEventListener('click', () => save('ok')); no.addEventListener('click', () => save('wrong'));
   note.addEventListener('change', () => save(verdicts[p.id] && verdicts[p.id].verdict || 'wrong'));
-  const views = el.querySelector('.views'), addph = el.querySelector('.addph'), file = el.querySelector('input[type=file]'), rmph = el.querySelector('.rmph'), phst = el.querySelector('.phst');
+  const views = el.querySelector('.views'), phs = el.querySelector('.phs'), addph = el.querySelector('.addph'), file = el.querySelector('input[type=file]'), phst = el.querySelector('.phst');
   file.id = 'photo-' + p.id;
-  const showPhoto = (src, ph) => { let fig = views.querySelector('.ph'); if (!fig){ fig = document.createElement('figure'); fig.className = 'ph'; fig.innerHTML = '<canvas width="400" height="400"></canvas><figcaption>Your photo</figcaption>'; views.appendChild(fig); views.classList.add('three'); }
-    const img = new Image(); img.onload = () => drawPhoto(fig.querySelector('canvas'), img, ph && ph.kp); img.src = src; rmph.hidden = false; addph.textContent = 'Replace photo'; };
-  if (v.photo && v.photo.asset) showPhoto('/_blob/' + v.photo.asset, v.photo); else if (localPhotos[p.id]) showPhoto(localPhotos[p.id].src, localPhotos[p.id]);
-  if (v.photo) phst.textContent = `${v.photo.kp.filter(k => k[2] > .25).length} of 17 joints found`;
+  // up to two photos of the pose (say from the side and from the front); each is matched to the view it looks like
+  const photosOf = () => { const x = verdicts[p.id] || {}; return x.photos || (x.photo ? [x.photo] : []); };
+  const VIEWN = i => i ? p.l2.toLowerCase() : 'the view the app opens with';
+  const drawPhotos = () => { phs.textContent = ''; const list = photosOf(); phs.hidden = !list.length; addph.hidden = list.length >= 2; addph.textContent = list.length ? 'Add a second photo' : 'Add a photo of the pose';
+    list.forEach((ph, n) => { const fig = document.createElement('figure'); fig.className = 'ph'; fig.innerHTML = '<canvas width="400" height="400"></canvas><figcaption></figcaption><button type="button" class="lnk">Remove</button>';
+      fig.querySelector('figcaption').textContent = `Photo ${n + 1}` + (ph.view != null ? ' · matches ' + VIEWN(ph.view) : ''); phs.appendChild(fig);
+      const src = ph.asset ? '/_blob/' + ph.asset : ph.thumb || (localPhotos[p.id] && localPhotos[p.id][n] && localPhotos[p.id][n].src);
+      const cv = fig.querySelector('canvas'); if (src){ const img = new Image(); img.onload = () => drawPhoto(cv, img, ph.kp, ph); img.src = src; } else { cv.getContext('2d').fillText('photo not stored', 150, 200); }
+      fig.querySelector('canvas').addEventListener('click', () => { if (ph.kp) poseFromPhoto(p, ph.kp, ph.view); });
+      fig.querySelector('canvas').title = 'Put this photo’s pose on the figure';
+      fig.querySelector('.lnk').addEventListener('click', async () => { const d = {...(verdicts[p.id] || {pose: p.id})}, arr = photosOf().slice(); arr.splice(n, 1); delete d.photo; if (arr.length) d.photos = arr; else delete d.photos; d.at = Date.now(); verdicts[p.id] = d;
+        if (localPhotos[p.id]) localPhotos[p.id].splice(n, 1); drawPhotos(); phst.textContent = ''; try { await put(p.id, d); } catch {} }); }); };
+  drawPhotos();
   if (!db){ addph.disabled = true; }
   addph.addEventListener('click', () => file.click());
-  file.addEventListener('change', async () => { const f = file.files && file.files[0]; if (!f) return; file.value = '';
-    const src = URL.createObjectURL(f), img = new Image(); await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = src; }).catch(() => null);
-    if (!img.naturalWidth){ phst.textContent = 'This file could not be opened as an image.'; return; }
-    phst.textContent = 'Finding the joints…';
-    let kp; try { kp = await detect(img); } catch (e){ phst.textContent = 'The pose finder couldn’t load here. Try again in a moment.'; return; }
-    const found = kp.filter(k => k[2] > .25).length; if (found < 8){ phst.textContent = 'Couldn’t find a clear body in this photo. Try one with the whole body in view.'; return; }
-    const ph = {kp, w: img.naturalWidth, h: img.naturalHeight}; localPhotos[p.id] = {...ph, src}; showPhoto(src, ph);
-    phst.textContent = `Found ${found} of 17 joints. Saving…`;
-    try { const assets = window.claude && window.claude.use ? await window.claude.use('assets') : null; if (assets){ const small = await shrink(img); const up = await assets.upload(small); ph.asset = up.id; } } catch (e){ console.warn('photo upload', e); }
-    const d = {...(verdicts[p.id] || {}), pose: p.id, verdict: (verdicts[p.id] && verdicts[p.id].verdict) || 'wrong', note: note.value.trim(), at: Date.now(), photo: ph};
-    verdicts[p.id] = d; ok.setAttribute('aria-pressed', d.verdict === 'ok'); no.setAttribute('aria-pressed', d.verdict === 'wrong'); el.className = 'card ' + (d.verdict === 'wrong' ? 'wrong' : 'ok'); renderSum();
-    try { await put(p.id, d); phst.textContent = `Found ${found} of 17 joints. Saved` + (ph.asset ? '' : ' (joints only; the photo itself could not be stored)') + '.'; } catch (e){ phst.textContent = `Couldn’t save (${e && e.code || 'error'}). Try again.`; }
-    poseFromPhoto(p, kp); });
-  rmph.addEventListener('click', async () => { const d = {...(verdicts[p.id] || {pose: p.id})}; delete d.photo; d.at = Date.now(); verdicts[p.id] = d; delete localPhotos[p.id];
-    const fig = views.querySelector('.ph'); if (fig) fig.remove(); views.classList.remove('three'); rmph.hidden = true; addph.textContent = 'Add a photo of the pose'; phst.textContent = '';
-    try { await put(p.id, d); } catch {} });
+  file.addEventListener('change', async () => { const fs = [...(file.files || [])].slice(0, 2 - photosOf().length); file.value = ''; if (!fs.length) return;
+    for (const f of fs){
+      const src = URL.createObjectURL(f), img = new Image(); await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = src; }).catch(() => null);
+      if (!img.naturalWidth){ phst.textContent = 'This file could not be opened as an image.'; continue; }
+      phst.textContent = 'Finding the joints…';
+      let kp; try { kp = await detect(img); } catch (e){ phst.textContent = 'The pose finder couldn’t load here. Try again in a moment.'; return; }
+      const found = kp.filter(k => k[2] > .25).length; if (found < 8){ phst.textContent = 'Couldn’t find a clear body in this photo. Try one with the whole body in view.'; continue; }
+      const fa = fitJoints(p.k1, kp), fb = fitJoints(p.k2, kp), view = !fb || (fa && fa.err <= fb.err) ? 0 : 1;
+      const ph = {kp, w: img.naturalWidth, h: img.naturalHeight, view, errs: [fa ? Math.round(fa.err) : 1e9, fb ? Math.round(fb.err) : 1e9]};
+      phst.textContent = `Found ${found} of 17 joints. Saving…`;
+      try { const assets = window.claude && window.claude.use ? await window.claude.use('assets') : null; if (assets){ const up = await assets.upload(await shrink(img)); ph.asset = up.id; } } catch (e){ console.warn('photo upload', e); }
+      if (!ph.asset) ph.thumb = await thumbOf(img); // kept with the verdict when there is no file store (the website)
+      (localPhotos[p.id] = localPhotos[p.id] || []).push({src});
+      const d = {...(verdicts[p.id] || {}), pose: p.id, verdict: (verdicts[p.id] && verdicts[p.id].verdict) || 'wrong', note: note.value.trim(), at: Date.now(), photos: [...photosOf(), ph]}; delete d.photo;
+      verdicts[p.id] = d; ok.setAttribute('aria-pressed', d.verdict === 'ok'); no.setAttribute('aria-pressed', d.verdict === 'wrong'); el.className = 'card ' + (d.verdict === 'wrong' ? 'wrong' : 'ok'); renderSum(); drawPhotos();
+      try { await put(p.id, d); phst.textContent = `Found ${found} of 17 joints, matched to ${VIEWN(view)}. Saved.`; } catch (e){ phst.textContent = `Couldn’t save (${e && e.code || 'error'}). Try again.`; }
+    }
+    // two photos: one per view, whichever pairing fits best
+    const list = photosOf(); if (list.length === 2 && list[0].errs && list[1].errs){ const [A, B] = list, keep = A.errs[0] + B.errs[1] <= A.errs[1] + B.errs[0];
+      const va = keep ? 0 : 1, vb = 1 - va; if (A.view !== va || B.view !== vb){ A.view = va; B.view = vb; const d = {...verdicts[p.id], photos: [A, B]}; verdicts[p.id] = d; drawPhotos(); try { await put(p.id, d); } catch {} } }
+    if (list.length) poseFromPhotos(p, list); });
   return el; }
 function visible(p){
   if (cat !== 'All' && p.cat !== cat) return false;
@@ -218,11 +234,12 @@ function drawSkel(cv, kp, edited, force){ const g = cv.getContext('2d'), s = cv.
   kp.forEach((q, i) => { if (!q || i === 1 || i === 2 || i === 3 || i === 4) return; g.beginPath(); g.arc(q[0]*s, q[1]*s, i > 16 ? 5 : 8.5, 0, 7);
     g.fillStyle = i === 0 ? '#FBF5EA' : isLeft(i) ? '#E0703A' : '#2FA39A'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = '#26344F'; g.stroke(); }); }
 const BONES = [[5,6],[5,7],[7,9],[6,8],[8,10],[5,11],[6,12],[11,12],[11,13],[13,15],[12,14],[14,16],[0,5],[0,6]];
-function drawPhoto(cv, img, kp){ const g = cv.getContext('2d'), N = cv.width, W = img.naturalWidth, H = img.naturalHeight, s = N/Math.max(W, H), ox = (N - W*s)/2, oy = (N - H*s)/2;
-  g.clearRect(0, 0, N, N); g.drawImage(img, ox, oy, W*s, H*s); if (!kp) return; const P = k => [ox + k[0]*s, oy + k[1]*s];
+function drawPhoto(cv, img, kp, ph){ const g = cv.getContext('2d'), N = cv.width, W = img.naturalWidth, H = img.naturalHeight, s = N/Math.max(W, H), ox = (N - W*s)/2, oy = (N - H*s)/2, ks = ph && ph.w ? W/ph.w : 1;
+  g.clearRect(0, 0, N, N); g.drawImage(img, ox, oy, W*s, H*s); if (!kp) return; const P = k => [ox + k[0]*ks*s, oy + k[1]*ks*s];
   g.lineWidth = 3; g.lineCap = 'round'; g.strokeStyle = '#EBC9A2';
   for (const [a, b] of BONES){ if (kp[a][2] < .25 || kp[b][2] < .25) continue; const A = P(kp[a]), B = P(kp[b]); g.beginPath(); g.moveTo(A[0], A[1]); g.lineTo(B[0], B[1]); g.stroke(); }
   for (const k of kp){ if (k[2] < .25) continue; const [x, y] = P(k); g.beginPath(); g.arc(x, y, 4.5, 0, 7); g.fillStyle = '#B45A3C'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = '#FBF5EA'; g.stroke(); } }
+async function thumbOf(img){ const m = 480, s = Math.min(1, m/Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth*s); c.height = Math.round(img.naturalHeight*s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', .72); }
 async function shrink(img){ const m = 900, s = Math.min(1, m/Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth*s); c.height = Math.round(img.naturalHeight*s);
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); return await new Promise(r => c.toBlob(r, 'image/jpeg', .85)); }
 let tfReady = null, model = null;
@@ -242,10 +259,12 @@ async function detect(img){ // MoveNet Lightning: 17 joints as [x, y, score] in 
 const flat = (kp, n) => kp.flatMap(q => q ? q.slice(0, n) : Array(n).fill(-1)), chunk = (a, n) => { const o = []; for (let i = 0; i < a.length; i += n){ const q = a.slice(i, i + n); o.push(q[0] === -1 ? null : q); } return o; };
 function pack(d){ const o = JSON.parse(JSON.stringify(d));
   if (o.photo && o.photo.kp){ o.photo.kpf = flat(o.photo.kp, 3); delete o.photo.kp; }
+  for (const ph of o.photos || []) if (ph.kp){ ph.kpf = flat(ph.kp, 3); delete ph.kp; }
   if (o.edit){ for (const k of ['k1', 'k2']) if (o.edit[k]){ o.edit[k + 'f'] = flat(o.edit[k], 2); delete o.edit[k]; } }
   return o; }
 function unpack(v){ if (!v) return v;
   if (v.photo && v.photo.kpf && !v.photo.kp) v.photo.kp = chunk(v.photo.kpf, 3);
+  for (const ph of v.photos || []) if (ph.kpf && !ph.kp) ph.kp = chunk(ph.kpf, 3);
   if (v.edit) for (const k of ['k1', 'k2']) if (v.edit[k + 'f'] && !v.edit[k]) v.edit[k] = chunk(v.edit[k + 'f'], 2);
   return v; }
 const put = (id, d) => db.doc('review2/' + id).set(pack(d));
@@ -286,10 +305,17 @@ function fitJoints(ref, ph){
   // hands and feet ride along with their wrists and ankles
   for (const [par, kids] of [[9, [17, 19, 21]], [10, [18, 20, 22]], [15, [23, 25]], [16, [24, 26]]]) if (out[par] && ref[par]){ const dx = out[par][0] - ref[par][0], dy = out[par][1] - ref[par][1]; for (const c of kids) if (out[c]) out[c] = [Math.round(ref[c][0] + dx), Math.round(ref[c][1] + dy)]; }
   return {kp: out, err: best.err}; }
-function poseFromPhoto(p, photoKp){
-  const a = fitJoints(p.k1, photoKp), b = fitJoints(p.k2, photoKp); if (!a && !b) return;
-  const view = !b || (a && a.err <= b.err) ? 0 : 1, fit = view ? b : a;
-  openEditor(p, view); ED.kp = fit.kp; ED.dirty = true; ED.warn = ''; $('edSt').textContent = 'The pose from your photo is on the figure. Adjust any joint, then Save.'; edDraw(); }
+function poseFromPhoto(p, photoKp, view){ poseFromPhotos(p, [{kp: photoKp, view}], view); }
+// every photo goes onto the view it matches; the editor opens on the first, and the other view already holds its photo's pose
+function poseFromPhotos(p, list, first){
+  const pend = {};
+  for (const ph of list){ if (!ph.kp) continue; const a = fitJoints(p.k1, ph.kp), b = fitJoints(p.k2, ph.kp); if (!a && !b) continue;
+    let view = ph.view != null ? ph.view : (!b || (a && a.err <= b.err) ? 0 : 1); if (pend[view] && !pend[1 - view] && (view ? a : b)) view = 1 - view; // two photos of one view: the second goes to the other
+    const fit = view ? b : a; if (fit) pend[view] = fit.kp; }
+  const views = Object.keys(pend).map(Number); if (!views.length) return;
+  const v0 = first != null && pend[first] ? first : views[0];
+  openEditor(p, v0); ED.pending = pend; ED.kp = pend[v0].map(q => q && q.slice()); ED.dirty = true; ED.warn = '';
+  $('edSt').textContent = views.length > 1 ? 'Both photos are on the figure, one per view. Check each view, adjust, then Save.' : 'The pose from your photo is on the figure. Adjust any joint, then Save.'; edDraw(); }
 // ---------- joint editor: a big view of one figure, joints dragged by mouse or finger ----------
 const ED = {p:null, view:0, kp:null, img:new Image(), drag:-1, dirty:false};
 function edSize(){ const cv = $('edcv'), side = Math.max(260, Math.floor(Math.min(innerWidth*.92 - 32, innerHeight - 230, 1000))); const dpr = Math.min(2, devicePixelRatio || 1);
@@ -306,11 +332,11 @@ function drawSkelOn(g, kp, s, big){ g.lineCap = 'round'; const u = $('edcv').wid
   kp.forEach((q, i) => { if (!q || (i >= 1 && i <= 4)) return; g.beginPath(); g.arc(q[0]*s, q[1]*s, (i > 16 ? 6 : 10)*u, 0, 7);
     g.fillStyle = i === ED.drag ? '#FFD166' : i === 0 ? '#FBF5EA' : isLeft(i) ? '#E0703A' : '#2FA39A'; g.fill(); g.lineWidth = 2.5*u; g.strokeStyle = '#26344F'; g.stroke(); }); }
 function edLoad(){ const p = ED.p, v = verdicts[p.id] || {}, ed = v.edit || {}, base = ED.view ? p.k2 : p.k1, mine = ED.view ? ed.k2 : ed.k1;
-  ED.kp = (mine || base).map(q => q ? q.slice() : null); ED.dirty = false; ED.img = new Image(); ED.img.onload = edDraw; ED.img.src = ED.view ? p.v2 : p.v1;
+  const pend = ED.pending && ED.pending[ED.view]; ED.kp = (pend || mine || base).map(q => q ? q.slice() : null); ED.dirty = !!(ED.pending && Object.keys(ED.pending).length); ED.img = new Image(); ED.img.onload = edDraw; ED.img.src = ED.view ? p.v2 : p.v1;
   for (const b of $('edViews').children) b.setAttribute('aria-pressed', +b.dataset.v === ED.view); $('edSt').textContent = mine ? 'Showing your saved correction' : ''; edDraw(); }
-function openEditor(p, view){ ED.p = p; ED.view = view; $('edTitle').textContent = p.name;
+function openEditor(p, view){ ED.pending = null; ED.p = p; ED.view = view; $('edTitle').textContent = p.name;
   const vs = $('edViews'); vs.textContent = ''; [['As the app opens it', 0], [p.l2, 1]].forEach(([l, i]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'f'; b.textContent = l; b.dataset.v = i;
-    b.addEventListener('click', () => { if (ED.dirty && ED.warn !== 'view' + i){ ED.warn = 'view' + i; $('edSt').textContent = 'Unsaved changes in this view. Save, or tap the other view again to discard them.'; return; } ED.warn = ''; ED.view = i; edLoad(); }); vs.appendChild(b); });
+    b.addEventListener('click', () => { if (i === ED.view) return; if (ED.dirty){ ED.pending = ED.pending || {}; ED.pending[ED.view] = ED.kp; } ED.warn = ''; ED.view = i; edLoad(); if (ED.pending && Object.keys(ED.pending).length) $('edSt').textContent = 'Unsaved joints are kept for both views. Save keeps them all.'; }); vs.appendChild(b); });
   edSize(); $('ed').showModal(); edLoad(); $('edNoFig').hidden = WEB; figEngine().then(S => { if (S && $('ed').open) edDraw(); });
   if (!db) $('edSt').textContent = WEB ? 'Sign in to save your changes.' : 'Open this page from your gallery to save your changes.'; }
 (() => { const cv = $('edcv');
@@ -328,11 +354,14 @@ function openEditor(p, view){ ED.p = p; ED.view = view; $('edTitle').textContent
   $('edX').addEventListener('click', () => { if (ED.dirty && ED.warn !== 'close'){ ED.warn = 'close'; $('edSt').textContent = 'Unsaved changes. Save, or press Close again to discard them.'; return; } ED.warn = ''; $('ed').close(); });
   $('ed').addEventListener('cancel', e => { if (ED.dirty && ED.warn !== 'close'){ e.preventDefault(); ED.warn = 'close'; $('edSt').textContent = 'Unsaved changes. Save, or press Esc again to discard them.'; } });
   $('edSave').addEventListener('click', async () => { if (!db){ $('edSt').textContent = WEB ? 'Sign in first to save.' : 'Open this page from your gallery to save.'; return; }
-    const p = ED.p, base = ED.view ? p.k2 : p.k1, same = ED.kp.every((q, i) => !q || !base[i] || (Math.abs(q[0] - base[i][0]) < 1 && Math.abs(q[1] - base[i][1]) < 1));
-    const prev = verdicts[p.id] || {}, edit = {...(prev.edit || {})}; if (same) delete edit[ED.view ? 'k2' : 'k1']; else edit[ED.view ? 'k2' : 'k1'] = ED.kp.map(q => q ? [Math.round(q[0]), Math.round(q[1])] : null);
-    const d = {...prev, pose:p.id, verdict: prev.verdict || 'wrong', note: prev.note || '', at: Date.now(), edit}; if (!edit.k1 && !edit.k2) delete d.edit; if (!same) d.verdict = 'wrong';
+    // saves this view and any other view holding unsaved joints (a second photo)
+    const p = ED.p, work = {...(ED.pending || {}), [ED.view]: ED.kp}, prev = verdicts[p.id] || {}, edit = {...(prev.edit || {})}; let changed = false;
+    for (const [vs, kp] of Object.entries(work)){ const v = +vs, base = v ? p.k2 : p.k1, key = v ? 'k2' : 'k1';
+      const same = kp.every((q, i) => !q || !base[i] || (Math.abs(q[0] - base[i][0]) < 1 && Math.abs(q[1] - base[i][1]) < 1));
+      if (same) delete edit[key]; else { edit[key] = kp.map(q => q ? [Math.round(q[0]), Math.round(q[1])] : null); changed = true; } }
+    const d = {...prev, pose:p.id, verdict: changed ? 'wrong' : (prev.verdict || 'wrong'), note: prev.note || '', at: Date.now(), edit}; if (!edit.k1 && !edit.k2) delete d.edit;
     $('edSt').textContent = 'Saving…';
-    try { await put(p.id, d); verdicts[p.id] = d; ED.dirty = false; $('edSt').textContent = same ? 'Saved (no changes in this view)' : 'Saved. This pose is marked Wrong with your joints.'; render(); }
+    try { await put(p.id, d); verdicts[p.id] = d; ED.dirty = false; ED.pending = null; $('edSt').textContent = Object.keys(work).length > 1 ? 'Saved both views. This pose is marked Wrong with your joints.' : changed ? 'Saved. This pose is marked Wrong with your joints.' : 'Saved (no changes)'; render(); }
     catch (e){ $('edSt').textContent = 'Couldn’t save (' + (e && e.code || 'error') + '). Try again.'; } });
   addEventListener('resize', () => { if ($('ed').open){ edSize(); edDraw(); } });
 })();
