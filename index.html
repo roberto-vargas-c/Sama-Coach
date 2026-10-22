@@ -5887,7 +5887,7 @@ function profileSummary(){
 // ---------- the feature reel: tap the logo; a short animated tour of what Sama does, drawn live with your own figure ----------
 const REEL = [
   {title:'A practice that guides you', text:'Sama talks you through every pose with a calm voice, breath reminders and soft music.', scene:'studio', poses:['mountain','upsalute','forwardfold','halflift','dog'], beat:2400, fx:'voice'},
-  {title:'Moves like a real class', text:'The figure steps, folds and jumps from pose to pose, timed on seven filmed yoga classes.', scene:'studio', poses:['mountain','forwardfold','plank','dog','lowlunge'], beat:3300, fx:'moves', moves:true},
+  {title:'Moves like a real class', text:'A vinyasa as a teacher would flow it: the figure lowers, lifts, presses back and steps forward, one breath at a time.', scene:'studio', poses:['plank','chaturanga','updog','dog','lowlunge'], beat:2900, fx:'moves', moves:true},
   {title:'You become the figure', text:'Put your phone in front of the mat or beside it. The figure moves with you, and your video never leaves your phone.', scene:'living', poses:['warrior2','reversewarrior','triangle'], beat:2600, fx:'camera'},
   {title:'Friendly corrections', text:'Small, kind cues for what to adjust, and a cheer when you are in line.', scene:'plain', poses:['tree'], beat:4600, fx:'checks'},
   {title:'165 poses, gentle to advanced', text:'Standing, seated, balances, backbends, inversions and wrist care, each with its story.', scene:'plain', poses:['crow','wheel','dancer','pigeon','headstand','camel'], beat:1500},
@@ -5925,7 +5925,8 @@ function reelFrame(now){
   // which pose now; a new one grows out of a blob of the last
   const k = Math.min(sl.poses.length - 1, Math.floor(el/sl.beat)), id = sl.poses[k % sl.poses.length];
   if (k !== reel.pose){ reel.pose = k; reel.from = reel.R ? (reel.R.base || reel.R) : null; reel.to = refFor(id, false, 0); reel.tp = now; reel.segs = null;
-    if (sl.moves && reel.from && reel.from.poseId && reel.from.poseId !== id){ try { reel.segs = routeSegments(reel.from, transitionPath(reel.from.poseId, id, false, false), reel.to, id, false, false); } catch { reel.segs = null; } } }
+    // a moves slide opens on its first pose; then the real moves
+    if (sl.moves && k > 0 && reel.from && reel.from.poseId && reel.from.poseId !== id){ try { reel.segs = routeSegments(reel.from, transitionPath(reel.from.poseId, id, false, false), reel.to, id, false, false); } catch { reel.segs = null; } } }
   const ez = u => u*u*u*(u*(u*6-15)+10);
   let R = reel.to, u = 1;
   if (reel.segs){ // the real route, as one continuous movement
@@ -5967,7 +5968,6 @@ function reelFx(g, sl, el, R, now){
     pill(S/2, S - 40, 'Camera on · stays on your phone', ink, ap(300, 700));
     pill(S/2, 70, 'In front of the mat or beside it · detected', ink, ap(1400, 1800));
   }
-  if (sl.fx === 'moves') pill(S/2, 70, 'Timed on 7 filmed classes', ink, ap(300, 700));
   if (sl.fx === 'looks') pill(S/2, 70, 'Your height · your mat', ink, ap(600, 1000));
   if (sl.fx === 'cycle'){
     const st = [['Day 2 · rest and soften', '#D9677B'], ['Day 2 · rest and soften', '#D9677B'], ['Day 2 · rest and soften', '#D9677B'], ['Day 12 · energy is up', '#2E8B57']][Math.min(3, Math.floor(el/sl.beat))];
