@@ -1017,7 +1017,7 @@ Savasana, 3 min"></textarea>
             <div class="arow flatonly"><span>Beard</span><div class="segs" data-k="beard"><button type="button" class="seg" data-v="no">No</button><button type="button" class="seg" data-v="yes">Yes</button></div></div>
             <div class="arow flatonly"><span>Mat</span><div class="swatches" data-k="mat"></div></div>
             <div class="arow"><span>Your height</span><div class="hrow"><input type="range" id="heightIn" min="140" max="205" step="1" aria-label="Your height in centimetres"><b id="heightOut"></b></div></div>
-            <div class="arow"><span>Mat length</span><div class="segs" data-k="matLen"><button type="button" class="seg" data-v="173">173 cm</button><button type="button" class="seg" data-v="183">183 cm</button><button type="button" class="seg" data-v="200">200 cm</button><button type="button" class="seg" data-v="215">215 cm</button></div></div>
+            <div class="arow"><span>Mat length</span><div class="segs" data-k="matLen"><button type="button" class="seg" data-v="183">Standard · 183 cm</button><button type="button" class="seg" data-v="213">XL · 213 cm</button></div></div>
             <p class="hint">Height and mat length set how much of the mat your body covers in each pose, so you can see where to place your hands and feet.</p>
           </div>
           </div>
@@ -2907,7 +2907,7 @@ function drawSilhouetteScene(g, R, bg, ink, matColor){
 }
 
 // ---------- avatar: the same figure, but coloured and dressed the way the user chose ----------
-const AVATAR_DEFAULT = {v:4, mode:'flat', fit:'fitted', skin:'#C68B62', hair:'short', hairColor:'#2B1D16', build:'regular', top:'tank', topColor:'#FBF5EA', bottom:'leggings', bottomColor:'#26344F', sleeves:'short', pattern:'stripes', patternColor:'#26344F', beard:'no', mat:'#EBC9A2', height:175, matLen:215}; // the main character: cream shirt with ink navy stripes, ink navy trousers, sand mat (the logo's colours)
+const AVATAR_DEFAULT = {v:4, mode:'flat', fit:'fitted', skin:'#C68B62', hair:'short', hairColor:'#2B1D16', build:'regular', top:'tank', topColor:'#FBF5EA', bottom:'leggings', bottomColor:'#26344F', sleeves:'short', pattern:'stripes', patternColor:'#26344F', beard:'no', mat:'#EBC9A2', height:175, matLen:183}; // the main character: cream shirt with ink navy stripes, ink navy trousers, sand mat (the logo's colours)
 const AVATAR_CHOICES = {
   skin:['#F6D7C3','#E8B99A','#C68B62','#9E6240','#6E4330','#3E2A21'],
   hairColor:['#2B1D16','#5A3825','#A8703E','#D9B36B','#8C8C8C','#B23A2E'],
@@ -2944,6 +2944,7 @@ function applySkinBg(){
   const r = document.documentElement, dark = r.dataset.theme === 'dark' || (!r.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
   r.style.setProperty('--figbg', skinBg(avatar.skin, dark));
 }
+if (avatar.matLen != 183 && avatar.matLen != 213) avatar.matLen = 183; // earlier choices (173/200/215) map to the standard mat
 if (/[?&]embed=1/.test(location.search)) avatar = {...AVATAR_DEFAULT}; // the Pose Review draws the default figure, never the viewer's own
 if (migrateAvatar(avatar)) try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {}
 applySkinBg();
@@ -2982,10 +2983,11 @@ function flatHeadR(R){ return faceFrame(R).r*1.28; }
 function figShift(R){ const o = R.matOff; if (!o || (!o[0] && !o[1])) return 0; const c = camYawOf(R), u = [Math.cos(c), -Math.sin(c)], w = [-u[1], u[0]];
   return u[0]*o[0] + w[0]*o[1]; }
 // The mat in body proportions: the figure is drawn at a fixed size, so a taller person sees a shorter mat under them.
-// Defaults (175 cm on a 215 cm mat) are the drawing as it has always been.
-const HEIGHT_DEF = 175, MATLEN_DEF = 215;
+// The drawing as it always was is 175 cm on a 215 cm mat (MAT_DRAWN); the default is now a standard 183 cm mat.
+const HEIGHT_DEF = 175, MATLEN_DEF = 183, MAT_DRAWN = 215;
 function matPx(S){ const h = Math.max(120, Math.min(220, +avatar.height || HEIGHT_DEF)), m = Math.max(140, Math.min(240, +avatar.matLen || MATLEN_DEF)), base = S*.84;
-  return {L: base*(m/MATLEN_DEF)*(HEIGHT_DEF/h), W: base/3*(HEIGHT_DEF/h)}; }
+  const w = m >= 200 ? 66 : 61; // a standard mat is 61 cm wide, an XL one about 66
+  return {L: base*(m/MAT_DRAWN)*(HEIGHT_DEF/h), W: base*(w/MAT_DRAWN)*(HEIGHT_DEF/h)}; }
 function drawFlatMat(g, R, color){
   // the figure stands in the middle of the mat. The mat (3:1) lies on the floor and turns with the camera: seen along its
   // length from the side, end-on from the front of the mat. Floor depth goes up the screen, narrowing a little with distance.
