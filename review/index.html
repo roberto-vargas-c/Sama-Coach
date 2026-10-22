@@ -176,7 +176,8 @@ function card(p){
     try { const assets = window.claude && window.claude.use ? await window.claude.use('assets') : null; if (assets){ const small = await shrink(img); const up = await assets.upload(small); ph.asset = up.id; } } catch (e){ console.warn('photo upload', e); }
     const d = {...(verdicts[p.id] || {}), pose: p.id, verdict: (verdicts[p.id] && verdicts[p.id].verdict) || 'wrong', note: note.value.trim(), at: Date.now(), photo: ph};
     verdicts[p.id] = d; ok.setAttribute('aria-pressed', d.verdict === 'ok'); no.setAttribute('aria-pressed', d.verdict === 'wrong'); el.className = 'card ' + (d.verdict === 'wrong' ? 'wrong' : 'ok'); renderSum();
-    try { await put(p.id, d); phst.textContent = `Found ${found} of 17 joints. Saved` + (ph.asset ? '' : ' (joints only; the photo itself could not be stored)') + '.'; } catch (e){ phst.textContent = `Couldn’t save (${e && e.code || 'error'}). Try again.`; } });
+    try { await put(p.id, d); phst.textContent = `Found ${found} of 17 joints. Saved` + (ph.asset ? '' : ' (joints only; the photo itself could not be stored)') + '.'; } catch (e){ phst.textContent = `Couldn’t save (${e && e.code || 'error'}). Try again.`; }
+    poseFromPhoto(p, kp); });
   rmph.addEventListener('click', async () => { const d = {...(verdicts[p.id] || {pose: p.id})}; delete d.photo; d.at = Date.now(); verdicts[p.id] = d; delete localPhotos[p.id];
     const fig = views.querySelector('.ph'); if (fig) fig.remove(); views.classList.remove('three'); rmph.hidden = true; addph.textContent = 'Add a photo of the pose'; phst.textContent = '';
     try { await put(p.id, d); } catch {} });
@@ -267,6 +268,28 @@ function figDraw(g, N, p, view, kpCrop){ if (!FIG.S || !cropOf(p, view)) return 
   g.drawImage(c, cx, cy, side, side, 0, 0, N, N); return true; }
 function figCard(img, p, view, kpCrop){ figEngine().then(S => { if (!S) return; const c = document.createElement('canvas'); c.width = c.height = 400; const g = c.getContext('2d');
   if (figDraw(g, 400, p, view, kpCrop)) img.src = c.toDataURL('image/webp', .85); }); }
+
+// A photo's joints put onto the figure: scaled and moved onto the reference (and mirrored if the photo faces the other way),
+// in whichever view it matches best, then opened in the editor to adjust and save
+function fitJoints(ref, ph){
+  const use = []; for (let i = 0; i < 17; i++) if (ph[i] && ph[i][2] > .25 && ref[i]) use.push(i);
+  if (use.length < 6) return null; let best = null;
+  for (const fl of [1, -1]){
+    const P = use.map(i => [fl*ph[i][0], ph[i][1]]), Q = use.map(i => ref[i]), n = P.length;
+    const pm = [0, 1].map(j => P.reduce((a, q) => a + q[j], 0)/n), qm = [0, 1].map(j => Q.reduce((a, q) => a + q[j], 0)/n);
+    let num = 0, den = 0; for (let k = 0; k < n; k++){ num += (P[k][0]-pm[0])*(Q[k][0]-qm[0]) + (P[k][1]-pm[1])*(Q[k][1]-qm[1]); den += (P[k][0]-pm[0])**2 + (P[k][1]-pm[1])**2; }
+    const sc = num > 0 && den > 0 ? num/den : 1, T = q => [sc*(fl*q[0]) + qm[0] - sc*pm[0], sc*q[1] + qm[1] - sc*pm[1]];
+    let err = 0; for (let k = 0; k < n; k++){ const t = T([fl*P[k][0], P[k][1]]); err += (t[0]-Q[k][0])**2 + (t[1]-Q[k][1])**2; } err /= n;
+    if (!best || err < best.err) best = {err, T}; }
+  const out = ref.map(q => q ? q.slice() : null);
+  for (let i = 0; i < 17; i++) if (ph[i] && ph[i][2] > .25){ const t = best.T(ph[i]); out[i] = [Math.round(Math.max(0, Math.min(720, t[0]))), Math.round(Math.max(0, Math.min(720, t[1])))]; }
+  // hands and feet ride along with their wrists and ankles
+  for (const [par, kids] of [[9, [17, 19, 21]], [10, [18, 20, 22]], [15, [23, 25]], [16, [24, 26]]]) if (out[par] && ref[par]){ const dx = out[par][0] - ref[par][0], dy = out[par][1] - ref[par][1]; for (const c of kids) if (out[c]) out[c] = [Math.round(ref[c][0] + dx), Math.round(ref[c][1] + dy)]; }
+  return {kp: out, err: best.err}; }
+function poseFromPhoto(p, photoKp){
+  const a = fitJoints(p.k1, photoKp), b = fitJoints(p.k2, photoKp); if (!a && !b) return;
+  const view = !b || (a && a.err <= b.err) ? 0 : 1, fit = view ? b : a;
+  openEditor(p, view); ED.kp = fit.kp; ED.dirty = true; ED.warn = ''; $('edSt').textContent = 'The pose from your photo is on the figure. Adjust any joint, then Save.'; edDraw(); }
 // ---------- joint editor: a big view of one figure, joints dragged by mouse or finger ----------
 const ED = {p:null, view:0, kp:null, img:new Image(), drag:-1, dirty:false};
 function edSize(){ const cv = $('edcv'), side = Math.max(260, Math.floor(Math.min(innerWidth*.92 - 32, innerHeight - 230, 1000))); const dpr = Math.min(2, devicePixelRatio || 1);
