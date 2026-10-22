@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>About Sama</title>
+<meta name="description" content="Sama, an AI yoga coach: the story, the features, the data, the review tools and the technology behind it.">
+<meta name="robots" content="noindex">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a long scroll in six chapters under a sticky chapter bar; each chapter alternates text and app images on a 12-column grid that collapses to one column on phones. */
+:root{
+  --paper:#FBF5EA; --paper-2:#F4EADB; --ink:#26344F; --text:#2D2622; --muted:#5E534A; --line:#E3D7C6;
+  --terra:#B45A3C; --sand:#EBC9A2; --on-ink:#FBF5EA; --ink-2:#34446A;
+  --f-display:"Young Serif", Georgia, serif; --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif; --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#1B1715; --paper-2:#262019; --ink:#C9D3EA; --text:#EEE4D6; --muted:#B3A596; --line:#3A312A; --terra:#E0916F; --sand:#D9B48C; --on-ink:#1B1715; --ink-2:#2E3A55; color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#1B1715; --paper-2:#262019; --ink:#C9D3EA; --text:#EEE4D6; --muted:#B3A596; --line:#3A312A; --terra:#E0916F; --sand:#D9B48C; --on-ink:#1B1715; --ink-2:#2E3A55; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--text);font-family:var(--f-body);font-size:18px;line-height:1.55;padding-top:env(safe-area-inset-top,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:20;background:var(--paper)}
+img,video{max-width:100%;height:auto;display:block}
+a{color:var(--terra)}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+/* chapter bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;align-items:center;gap:18px;height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-size:24px;color:var(--ink);text-decoration:none;flex:none}
+.brand svg{width:28px;height:28px}
+.chapters{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-left:auto}
+.chapters::-webkit-scrollbar{display:none}
+.chapters a{white-space:nowrap;text-decoration:none;color:var(--muted);font-size:14.5px;font-weight:600;padding:7px 12px;border-radius:999px}
+.chapters a:hover,.chapters a[aria-current="true"]{background:var(--paper-2);color:var(--ink)}
+.chapters a:focus-visible,.btn:focus-visible{outline:2px solid var(--terra);outline-offset:2px}
+/* type */
+h1,h2,h3{font-family:var(--f-display);font-weight:400;color:var(--ink);text-wrap:balance;margin:0}
+h1{font-size:clamp(56px,9vw,112px);line-height:1}
+h2{font-size:clamp(34px,5vw,58px);line-height:1.08}
+h3{font-size:clamp(24px,2.6vw,30px);line-height:1.15}
+p{margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--terra)}
+.lede{font-size:clamp(19px,2vw,23px);color:var(--muted);max-width:60ch}
+.muted{color:var(--muted)}
+section{padding-block:clamp(64px,9vw,120px)}
+section.alt{background:var(--paper-2)}
+.head{display:flex;flex-direction:column;gap:14px;max-width:820px;margin-bottom:clamp(32px,5vw,56px)}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+/* hero */
+.hero{padding-block:clamp(40px,7vw,96px) clamp(48px,7vw,96px)}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(28px,5vw,72px);align-items:center}
+.hero-text{display:flex;flex-direction:column;gap:22px;min-width:0}
+.hero-logo{display:flex;align-items:center;gap:20px}
+.hero-logo svg{width:clamp(64px,9vw,104px);height:auto;flex:none}
+.hero video{width:100%;aspect-ratio:1;border-radius:32px;background:#FBF5EA;object-fit:cover}
+.btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:13px 22px;font-weight:600;font-size:16px;text-decoration:none;border:1.5px solid var(--ink);color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--on-ink)}
+/* stats band */
+.stats{background:#26344F;color:#FBF5EA;padding-block:36px}
+.stats .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.stat b{display:block;font-family:var(--f-display);font-weight:400;font-size:clamp(36px,5vw,56px);line-height:1;color:#EBC9A2}
+.stat span{font-size:15.5px;color:#E4DCCF}
+/* layouts */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,64px);align-items:center}
+.split > *{min-width:0}
+.stack{display:flex;flex-direction:column;gap:18px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.frame{border-radius:24px;overflow:hidden;background:#FBF5EA}
+.phone{border:6px solid var(--ink);border-radius:30px;overflow:hidden;max-height:620px;background:#FBF5EA}
+.phone img{width:100%;height:auto;object-fit:cover;object-position:top}
+.shot{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#FBF5EA}
+figure{margin:0;display:flex;flex-direction:column;gap:10px}
+figcaption{font-size:14.5px;color:var(--muted)}
+.ticks{display:flex;flex-direction:column;gap:12px;padding:0;margin:0;list-style:none}
+.ticks li{padding-left:20px;border-left:3px solid var(--terra);line-height:1.45}
+.features{display:flex;flex-direction:column;gap:clamp(56px,8vw,96px)}
+.feature{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:clamp(28px,6vw,80px);align-items:center}
+.feature.flip{grid-template-columns:minmax(0,340px) minmax(0,1fr)}
+.feature.flip .ftext{order:2}
+.ftext{display:flex;flex-direction:column;gap:14px}
+.callout{display:flex;gap:18px;align-items:baseline;background:#26344F;color:#FBF5EA;border-radius:22px;padding:24px 28px;flex-wrap:wrap}
+.callout b{font-family:var(--f-display);font-weight:400;font-size:clamp(34px,4.6vw,52px);color:#EBC9A2;white-space:nowrap}
+.callout span{flex:1 1 260px}
+.loop{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:40px}
+.loop span{padding:9px 16px;border-radius:999px;background:var(--paper);border:1px solid var(--line);font-weight:600;color:var(--ink);font-size:15.5px}
+.loop i{font-style:normal;color:var(--terra);font-weight:700}
+.tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.tool{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.tool .shot{border-radius:14px}
+.tool .tlabel{font-family:var(--f-mono);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--terra)}
+.tool p{color:var(--muted);font-size:16.5px}
+.tool.wide{grid-column:span 2}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.card{background:var(--paper-2);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:8px}
+section.alt .card{background:var(--paper)}
+.card .mono{font-family:var(--f-mono);font-size:13px;color:var(--terra)}
+.card p{color:var(--muted);font-size:16.5px}
+.bars{display:flex;flex-direction:column;gap:10px}
+.barrow{display:grid;grid-template-columns:150px minmax(0,1fr) 44px;gap:12px;align-items:center;font-size:15.5px}
+.barrow i{display:block;height:14px;border-radius:7px;background:var(--terra)}
+.barrow b{font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink);text-align:right}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:18px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:16.5px}
+th,td{text-align:left;padding:13px 18px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--terra);font-weight:500}
+tr:last-child td{border-bottom:none}
+td:first-child{font-weight:600;color:var(--ink);white-space:nowrap}
+.arch{display:grid;grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr);gap:16px;align-items:center;margin-bottom:28px}
+.arch .phonebox{background:#26344F;color:#FBF5EA;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.arch .phonebox h3{color:#EBC9A2}
+.arch .phonebox p{background:#34446A;color:#FBF5EA;border-radius:12px;padding:11px 14px;font-size:16px}
+.arrow{height:4px;background:var(--terra);position:relative;border-radius:2px}
+.arrow::after{content:"";position:absolute;right:-2px;top:-7px;border:9px solid transparent;border-left:12px solid var(--terra);border-right:0}
+.cloud{display:flex;flex-direction:column;gap:12px}
+.cloud .card{padding:18px 20px}
+.close{background:var(--terra);color:#FBF5EA}
+.close h2,.close .eyebrow{color:#FBF5EA}
+.close .lede{color:#F6DCCF}
+.close .btn{border-color:#FBF5EA;color:#FBF5EA}
+.close .btn.primary{background:#FBF5EA;color:#B45A3C}
+footer{padding-block:28px;font-size:14px;color:var(--muted)}
+@media (max-width:900px){
+  .hero .wrap,.split,.feature,.feature.flip{grid-template-columns:1fr}
+  .feature.flip .ftext{order:0}
+  .phone{max-width:360px;margin-inline:auto}
+  .stats .wrap{grid-template-columns:repeat(2,1fr)}
+  .tools{grid-template-columns:1fr}.tool.wide{grid-column:auto}
+  .cards{grid-template-columns:1fr}
+  .arch{grid-template-columns:1fr}.arrow{width:4px;height:40px;margin-inline:auto}.arrow::after{right:-7px;top:auto;bottom:-6px;border:9px solid transparent;border-top:12px solid var(--terra);border-bottom:0}
+  .brand span{display:none}
+}
+@media (max-width:520px){.pair{grid-template-columns:1fr}.barrow{grid-template-columns:110px minmax(0,1fr) 40px}}
+</style>
+</head>
+<body>
+<nav class="bar" aria-label="Chapters"><div class="wrap">
+  <a class="brand" href="#top"><svg viewBox="0 0 200 200" aria-hidden="true"><path d="M76.9,130.5 74.0,129.2 72.0,126.8 71.3,123.7 72.0,120.5 73.3,118.7 92.3,99.7 93.5,97.8 94.0,95.6 94.0,23.6 93.4,21.4 92.2,19.4 90.0,17.8 87.7,17.2 83.5,17.6 75.5,19.7 68.0,22.3 62.1,25.0 55.2,29.0 49.9,32.6 45.0,36.5 39.3,42.0 35.0,46.8 30.2,53.2 26.9,58.7 23.3,65.8 20.9,71.8 18.6,79.5 16.4,91.9 16.0,100.1 16.4,108.4 17.6,116.5 19.6,124.3 22.3,132.0 25.0,137.9 29.1,145.0 33.9,151.8 39.3,158.0 45.2,163.7 51.7,168.8 58.7,173.1 66.1,176.8 73.8,179.8 83.7,182.4 86.8,182.9 88.7,182.7 90.4,182.0 92.2,180.6 93.4,178.6 93.9,176.8 93.9,138.2 92.5,135.3 90.1,133.3Z" fill="#B45A3C"/><path d="M114.2,17.2 111.3,17.3 108.5,18.8 106.6,21.4 106.0,24.2 106.0,176.4 106.6,178.6 108.1,180.9 110.5,182.4 112.7,182.9 118.5,181.9 126.5,179.7 134.2,176.7 141.3,173.1 146.8,169.8 153.2,165.0 158.0,160.7 163.7,154.8 168.6,148.5 172.1,143.1 175.9,136.0 178.4,130.1 181.0,122.3 182.7,114.5 183.6,108.1 184.0,100.1 183.6,91.9 182.7,85.5 181.0,77.7 179.0,71.6 176.0,64.2 173.0,58.5 168.8,51.7 163.7,45.2 158.0,39.3 153.2,35.0 146.8,30.2 141.3,26.9 134.2,23.3 128.2,20.9 120.5,18.6Z" fill="#EBC9A2"/></svg><span>Sama</span></a>
+  <div class="chapters">
+    <a href="#story">Story</a><a href="#features">Features</a><a href="#data">Data</a><a href="#tools">Review tools</a><a href="#stack">Stack</a><a href="#next">Conclusion</a>
+  </div>
+</div></nav>
+
+<main id="top">
+<header class="hero"><div class="wrap">
+  <div class="hero-text">
+    <p class="eyebrow">Final project · Roberto Vargas</p>
+    <div class="hero-logo"><svg viewBox="0 0 200 200" aria-hidden="true"><path d="M76.9,130.5 74.0,129.2 72.0,126.8 71.3,123.7 72.0,120.5 73.3,118.7 92.3,99.7 93.5,97.8 94.0,95.6 94.0,23.6 93.4,21.4 92.2,19.4 90.0,17.8 87.7,17.2 83.5,17.6 75.5,19.7 68.0,22.3 62.1,25.0 55.2,29.0 49.9,32.6 45.0,36.5 39.3,42.0 35.0,46.8 30.2,53.2 26.9,58.7 23.3,65.8 20.9,71.8 18.6,79.5 16.4,91.9 16.0,100.1 16.4,108.4 17.6,116.5 19.6,124.3 22.3,132.0 25.0,137.9 29.1,145.0 33.9,151.8 39.3,158.0 45.2,163.7 51.7,168.8 58.7,173.1 66.1,176.8 73.8,179.8 83.7,182.4 86.8,182.9 88.7,182.7 90.4,182.0 92.2,180.6 93.4,178.6 93.9,176.8 93.9,138.2 92.5,135.3 90.1,133.3Z" fill="#B45A3C"/><path d="M114.2,17.2 111.3,17.3 108.5,18.8 106.6,21.4 106.0,24.2 106.0,176.4 106.6,178.6 108.1,180.9 110.5,182.4 112.7,182.9 118.5,181.9 126.5,179.7 134.2,176.7 141.3,173.1 146.8,169.8 153.2,165.0 158.0,160.7 163.7,154.8 168.6,148.5 172.1,143.1 175.9,136.0 178.4,130.1 181.0,122.3 182.7,114.5 183.6,108.1 184.0,100.1 183.6,91.9 182.7,85.5 181.0,77.7 179.0,71.6 176.0,64.2 173.0,58.5 168.8,51.7 163.7,45.2 158.0,39.3 153.2,35.0 146.8,30.2 141.3,26.9 134.2,23.3 128.2,20.9 120.5,18.6Z" fill="#EBC9A2"/></svg><h1>Sama</h1></div>
+    <p class="lede">An AI yoga coach that watches, talks and plans with you. A camera checks your alignment, a calm voice guides every pose, and a coach plans what comes next.</p>
+    <p class="muted">The logo is Tree pose in balance: two even halves, the gap is the standing leg and the notch is the folded knee.</p>
+    <div class="btns"><a class="btn primary" href="/">Open the app</a><a class="btn" href="#story">Read the story</a></div>
+  </div>
+  <video src="img/sama-logo-to-character.mp4" poster="img/avatar.webp" autoplay muted loop playsinline aria-label="The Sama logo opening into the character standing in Tree pose"></video>
+</div></header>
+
+<div class="stats" aria-label="Sama in numbers"><div class="wrap">
+  <div class="stat"><b class="num">165</b><span>reference poses, each with its own alignment rules</span></div>
+  <div class="stat"><b class="num">27</b><span>body points read from the camera, on the phone</span></div>
+  <div class="stat"><b class="num">333</b><span>recorded voice clips, mastered to one level</span></div>
+  <div class="stat"><b class="num">54</b><span>poses corrected from hand-drawn fixes</span></div>
+</div></div>
+
+<section id="story"><div class="wrap">
+  <div class="split">
+    <div class="stack">
+      <p class="eyebrow">01 · Why I built it</p>
+      <h2>I hurt my back. Everyone said: try yoga.</h2>
+      <p class="lede">Alone, I couldn’t tell if I was doing it right. So I built the coach I needed.</p>
+      <div class="callout"><b>Hypothesis</b><span>A camera that checks you and a voice that guides you can coach a beginner safely at home.</span></div>
+    </div>
+    <div class="pair">
+      <figure><img class="frame" src="img/story-hurt.webp" alt="The character bent over with a red glow on the lower back, saying “A while ago, I hurt my back.”" width="1080" height="1240" loading="lazy"></figure>
+      <figure><img class="frame" src="img/story-unsure.webp" alt="The character in an unsure Warrior II with a marker on the front knee, saying “But was I doing it right? No idea.”" width="1080" height="1240" loading="lazy"></figure>
+    </div>
+  </div>
+</div></section>
+
+<section id="features" class="alt"><div class="wrap">
+  <div class="head"><p class="eyebrow">02 · What it does</p><h2>Four things a teacher would do</h2><p class="lede">Each feature answers one question a beginner has, from “am I doing this right?” to “what should I practise next?”.</p></div>
+  <div class="features">
+    <div class="feature">
+      <div class="ftext"><p class="eyebrow">Check alignment</p><h3>The camera measures every joint</h3><p class="muted">Pick one of 165 poses. The reference figure shows the shape from the best side of the mat; the live camera compares your joints with it and says what to fix first.</p></div>
+      <div class="phone"><img src="img/check.webp" alt="The alignment check screen with Warrior II, the Live camera button and photo options" width="1170" height="2046" loading="lazy"></div>
+    </div>
+    <div class="feature flip">
+      <div class="ftext"><p class="eyebrow">Plan with me</p><h3>One question at a time</h3><p class="muted">A guided intake asks what you want, how long you have and what hurts, then offers three practices to choose from.</p></div>
+      <div class="phone"><img src="img/coach.webp" alt="The coach screen asking a question, with answer chips and three suggested practices" width="1170" height="2047" loading="lazy"></div>
+    </div>
+    <div class="feature">
+      <div class="ftext"><p class="eyebrow">Review my checks</p><h3>Scores, strengths and what to fix first</h3><p class="muted">The coach reads your measured angles and hold times, gives a score out of 100, and plans a next practice that targets the gaps.</p></div>
+      <div class="phone"><img src="img/feedback.webp" alt="The review screen with a score of 72, strengths, what to work on and a next practice" width="1170" height="2047" loading="lazy"></div>
+    </div>
+    <div class="feature flip">
+      <div class="ftext"><p class="eyebrow">LLM as a judge</p><h3>A second model grades the first</h3><p class="muted">Every plan is scored for safety, fit, sequencing and balance by a separate call. The best one is marked “Judge’s pick”.</p></div>
+      <div class="phone"><img src="img/judge.webp" alt="Practice cards with judge scores for safety, fit, sequencing and balance" width="1170" height="2047" loading="lazy"></div>
+    </div>
+    <div class="feature">
+      <div class="ftext"><p class="eyebrow">Guided practice</p><h3>A calm voice guides every pose</h3><p class="muted">Sama speaks each pose and the movement in between, adds wrist care before Down Dog, and puts your practice days in the calendar.</p></div>
+      <figure><img class="frame" src="img/room.webp" alt="The character with arms raised in a sunny room, with a “Breathe in” caption" width="1080" height="940" loading="lazy"></figure>
+    </div>
+  </div>
+</div></section>
+
+<section id="data"><div class="wrap">
+  <div class="head"><p class="eyebrow">03 · Data</p><h2>Cleaning the pose library</h2><p class="lede">The coach is only as good as its reference poses and its voice. Most of the work went into making that data right.</p></div>
+  <div class="split">
+    <ul class="ticks">
+      <li><b>Sources:</b> OpenAI for the coach, MoveNet and BlazePose for body points, my own recordings for every voice line, Firebase and Google Calendar for accounts and practice days.</li>
+      <li><b>Inconsistent poses:</b> hands ahead of the feet, poses off the mat. Fixed by drawing the correct shape and solving it into 3D.</li>
+      <li><b>Impossible values:</b> a drawing flattening the shoulders. The solver keeps a minimum body depth.</li>
+      <li><b>Uneven audio:</b> silences capped and loudness normalised.</li>
+    </ul>
+    <figure><img class="frame" src="img/contact.webp" alt="A contact sheet of all 165 poses, each drawn on its mat" width="1400" height="928" loading="lazy"><figcaption>All 165 poses on one sheet, redrawn after every round of fixes. Errors clustered in floor and upside-down poses.</figcaption></figure>
+  </div>
+  <div class="callout" style="margin-top:36px"><b class="num">3.3 → 0.3 LU</b><span>Loudness spread across the voice clips, before and after remastering. Silence, not volume, made the voice feel broken.</span></div>
+</div></section>
+
+<section id="tools" class="alt"><div class="wrap">
+  <div class="head"><p class="eyebrow">04 · Review tools</p><h2>Small tools to check everything by eye</h2><p class="lede">165 poses, 320 transitions and 333 clips are too much to check inside the app, so I built a review page for each.</p></div>
+  <div class="loop" aria-label="The review loop"><span>Look</span><i>→</i><span>Mark what’s wrong</span><i>→</i><span>Fix</span><i>→</i><span>Re-check everything</span></div>
+  <div class="tools">
+    <div class="tool"><p class="tlabel">Poses · Pose Review</p><h3>Every pose, two views, one verdict</h3><img class="shot" src="img/tool-posereview.webp" alt="Pose Review: poses drawn from two views with automatic checks and Looks right or Wrong buttons" width="1400" height="875" loading="lazy"><p>Each pose from two sides of the mat, its rules measured on the reference, and a “Looks right” or “Wrong” with a note.</p></div>
+    <div class="tool"><p class="tlabel">Poses · Pose Fixer</p><h3>Show the fix instead of describing it</h3><img class="shot" src="img/tool-fixer.webp" alt="Pose Fixer: Warrior II with draggable joint dots and view buttons" width="1400" height="875" loading="lazy"><p>Drag a joint and the limb follows, from the front, side or back of the mat. The drawing is then solved into a 3D pose.</p></div>
+    <div class="tool wide"><p class="tlabel">Poses · Image to pose</p><h3>From a photo to the figure in one step</h3>
+      <div class="pair"><img class="shot" src="img/tool-photo-ref.webp" alt="The reference image of a Warrior II" width="1080" height="940" loading="lazy"><img class="shot" src="img/tool-photo.webp" alt="The Pose Fixer after matching: the figure moved onto the 17 joints found in the image" width="1400" height="1345" loading="lazy"></div>
+      <p>MoveNet finds 17 joints in a photo, on the device, and the figure is moved onto them. “Matched 17 of 17 joints”, then fine-tune and send.</p></div>
+    <div class="tool"><p class="tlabel">Transitions · Transition Review</p><h3>Watch every move, loop by loop</h3><img class="shot" src="img/tool-transreview.webp" alt="Transition Review: poses looping into and out of Mountain with Good and Wrong buttons" width="1400" height="875" loading="lazy"><p>Each pose into Mountain and back, as the app plays it. Pause on the bad frame and say which body part is off.</p></div>
+    <div class="tool"><p class="tlabel">Transitions · Transition Lab</p><h3>Why moves looked wrong, measured</h3><img class="shot" src="img/tool-translab.webp" alt="Transition Lab: the same move before and after the fixes, with measured jumps" width="1400" height="875" loading="lazy"><p>155 transitions scored headless. The largest one-frame jump went from <b class="num">86 cm</b> to <b class="num">7 cm</b>.</p></div>
+    <div class="tool"><p class="tlabel">Transitions · Inverse kinematics</p><h3>Planted feet stay planted</h3>
+      <svg viewBox="0 0 640 520" role="img" aria-label="Two-bone leg: the hip and a planted foot are fixed; of the two knee positions that fit, the solver keeps the natural forward bend and rejects the flipped one" style="width:100%;height:auto;background:#FBF5EA;border-radius:14px"><rect x="60" y="440" width="520" height="22" rx="6" fill="#EBC9A2"/><path d="M200 60 L237 297 L430 440" fill="none" stroke="#B45A3C" stroke-width="12" stroke-linecap="round" stroke-dasharray="4 20"/><path d="M200 60 L393 203 L430 440" fill="none" stroke="#26344F" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/><circle cx="200" cy="60" r="18" fill="#FBF5EA" stroke="#26344F" stroke-width="7"/><circle cx="393" cy="203" r="18" fill="#FBF5EA" stroke="#26344F" stroke-width="7"/><circle cx="237" cy="297" r="14" fill="#FBF5EA" stroke="#B45A3C" stroke-width="5"/><circle cx="430" cy="440" r="18" fill="#26344F"/></svg>
+      <p>Hip and planted foot are fixed; two knees fit. The solver stays near the last frame, leans into the natural bend, and eases into the end pose. Knees no longer snap across.</p></div>
+    <div class="tool"><p class="tlabel">Transitions · Transition Studio</p><h3>Pause, drag, and the move bends</h3><img class="shot" src="img/tool-studio.webp" alt="Transition Studio: Mountain to Standing Forward Fold paused mid-move with joint dots and a timeline" width="1400" height="875" loading="lazy"><p>Drag the joints at the moment that looks wrong; it becomes a keyframe and the motion bends smoothly through it.</p></div>
+    <div class="tool wide"><p class="tlabel">Audio · Voice Studio</p><h3>My own voice, one script at a time</h3>
+      <div class="split" style="align-items:start"><img class="shot" src="img/tool-voice.webp" alt="Voice Studio: a movement cue with its script, the clip list and a bulk upload area" width="1400" height="875" loading="lazy">
+        <div class="stack"><p>Every line as an editable script. Record on the phone, name each file by its clip, drop them in. Each one is then cleaned, levelled to −19 LUFS and trimmed.</p>
+          <div class="bars" aria-label="Voice clips by kind">
+            <div class="barrow"><span>Pose scripts</span><i style="width:100%"></i><b>165</b></div>
+            <div class="barrow"><span>Movement cues</span><i style="width:34%"></i><b>56</b></div>
+            <div class="barrow"><span>“Again” lines</span><i style="width:32%"></i><b>53</b></div>
+            <div class="barrow"><span>Shared clips</span><i style="width:28%"></i><b>47</b></div>
+            <div class="barrow"><span>Openings</span><i style="width:7%"></i><b>12</b></div>
+          </div></div></div></div>
+  </div>
+</div></section>
+
+<section id="stack"><div class="wrap">
+  <div class="head"><p class="eyebrow">05 · Technology</p><h2>The body stays on the phone; only text goes out</h2><p class="lede">Everything that touches the body runs on the device. The cloud only sees text and numbers.</p></div>
+  <div class="arch">
+    <div class="phonebox"><h3>On the phone</h3><p>One HTML page, plain JavaScript, no framework</p><p>Camera → TensorFlow.js: MoveNet + BlazePose</p><p>3D figure drawn on a 2D canvas</p><p>333 recorded voice clips</p></div>
+    <div class="arrow" aria-hidden="true"></div>
+    <div class="cloud">
+      <div class="card"><h3>Vercel</h3><p>Hosts the app and runs <b>/api/coach</b>, the only place the OpenAI key lives</p></div>
+      <div class="card"><h3>OpenAI · GPT-6.1 Sol</h3><p>Coach, routine review and judge, with GPT-4o mini as fallback</p></div>
+      <div class="card"><h3>Firebase + Google Calendar</h3><p>Sign-in, synced profile and history, practice days</p></div>
+    </div>
+  </div>
+  <div class="tablewrap"><table>
+    <tr><th>Layer</th><th>Technology</th></tr>
+    <tr><td>App</td><td>HTML, CSS, plain JavaScript, Canvas 2D</td></tr>
+    <tr><td>Pose detection</td><td>TensorFlow.js 4.22 (WASM): MoveNet Lightning, BlazePose Full</td></tr>
+    <tr><td>AI coach</td><td>OpenAI GPT-6.1 Sol through a Vercel serverless function, JSON answers</td></tr>
+    <tr><td>Accounts</td><td>Firebase Auth, Cloud Firestore, Google Calendar API</td></tr>
+    <tr><td>Voice</td><td>Recorded MP3 clips, mastered with Python and ffmpeg</td></tr>
+    <tr><td>Android</td><td>Java WebView app, Gradle, built by GitHub Actions</td></tr>
+    <tr><td>Delivery</td><td>GitHub, Vercel, Playwright tests on every change</td></tr>
+  </table></div>
+</div></section>
+
+<section id="next" class="alt"><div class="wrap">
+  <div class="split">
+    <div class="stack">
+      <p class="eyebrow">06 · Conclusion</p>
+      <h2>Hypothesis: mostly supported</h2>
+      <p class="lede">The camera, the voice and the AI plans work together, and the judge makes the plans better. Data quality, not the model, decided how good the coach felt.</p>
+      <p class="muted">Not proven yet: other bodies and other rooms.</p>
+      <h3 style="margin-top:12px">Still open</h3>
+      <ul class="ticks">
+        <li>Can my recorded motion teach smoother transitions?</li>
+        <li>Does the camera check work for every body?</li>
+        <li>Does cycle-aware practice help people keep going?</li>
+      </ul>
+    </div>
+    <figure><img class="frame" src="img/park.webp" alt="The character meditating on a mat in a park" width="1080" height="940" loading="lazy"></figure>
+  </div>
+</div></section>
+
+<section class="close"><div class="wrap">
+  <div class="stack" style="max-width:760px">
+    <p class="eyebrow">Thank you</p>
+    <h2>Try it on your phone</h2>
+    <p class="lede">The app runs in the browser at sama-coach-ai.vercel.app. Photos and video never leave your device.</p>
+    <div class="btns"><a class="btn primary" href="/">Open Sama</a><a class="btn" href="#top">Back to the top</a></div>
+  </div>
+</div></section>
+</main>
+<footer><div class="wrap">Sama · Roberto Vargas · a temporary page for the class presentation</div></footer>
+<script>
+// highlight the chapter in view
+(() => { const links = [...document.querySelectorAll('.chapters a')], map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  if (!('IntersectionObserver' in window)) return;
+  const io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting){ links.forEach(l => l.removeAttribute('aria-current')); const a = map.get(e.target.id); if (a){ a.setAttribute('aria-current', 'true'); a.scrollIntoView({block:'nearest', inline:'nearest'}); } } }, {rootMargin:'-45% 0px -50% 0px'});
+  for (const id of map.keys()){ const s = document.getElementById(id); if (s) io.observe(s); } })();
+</script>
+</body>
+</html>
