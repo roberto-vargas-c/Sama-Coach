@@ -3352,6 +3352,18 @@ function cancelTween(){ if (tween){ cancelAnimationFrame(tween.raf); tween = nul
 const SCENES = {plain:'Plain', studio:'Studio', beach:'Beach', living:'Living room', park:'Park', mountains:'Mountains', night:'Night rooftop'};
 let scene = 'plain'; try { const v = localStorage.getItem('sama.scene'); if (SCENES[v]) scene = v; } catch {}
 const SCENE_FLOOR = 720*.84;
+// Indoor scenes pick the wall and floor for contrast with the skin: dark wood under fair and medium skin,
+// pale ash and birch under deeper skin, so the feet and legs never melt into the floor.
+const SCENE_TONES = {
+  studio: {fair:{wall:'#E2E8EC', skirt:'#CFD8DE', floor:'#8B5E3C', line:'#7A5033'}, mid:{wall:'#F3E6D3', skirt:'#E7D5BC', floor:'#7E5A3F', line:'#6E4D35'},
+           tan:{wall:'#F5EBDD', skirt:'#E9DAC4', floor:'#E3D2B8', line:'#D0BC9C'}, deep:{wall:'#F6E9D6', skirt:'#EADBC4', floor:'#EADBC2', line:'#D8C4A3'}},
+  living: {fair:{wall:'#D8E0CF', skirt:'#C9D3BF', floor:'#6F4B33', line:'#5F3F2A'}, mid:{wall:'#D8E0CF', skirt:'#C9D3BF', floor:'#6F4B33', line:'#5F3F2A'},
+           tan:{wall:'#E4E8DC', skirt:'#D5DBCB', floor:'#D9BF98', line:'#C6AA80'}, deep:{wall:'#E9EDE3', skirt:'#DADFD2', floor:'#E2CDAB', line:'#CFB78F'}}};
+const SKIN_TIER = {'#F6D7C3':'fair', '#E8B99A':'fair', '#C68B62':'mid', '#9E6240':'tan', '#6E4330':'deep', '#3E2A21':'deep'};
+function skinTier(skin){ const hex = (skin || '').toUpperCase(); if (SKIN_TIER[hex]) return SKIN_TIER[hex];
+  const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) || 0), a = rgb(hex); let best = 'mid', bd = 1e9;
+  for (const [k, t] of Object.entries(SKIN_TIER)){ const b = rgb(k), d = (a[0]-b[0])**2 + (a[1]-b[1])**2 + (a[2]-b[2])**2; if (d < bd){ bd = d; best = t; } } return best; }
+function sceneTones(kind){ return SCENE_TONES[kind][skinTier(avatar.skin)]; }
 function drawEnvironment(g, kind, floorY = SCENE_FLOOR){
   if (!kind || kind === 'plain') return false;
   const F = floorY, X0 = -500, X1 = 1220, Y0 = -900, Y1 = 1700;
@@ -3368,10 +3380,11 @@ function drawEnvironment(g, kind, floorY = SCENE_FLOOR){
   g.save();
   if (kind === 'studio'){
     const wf = F - 78;
-    box('#F3E6D3', X0, Y0, X1 - X0, wf - Y0);                        // wall
-    box('#E7D5BC', X0, wf - 14, X1 - X0, 14);                         // skirting
-    box('#D9A66B', X0, wf, X1 - X0, Y1 - wf);                          // wooden floor
-    g.fillStyle = '#C8925A'; for (let y = wf + 18, i = 0; y < Y1; y += 22 + i*3, i++){ g.fillRect(X0, y, X1 - X0, 2); for (let x = X0 + (i % 2)*90; x < X1; x += 180) g.fillRect(x, y - 20 - i*3, 2, 20 + i*3); }
+    const T = sceneTones('studio');
+    box(T.wall, X0, Y0, X1 - X0, wf - Y0);                        // wall
+    box(T.skirt, X0, wf - 14, X1 - X0, 14);                       // skirting
+    box(T.floor, X0, wf, X1 - X0, Y1 - wf);                       // wooden floor
+    g.fillStyle = T.line; for (let y = wf + 18, i = 0; y < Y1; y += 22 + i*3, i++){ g.fillRect(X0, y, X1 - X0, 2); for (let x = X0 + (i % 2)*90; x < X1; x += 180) g.fillRect(x, y - 20 - i*3, 2, 20 + i*3); }
     // arched window with the light it throws on the floor
     const wx = 450, ww = 190, wt = 60, wb = wf - 60;
     g.fillStyle = '#FFF8EE'; g.beginPath(); g.moveTo(wx, wb); g.lineTo(wx, wt + ww/2); g.arc(wx + ww/2, wt + ww/2, ww/2, Math.PI, 0); g.lineTo(wx + ww, wb); g.closePath(); g.fill();
@@ -3397,8 +3410,9 @@ function drawEnvironment(g, kind, floorY = SCENE_FLOOR){
     g.strokeStyle = '#7A6A64'; g.lineWidth = 3; for (const [x, y] of [[250, 120], [290, 96]]){ g.beginPath(); g.moveTo(x - 12, y); g.quadraticCurveTo(x - 6, y - 8, x, y); g.quadraticCurveTo(x + 6, y - 8, x + 12, y); g.stroke(); } // gulls
   } else if (kind === 'living'){
     const wf = F - 86;
-    box('#D8E0CF', X0, Y0, X1 - X0, wf - Y0); box('#C9D3BF', X0, wf - 12, X1 - X0, 12);
-    box('#B9875A', X0, wf, X1 - X0, Y1 - wf); g.fillStyle = '#A97A4E'; for (let y = wf + 20; y < Y1; y += 26) g.fillRect(X0, y, X1 - X0, 2);
+    const T = sceneTones('living');
+    box(T.wall, X0, Y0, X1 - X0, wf - Y0); box(T.skirt, X0, wf - 12, X1 - X0, 12);
+    box(T.floor, X0, wf, X1 - X0, Y1 - wf); g.fillStyle = T.line; for (let y = wf + 20; y < Y1; y += 26) g.fillRect(X0, y, X1 - X0, 2);
     ell('#D86F4C', 360, F + 24, 330, 54); ell('#E59A6E', 360, F + 24, 280, 40); ell('#D86F4C', 360, F + 24, 230, 28); // rug
     // sofa
     rr('#4F6F8C', -40, wf - 150, 250, 92, 26); rr('#5E7F9C', -40, wf - 72, 270, 56, 18); rr('#4F6F8C', 196, wf - 104, 46, 92, 18);
@@ -3448,7 +3462,7 @@ const stageBg = $('cvBg'); let stageBgKey = '';
 function drawStageBg(){
   if (!stageBg || !document.body.classList.contains('practice') || mode !== 'sample') return;
   const st = cv.parentNode, dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(st.clientWidth*dpr), H = Math.round(st.clientHeight*dpr);
-  const key = [W, H, scene, document.documentElement.dataset.theme || '', css('--figbg')].join('|'); if (!W || !H || key === stageBgKey) return; stageBgKey = key;
+  const key = [W, H, scene, document.documentElement.dataset.theme || '', css('--figbg'), avatar.skin].join('|'); if (!W || !H || key === stageBgKey) return; stageBgKey = key;
   stageBg.width = W; stageBg.height = H; const g = stageBg.getContext('2d'), side = Math.min(W, H);
   g.fillStyle = css('--figbg'); g.fillRect(0, 0, W, H);
   g.setTransform(side/REF_S, 0, 0, side/REF_S, (W - side)/2, (H - side)/2); drawEnvironment(g, scene); g.setTransform(1, 0, 0, 1, 0, 0);
