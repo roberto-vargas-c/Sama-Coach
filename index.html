@@ -7,6 +7,11 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sama">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="description" content="Sama: alignment check, practice planner and AI coach for your yoga practice.">
 <!-- Coach server for copies of this page that are not served from the deployment itself (e.g. bundled in the Android app). Leave empty when hosted on Vercel. -->
 <meta name="sama-coach-url" content="">
@@ -15,9 +20,8 @@
 *{-webkit-tap-highlight-color:transparent}
 :root{--period:#D9677B;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <title>Sama Yoga</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<link rel="stylesheet" href="/fonts/fonts.css">
 <style>
 /* Layout: app shell — pose rail on top, camera stage beside an instrument panel of per-joint gauges; stacks on phones. */
 :root{
@@ -653,6 +657,33 @@ body.tv #viewCoach{display:none!important}
 .lad li.cur canvas{border-color:var(--accent)}
 .lad li b{font-family:var(--f-mono);font-weight:500;color:var(--ink);font-size:11.5px}
 body.tv #viewProfile, body.practice #viewProfile{display:none!important}
+
+/* install sheet + report dialog */
+.isheet{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);width:min(calc(100vw - 24px),440px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:22px;box-shadow:0 24px 60px -18px rgba(0,0,0,.45);padding:18px 18px 16px;z-index:60;transition:transform .45s cubic-bezier(.2,.9,.25,1)}
+.isheet.on{transform:translate(-50%,0)}
+.isheet .ihead{display:flex;gap:14px;align-items:center}
+.isheet .ihead img{width:56px;height:56px;border-radius:14px;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.isheet h3{margin:0;font-family:var(--f-display);font-weight:400;font-size:20px;line-height:1.2;text-transform:none;letter-spacing:0;color:var(--ink)}
+.isheet .isub{margin:3px 0 0;font-size:13.5px;color:var(--muted);line-height:1.4}
+.isheet ol{margin:14px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px;counter-reset:st}
+.isheet ol li{counter-increment:st;display:flex;align-items:center;gap:10px;font-size:14.5px;line-height:1.35}
+.isheet ol li::before{content:counter(st);flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:13px;display:grid;place-items:center}
+.isheet ol svg{vertical-align:-4px;color:var(--brand)}
+.isheet .ibtns{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+.isheet .x{position:absolute;top:8px;right:10px;border:none;background:none;color:var(--muted);font-size:22px;line-height:1;padding:6px;cursor:pointer}
+.isheet .iarrow{position:fixed;left:50%;bottom:-2px;width:0;height:0}
+.repbtn{border:none;background:none;padding:6px 0 0;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.repbtn:hover{color:var(--accent)}
+.repdlg{border:none;border-radius:22px;background:var(--surface);color:var(--ink);padding:20px;width:min(94vw,460px);max-height:92vh;box-shadow:0 30px 80px -20px rgba(0,0,0,.45)}
+.repdlg::backdrop{background:rgba(20,14,10,.55)}
+.repdlg h2{margin:0 0 4px;font-family:var(--f-display);font-weight:400;font-size:22px}
+.repdlg .rsub{margin:0 0 14px;color:var(--muted);font-size:13.5px;line-height:1.4}
+.repdlg .rchips{display:flex;flex-wrap:wrap;gap:8px}
+.repdlg .rchips button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:8px 13px;font:inherit;font-size:13.5px;cursor:pointer}
+.repdlg .rchips button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.repdlg textarea{width:100%;box-sizing:border-box;margin-top:14px;min-height:84px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px;padding:10px 12px;resize:vertical}
+.repdlg .rst{min-height:18px;margin:8px 0 0;font-size:13px;color:var(--muted)}
+.repdlg .dbtns{gap:10px}
 </style>
 <script>try{const t=localStorage.getItem('sama.theme')||'light';if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch{}</script>
 </head>
@@ -711,7 +742,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
       <p>Alignment check for your practice</p>
     </div>
     <div class="topr">
-      <div class="privacy"><span class="dot"></span>The pose model runs on your device. Photos and clips are never uploaded.</div>
+      <div class="privacy"><span class="dot"></span>The pose model runs on your device. Photos and clips are never uploaded. <a href="/privacy.html" style="color:inherit">Privacy</a></div>
       <div class="theme" role="radiogroup" aria-label="Theme">
         <button type="button" data-t="auto" aria-label="Follow system theme" title="Follow system">Auto</button>
         <button type="button" data-t="light" aria-label="Light theme" title="Light"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></button>
@@ -799,6 +830,8 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
           <div class="arow"><span>Camera shows</span><div class="segs" data-k="camview"><button type="button" class="seg" data-v="avatar">Me as my figure</button><button type="button" class="seg" data-v="skeleton">Video + skeleton</button></div></div>
           <div class="arow"><span>Alignment lines on the figure</span><div class="segs" data-k="overlay"><button type="button" class="seg" data-v="on">Show</button><button type="button" class="seg" data-v="off">Hide</button></div></div>
           <div class="arow"><span>Reference while checking</span><div class="segs" data-k="inset"><button type="button" class="seg" data-v="on">Small inset</button><button type="button" class="seg" data-v="off">Hidden</button></div></div>
+          <div class="arow"><span>Privacy</span><div class="segs"><a class="seg" href="/privacy.html" style="text-decoration:none">What Sama stores</a></div></div>
+          <div class="arow" id="installRow" hidden><span>Sama on your home screen</span><div class="segs"><button type="button" class="seg" id="installOpen">Add the icon</button></div></div>
         </div>
       </details>
     </section>
@@ -809,6 +842,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
           <div><h2 id="pName"></h2><div class="sk" id="pSk"></div></div>
           <span class="view" id="pView"></span>
         </div>
+        <button class="repbtn" id="repCheck" type="button">Something wrong with this pose? Report it</button>
         <details class="phist" id="pHistBox"><summary>History of this pose</summary><p id="pHist"></p></details>
         <div class="scoreline"><span class="score" id="score">–<small>/100</small></span><span class="verdict" id="verdict"></span></div>
         <div class="topfix" id="topfix" hidden><span class="k">Fix first</span><p id="topfixText"></p><span class="w" id="topfixWhere"></span></div>
@@ -1050,10 +1084,32 @@ Savasana, 3 min"></textarea>
         <h4>Things to consider</h4><ul id="pdConsider"></ul>
         <h4>What the app checks</h4><ul id="pdCues"></ul>
         <div class="pdbtns"><button class="btn primary" id="pdCheck" type="button">Check my alignment</button></div>
+        <button class="repbtn" id="pdReport" type="button">Something wrong with this pose? Report it</button>
       </div>
     </div>
   </dialog>
 </div>
+<dialog class="repdlg" id="repDlg">
+  <h2 id="repTitle">Report a problem</h2>
+  <p class="rsub">Tell us what looks off. It goes straight to the pose review, together with the view you were looking at.</p>
+  <div class="rchips" id="repChips">
+    <button type="button" data-v="figure">The figure looks wrong</button>
+    <button type="button" data-v="side">Wrong side or mirrored</button>
+    <button type="button" data-v="check">The check marks me wrong</button>
+    <button type="button" data-v="info">Name or text is wrong</button>
+    <button type="button" data-v="other">Something else</button>
+  </div>
+  <textarea id="repNote" maxlength="500" placeholder="What is off? e.g. the back heel should be flat"></textarea>
+  <p class="rst" id="repSt" role="status"></p>
+  <div class="dbtns"><button class="btn" type="button" id="repCancel">Cancel</button><button class="btn primary" type="button" id="repSend">Send report</button></div>
+</dialog>
+<div class="isheet" id="isheet" role="dialog" aria-labelledby="iTitle" hidden>
+  <button class="x" type="button" id="iClose" aria-label="Close">×</button>
+  <div class="ihead"><img src="/icon-192.png" alt=""><div><h3 id="iTitle">Put Sama on your home screen</h3><p class="isub">It opens full-screen like an app. Nothing to download: it is this website, always up to date.</p></div></div>
+  <ol id="iSteps" hidden></ol>
+  <div class="ibtns"><button class="btn" type="button" id="iLater">Not now</button><button class="btn primary" type="button" id="iGo" hidden>Add to home screen</button></div>
+</div>
+
 <dialog class="pickdlg" id="pickDlg">
   <h2 id="pickTitle">Choose a pose</h2>
   <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="pickSearch" placeholder="Search by name, Sanskrit, family…" autocomplete="off" aria-label="Search poses"></label>
@@ -1076,8 +1132,8 @@ Savasana, 3 min"></textarea>
   </form>
 </dialog>
 
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@4.22.0/dist/tf-backend-wasm.min.js"></script>
+<script src="/vendor/tf.min.js"></script>
+<script src="/vendor/tf-backend-wasm.min.js"></script>
 <script>
 (() => {
 const $ = id => document.getElementById(id);
@@ -6129,8 +6185,8 @@ async function authInit(){
   if (!AUTH.available) return;
   try {
     const v = '10.14.1';
-    await loadScript(`https://www.gstatic.com/firebasejs/${v}/firebase-app-compat.js`);
-    await Promise.all([loadScript(`https://www.gstatic.com/firebasejs/${v}/firebase-auth-compat.js`), loadScript(`https://www.gstatic.com/firebasejs/${v}/firebase-firestore-compat.js`)]);
+    await loadScript('/vendor/firebase-app-compat.js');
+    await Promise.all([loadScript('/vendor/firebase-auth-compat.js'), loadScript('/vendor/firebase-firestore-compat.js')]);
     const fb = window.firebase; fb.initializeApp(FIREBASE_CONFIG); AUTH.fb = fb; AUTH.db = fb.firestore();
     if (fb.auth().isSignInWithEmailLink(location.href)){
       let email = ''; try { email = localStorage.getItem('sama.emailForSignIn') || ''; } catch {}
@@ -6206,7 +6262,7 @@ function renderAuthUI(){
   else { txt.textContent = 'Sign in to keep your data across your phone, laptop and the app.'; mk('Continue with Google', 'primary', () => authSignIn('google')); mk('Email me a link', '', () => authSignIn('email')); }
   $('wAuth').hidden = !AUTH.available;
 }
-authInit();
+const authReady = authInit();
 
 // ---------- views ----------
 function switchView(v){
@@ -6321,6 +6377,77 @@ function setTheme(t, save = true){
 for (const b of themeBtns) b.addEventListener('click', () => setTheme(b.dataset.t));
 setTheme(document.documentElement.dataset.theme || 'auto', false);
 if (document.fonts) document.fonts.ready.then(() => render());
+
+// ---------- report a pose problem: goes to Firestore poseReports, read live by /review/ ----------
+(() => {
+  const dlg = $('repDlg'); let ctx = null;
+  const open = c => { ctx = c; $('repTitle').textContent = `Something off with ${c.name}?`; $('repNote').value = ''; $('repSt').textContent = ''; $('repSend').disabled = false;
+    for (const b of $('repChips').children) b.setAttribute('aria-pressed', 'false'); dlg.showModal(); };
+  for (const b of $('repChips').children) b.addEventListener('click', () => b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')));
+  $('repCancel').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  $('repCheck').addEventListener('click', () => open({id:pose.id, name:pose.name, mir:!!refMirror, angle:(curRef && curRef.viewAngle) || 0, from:'check', score:mode !== 'sample' && last && typeof last.score === 'number' ? last.score : null}));
+  $('pdReport').addEventListener('click', () => { const p = lib.pose; open({id:p.id, name:p.name, mir:!!lib.mir, angle:lib.angle || 0, from:'library'}); });
+  $('repSend').addEventListener('click', async () => {
+    const reasons = [...$('repChips').children].filter(b => b.getAttribute('aria-pressed') === 'true').map(b => b.dataset.v), note = $('repNote').value.trim().slice(0, 500);
+    if (!reasons.length && !note){ $('repSt').textContent = 'Pick what is wrong or write a short note.'; return; }
+    $('repSend').disabled = true; $('repSt').textContent = 'Sending…';
+    const app = window.SamaNative ? 'android' : (matchMedia('(display-mode: standalone)').matches || navigator.standalone) ? 'homescreen' : 'web';
+    const doc = {pose:ctx.id, name:ctx.name, reasons, note, mir:ctx.mir, angle:Math.round(ctx.angle || 0), from:ctx.from, app, at:Date.now(), status:'open'};
+    if (ctx.score != null) doc.score = Math.round(ctx.score);
+    try { await authReady; } catch {}
+    try {
+      if (!AUTH.db) throw new Error('offline');
+      if (AUTH.user) doc.uid = AUTH.user.uid;
+      await Promise.race([AUTH.db.collection('poseReports').add(doc), new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 10000))]);
+      $('repSt').textContent = 'Thank you. Your report was sent.'; setTimeout(() => dlg.open && dlg.close(), 1400);
+    } catch (e){ $('repSt').textContent = 'Could not send it right now. Check your connection and try again.'; $('repSend').disabled = false; console.warn('report', e); }
+  });
+})();
+
+// ---------- add to home screen ----------
+(() => {
+  const sheet = $('isheet'), ua = navigator.userAgent, KEY = 'sama.installAsk';
+  const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1), android = /Android/.test(ua);
+  const inApp = !!window.SamaNative || /; wv\)/.test(ua) || /FBAN|FBAV|Instagram|Line\//.test(ua);
+  let deferred = null;
+  if ('serviceWorker' in navigator && location.protocol === 'https:') addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; $('installRow').hidden = standalone(); if (!sheet.hidden) steps(); });
+  addEventListener('appinstalled', () => { hide(); $('installRow').hidden = true; try { localStorage.setItem(KEY, 'installed'); } catch {} });
+  const share = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Share"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+  const plus = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+  const dots = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-label="menu"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+  function steps(){
+    const ol = $('iSteps');
+    if (deferred){ ol.hidden = true; $('iGo').hidden = false; return; }
+    $('iGo').hidden = true; ol.hidden = false;
+    ol.innerHTML = ios
+      ? `<li><span>Tap ${share} <b>Share</b> in the browser bar</span></li><li><span>Scroll down and tap ${plus} <b>Add to Home Screen</b></span></li><li><span>Tap <b>Add</b>. Sama appears with your apps</span></li>`
+      : `<li><span>Open the browser menu ${dots}</span></li><li><span>Tap <b>Add to Home screen</b> or <b>Install app</b></span></li><li><span>Confirm. Sama appears with your apps</span></li>`;
+  }
+  function show(){ if (standalone()) return; steps(); sheet.hidden = false; requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('on'))); }
+  function hide(){ sheet.classList.remove('on'); setTimeout(() => { sheet.hidden = true; }, 450); }
+  function later(){ hide(); try { localStorage.setItem(KEY, String(Date.now())); } catch {} }
+  $('iClose').addEventListener('click', later); $('iLater').addEventListener('click', later);
+  $('iGo').addEventListener('click', async () => { if (!deferred) return; const d = deferred; deferred = null; hide(); try { d.prompt(); const r = await d.userChoice; if (r && r.outcome === 'accepted') try { localStorage.setItem(KEY, 'installed'); } catch {} } catch {} });
+  $('installOpen').addEventListener('click', () => { $('avatarBox').open = false; show(); });
+  window.__samaInstall = show;
+  const mobile = ios || android;
+  if (mobile && !inApp && !standalone()) $('installRow').hidden = false;
+  // ask once on phones, after the welcome and tour are out of the way; again after two weeks if they said not now
+  const asked = (() => { try { return localStorage.getItem(KEY); } catch { return 'x'; } })();
+  const due = !asked || (asked !== 'installed' && Date.now() - (+asked || 0) > 14*864e5);
+  const force = /(^|&)install(&|$)/.test(location.hash.slice(1));
+  if (force || (mobile && !inApp && !standalone() && due)){
+    const t0 = Date.now(), tick = () => {
+      const busy = !$('welcome') || !$('welcome').hidden || document.querySelector('dialog[open]') || !$('tour').hidden || typeof sess !== 'undefined' && sess;
+      if (!force && (busy || Date.now() - t0 < 12000)) return setTimeout(tick, 2000);
+      show();
+    };
+    setTimeout(tick, force ? 2600 : 2000);
+  }
+})();
 setTimeout(() => loadModel().catch(()=>{}), 300);
 })();
 </script>

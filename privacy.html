@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sama privacy</title>
+<meta name="description" content="What Sama keeps on your device, what leaves it, and why there is no cookie banner.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/fonts/fonts.css">
+<style>
+:root{--paper:#FBF5EA;--card:#F4EADB;--ink:#26344F;--text:#2D2622;--muted:#5E534A;--line:#E3D7C6;--terra:#B45A3C;
+  --f-display:"Young Serif",Georgia,serif;--f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#1B1715;--card:#262019;--ink:#C9D3EA;--text:#EEE4D6;--muted:#B3A596;--line:#3A312A;--terra:#E0916F;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#1B1715;--card:#262019;--ink:#C9D3EA;--text:#EEE4D6;--muted:#B3A596;--line:#3A312A;--terra:#E0916F;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--text);font-family:var(--f-body);font-size:17px;line-height:1.6;padding:max(28px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 64px max(16px,env(safe-area-inset-left,0px))}
+main{max-width:720px;margin:0 auto}
+a{color:var(--terra)}
+.back{display:inline-flex;align-items:center;gap:8px;font-weight:600;text-decoration:none;font-size:15px}
+h1{font-family:var(--f-display);font-weight:400;color:var(--ink);font-size:clamp(32px,7vw,44px);line-height:1.1;margin:22px 0 8px;text-wrap:balance}
+.lede{color:var(--muted);font-size:18px;margin:0 0 28px}
+h2{font-family:var(--f-display);font-weight:400;color:var(--ink);font-size:24px;margin:36px 0 8px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 20px;margin:18px 0}
+.box p{margin:0}
+ul{padding-left:22px}li{margin:4px 0}
+code{font-size:.9em;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+small{color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="/">← Back to Sama</a>
+<h1>Privacy in Sama</h1>
+<p class="lede">Sama does the heavy work on your phone. This page lists what stays on your device, what leaves it, and why you don’t see a cookie banner.</p>
+
+<div class="box"><p><b>No tracking cookies, no analytics, no ads.</b> Sama only stores what it needs to work for you, such as your settings and practice history. Under German and EU law (§ 25 (2) TDDDG and the ePrivacy Directive), storage that is strictly necessary for a service you asked for does not need consent, so there is nothing to accept.</p></div>
+
+<h2>The camera</h2>
+<p>When you check your alignment, the pose model runs inside your browser. Photos, video and the camera stream are never uploaded. Recordings of your movement between poses stay on your device until you delete them in Settings.</p>
+
+<h2>What is kept on your device</h2>
+<p>Sama uses your browser’s local storage (not cookies) for:</p>
+<ul>
+<li>your settings: theme, voice, music, scene, camera view and pose engine</li>
+<li>your figure’s look, your profile answers and your practice plans</li>
+<li>your recent practice history, and whether you have seen the welcome and the tour</li>
+</ul>
+<p>Clearing the site’s data in your browser removes all of it.</p>
+
+<h2>What leaves your device, and only when you use it</h2>
+<ul>
+<li><b>Sign-in and sync (optional).</b> If you sign in, Google Firebase stores your sign-in and a copy of your practice data so it syncs across devices. Delete it by signing out and asking us to remove your account.</li>
+<li><b>The AI coach.</b> Messages you send to the coach, with your practice details, go through our server on Vercel to OpenAI to write the answer. They are not used to identify you.</li>
+<li><b>Google Calendar (optional).</b> Only if you connect it, Sama reads and adds practice events in your calendar.</li>
+<li><b>Pose reports.</b> If you report a problem with a pose, the pose, your note and the view you were looking at are saved so the pose can be fixed. If you are signed in, your account id is attached; nothing else.</li>
+<li><b>Hosting.</b> Like every website, our host Vercel keeps short-lived server logs (such as IP address and time) to run and protect the service.</li>
+</ul>
+<p>Fonts, the pose models and all scripts are served from Sama’s own address, so opening the app does not contact Google or other third parties.</p>
+
+<h2>Your rights</h2>
+<p>You can ask what data we hold about you, have it corrected or deleted, and complain to a data protection authority. Write to the contact below.</p>
+
+<h2>Contact</h2>
+<p>Sama is a student project by Roberto Vargas.</p>
+<p><small>Last updated 22 October 2026.</small></p>
+</main>
+<script>try{const t=localStorage.getItem('sama.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch{}</script>
+</body>
+</html>
