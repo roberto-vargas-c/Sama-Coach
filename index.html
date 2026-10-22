@@ -685,7 +685,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
 .repdlg .rst{min-height:18px;margin:8px 0 0;font-size:13px;color:var(--muted)}
 .repdlg .dbtns{gap:10px}
 </style>
-<script>try{const t=localStorage.getItem('sama.theme')||'light';if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch{}</script>
+<script>try{if(/[?&]embed=1/.test(location.search)){document.documentElement.dataset.theme='light';throw 0;}const t=localStorage.getItem('sama.theme')||'light';if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch{}</script>
 </head>
 <body>
 <div class="splash" id="splash" aria-hidden="true">
@@ -2839,6 +2839,7 @@ function applySkinBg(){
   const r = document.documentElement, dark = r.dataset.theme === 'dark' || (!r.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
   r.style.setProperty('--figbg', skinBg(avatar.skin, dark));
 }
+if (/[?&]embed=1/.test(location.search)) avatar = {...AVATAR_DEFAULT}; // the Pose Review draws the default figure, never the viewer's own
 if (migrateAvatar(avatar)) try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {}
 applySkinBg();
 avatar.mode = 'flat'; // the illustration is the only figure style
@@ -6307,7 +6308,7 @@ function renderAuthUI(){
   else { txt.textContent = 'Sign in to keep your data across your phone, laptop and the app.'; mk('Continue with Google', 'primary', () => authSignIn('google')); mk('Email me a link', '', () => authSignIn('email')); }
   $('wAuth').hidden = !AUTH.available;
 }
-const authReady = authInit();
+const authReady = /[?&]embed=1/.test(location.search) ? Promise.resolve() : authInit(); // the embedded copy never signs in or syncs
 
 // ---------- views ----------
 function switchView(v){
@@ -6374,7 +6375,17 @@ function tapTipOnce(){
   t.innerHTML = '<div><b>‹</b>Tap here<br>to go back</div><div><b>❙❙</b>Tap the middle<br>to pause</div><div><b>›</b>Tap here<br>for the next pose</div><small>Tap anywhere to start</small>';
   const close = () => { t.remove(); }; t.addEventListener('click', close); setTimeout(close, 6500); cv.parentNode.append(t);
 }
-window.__sama = {startTour, transitionCues, CUE_TEXT, get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
+// Pose Review: draw a pose with hand-moved joints (2D, in the 720 stage), the figure following the skeleton
+function drawEdited(g, id, mirrored, angle, pts){
+  const R0 = refFor(id, mirrored, angle), kp = R0.kp.map((q, i) => pts[i] ? {...q, x: pts[i][0], y: pts[i][1]} : {...q});
+  const ms = (A, B) => ({x:(A.x + B.x)/2, y:(A.y + B.y)/2}), s0 = ms(R0.kp[5], R0.kp[6]), s1 = ms(kp[5], kp[6]), dx = s1.x - s0.x, dy = s1.y - s0.y;
+  const mv = p => p && {...p, x:p.x + dx, y:p.y + dy};
+  let head = mv(R0.head), neck = mv(R0.neck), crown = mv(R0.crown);
+  if (pts[0]){ const nx = kp[0].x - R0.kp[0].x - dx, ny = kp[0].y - R0.kp[0].y - dy; head = {...head, x:head.x + nx, y:head.y + ny}; crown = {...crown, x:crown.x + nx, y:crown.y + ny}; } // the head follows the nose
+  const R = {...R0, kp, head, neck, crown, ls:kp[5], rs:kp[6], lh:kp[11], rh:kp[12], kp0:kp};
+  drawScene(g, R); return R;
+}
+window.__sama = {drawEdited, startTour, transitionCues, CUE_TEXT, get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
 function retheme(){
   applySkinBg();
   for (const k in THUMBS) delete THUMBS[k];
@@ -6494,7 +6505,7 @@ if (document.fonts) document.fonts.ready.then(() => render());
     setTimeout(tick, force ? 2600 : 2000);
   }
 })();
-setTimeout(() => loadModel().catch(()=>{}), 300);
+if (!/[?&]embed=1/.test(location.search)) setTimeout(() => loadModel().catch(()=>{}), 300); // the Pose Review embeds the app only to draw figures
 })();
 </script>
 
