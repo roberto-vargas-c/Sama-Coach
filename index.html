@@ -2824,7 +2824,23 @@ function migrateAvatar(a, stamp = true){
   if (v < 3) Object.assign(a, NEW_LOOK);
   else for (const k of Object.keys(OLD_LOOK)) if (a[k] === OLD_LOOK[k]) a[k] = NEW_LOOK[k];
   a.v = 4; if (stamp) a.updatedAt = Date.now(); return true; }
+// The stage behind the figure answers the skin tone: cool or lilac tints set off fair and medium-tan skin,
+// warm honey and blush light up deep skin, and the brand cream stays for the default. Dark mode gets matching deep tints.
+const SKIN_BG = {
+  '#F6D7C3': ['#DFE7EE', '#1B222C'], '#E8B99A': ['#E3EBE5', '#1C2520'], '#C68B62': ['#FBF5EA', '#201B17'],
+  '#9E6240': ['#F1EAF1', '#251F29'], '#6E4330': ['#F6E7CF', '#2E2A36'], '#3E2A21': ['#F7E3D8', '#363D4B']};
+function skinBg(skin, dark){
+  const hex = (skin || '').toUpperCase(); let best = SKIN_BG[hex];
+  if (!best){ const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) || 0), a = rgb(hex); let bd = 1e9;
+    for (const [k, v] of Object.entries(SKIN_BG)){ const b = rgb(k), d = (a[0]-b[0])**2 + (a[1]-b[1])**2 + (a[2]-b[2])**2; if (d < bd){ bd = d; best = v; } } }
+  return best[dark ? 1 : 0];
+}
+function applySkinBg(){
+  const r = document.documentElement, dark = r.dataset.theme === 'dark' || (!r.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+  r.style.setProperty('--figbg', skinBg(avatar.skin, dark));
+}
 if (migrateAvatar(avatar)) try { localStorage.setItem('sama.avatar', JSON.stringify(avatar)); } catch {}
+applySkinBg();
 avatar.mode = 'flat'; // the illustration is the only figure style
 function silFor(av){
   const b = BUILD[av.build] || BUILD.regular, f = k => (b[k] || 1) * b.all, out = {};
@@ -6346,6 +6362,7 @@ function tapTipOnce(){
 }
 window.__sama = {startTour, transitionCues, CUE_TEXT, get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
 function retheme(){
+  applySkinBg();
   for (const k in THUMBS) delete THUMBS[k];
   if (lib.built && lib.pose && $('poseDlg').open) drawPd();
   for (const el of document.querySelectorAll('canvas[data-pose]')){ const c = thumb(el.dataset.pose, +el.dataset.size, !!el.dataset.mir); el.getContext('2d').clearRect(0,0,el.width,el.height); el.getContext('2d').drawImage(c, 0, 0); }
