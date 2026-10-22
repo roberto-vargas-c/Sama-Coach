@@ -5226,7 +5226,17 @@ $('tvOpenCast').addEventListener('click', () => { try { if (!window.SamaNative.o
 $('tvCam').addEventListener('click', () => { if (mode==='live') $('stopLive').click(); else $('liveBtn').click(); });
 $('search').addEventListener('input', e => { railQuery = e.target.value.trim(); if (railQuery) cat = 'All'; renderRail(); });
 $('sideBtn').addEventListener('click', () => { if (mode==='sample') showReference(!refMirror); });
-$('rotBtn').addEventListener('click', () => { refAngle = (refAngle + 90) % 360; $('rotLbl').textContent = viewLabel(refFor(pose.id, refMirror)); if (mode==='sample'){ cancelTween(); curRef = refFor(pose.id, refMirror); kp = curRef.kp; refresh(); } });
+$('rotBtn').addEventListener('click', () => { const a0 = refAngle; refAngle = (refAngle + 90) % 360; $('rotLbl').textContent = viewLabel(refFor(pose.id, refMirror));
+  if (mode !== 'sample') return; cancelTween();
+  const reduce = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; } })();
+  if (reduce){ curRef = refFor(pose.id, refMirror); kp = curRef.kp; refresh(); return; }
+  // turn the camera round the mat: the mat and the figure rotate together to the new view
+  const id = pose.id, mir = refMirror, dur = Math.round(900*Math.sqrt(PACE[pace] || 1)), t0 = performance.now(), ez = u => u*u*u*(u*(u*6 - 15) + 10);
+  tween = {raf:0};
+  const step = now => { if (mode !== 'sample' || pose.id !== id){ tween = null; return; }
+    const u = Math.min(1, (now - t0)/dur); curRef = refFor(id, mir, a0 + 90*ez(u)); kp = curRef.kp; render();
+    if (u < 1) tween.raf = requestAnimationFrame(step); else { tween = null; curRef = refFor(id, mir); kp = curRef.kp; refresh(); } };
+  tween.raf = requestAnimationFrame(step); });
 $('sessTv').addEventListener('click', tvShare); $('planTv').addEventListener('click', tvShare);
 $('tvCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('tvLink').value); $('tvCopy').textContent = 'Copied'; setTimeout(() => $('tvCopy').textContent = 'Copy', 1500); } catch { $('tvLink').select(); } });
 $('tvHere').addEventListener('click', () => { $('tvDlg').close(); enterTvLayout(); });
