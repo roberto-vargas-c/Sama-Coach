@@ -36,6 +36,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="sama.rest" android:path="/" />
                 <data android:scheme="https" android:host="sama-coach-ai.vercel.app" android:path="/" />
             </intent-filter>
         </activity>

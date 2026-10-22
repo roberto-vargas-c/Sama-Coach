@@ -6040,7 +6040,7 @@ function nextPracticeStart(){ const sc = schedule(), [hh, mm] = sc.time.split(':
   for (let i = 0; i < 8; i++){ const d = dAdd(new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm), i); if (sc.days.includes(d.getDay()) && d > now) return d; } return dAdd(now, 1); }
 const gStamp = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}00`;
 function practiceRule(){ return `RRULE:FREQ=WEEKLY;BYDAY=${schedule().days.map(d => BYDAY[d]).join(',')}`; }
-const APP_URL = 'https://sama-coach-ai.vercel.app/';
+const APP_URL = 'https://sama.rest/';
 function gcalTemplateUrl(){
   const sc = schedule(), a = nextPracticeStart(), b = new Date(a.getTime() + sc.minutes*60e3);
   const q = new URLSearchParams({action:'TEMPLATE', text:'Yoga with Sama', dates:`${gStamp(a)}/${gStamp(b)}`, ctz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', recur: practiceRule(), details:`Your ${sc.minutes}-minute practice. Open Sama: ${APP_URL}`});
