@@ -97,6 +97,15 @@ figcaption{font-size:14.5px;color:var(--muted)}
 .tool .tlabel{font-family:var(--f-mono);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--terra)}
 .tool p{color:var(--muted);font-size:16.5px}
 .tool.wide{grid-column:span 2}
+.film{display:grid;grid-template-columns:auto repeat(4,minmax(0,1fr));gap:10px;align-items:center}
+.film .frow{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);writing-mode:vertical-rl;transform:rotate(180deg);margin:0;text-align:center}
+.film .shot{width:100%;height:auto;aspect-ratio:760/440;object-fit:cover}
+.steps5{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;counter-reset:st}
+.steps5 li{counter-increment:st;background:color-mix(in srgb,var(--terra) 8%,var(--paper));border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14.5px;line-height:1.4;color:var(--muted)}
+.steps5 li b{display:block;color:var(--ink);font-size:15.5px;margin-bottom:2px}
+.steps5 li b::before{content:counter(st) " · ";color:var(--terra)}
+.steps5 li:last-child{background:var(--ink);border-color:var(--ink);color:#FBF5EA}.steps5 li:last-child b{color:#EBC9A2}
+@media (max-width:760px){.steps5{grid-template-columns:1fr 1fr}.film{gap:6px;grid-template-columns:repeat(4,minmax(0,1fr))}.film .frow{grid-column:1/-1;writing-mode:horizontal-tb;transform:none;text-align:left;margin-top:4px}}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 .card{background:var(--paper-2);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:8px}
 section.alt .card{background:var(--paper)}
@@ -237,6 +246,19 @@ footer{padding-block:28px;font-size:14px;color:var(--muted)}
       <svg viewBox="0 0 640 520" role="img" aria-label="Two-bone leg: the hip and a planted foot are fixed; of the two knee positions that fit, the solver keeps the natural forward bend and rejects the flipped one" style="width:100%;height:auto;background:#FBF5EA;border-radius:14px"><rect x="60" y="440" width="520" height="22" rx="6" fill="#EBC9A2"/><path d="M200 60 L237 297 L430 440" fill="none" stroke="#B45A3C" stroke-width="12" stroke-linecap="round" stroke-dasharray="4 20"/><path d="M200 60 L393 203 L430 440" fill="none" stroke="#26344F" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/><circle cx="200" cy="60" r="18" fill="#FBF5EA" stroke="#26344F" stroke-width="7"/><circle cx="393" cy="203" r="18" fill="#FBF5EA" stroke="#26344F" stroke-width="7"/><circle cx="237" cy="297" r="14" fill="#FBF5EA" stroke="#B45A3C" stroke-width="5"/><circle cx="430" cy="440" r="18" fill="#26344F"/></svg>
       <p>Hip and planted foot are fixed; two knees fit. The solver stays near the last frame, leans into the natural bend, and eases into the end pose. Knees no longer snap across.</p></div>
     <div class="tool"><p class="tlabel">Transitions · Transition Studio</p><h3>Pause, drag, and the move bends</h3><img class="shot" src="/about/img/tool-studio.webp" alt="Transition Studio: Mountain to Standing Forward Fold paused mid-move with joint dots and a timeline" width="1400" height="875" decoding="async"><p>Drag the joints at the moment that looks wrong; it becomes a keyframe and the motion bends smoothly through it.</p></div>
+    <div class="tool wide"><p class="tlabel">Transitions · Real classes</p><h3>From a filmed class to a moving figure</h3>
+      <div class="film" role="group" aria-label="Down Dog to Plank: four frames from a filmed class with the detected skeleton, and the same four moments in Sama">
+        <p class="frow">Filmed class</p><img class="shot" src="/about/img/class-video0.webp" alt="Down Dog in a filmed class, the detected skeleton drawn over it" width="760" height="440" loading="lazy" decoding="async"><img class="shot" src="/about/img/class-video1.webp" alt="The hips start to lower" width="760" height="440" loading="lazy" decoding="async"><img class="shot" src="/about/img/class-video2.webp" alt="The body almost level" width="760" height="440" loading="lazy" decoding="async"><img class="shot" src="/about/img/class-video3.webp" alt="Plank, shoulders over wrists" width="760" height="440" loading="lazy" decoding="async">
+        <p class="frow">Sama</p><img class="shot" src="/about/img/class-sama0.webp" alt="The Sama figure in Down Dog" width="760" height="440" loading="lazy" decoding="async"><img class="shot" src="/about/img/class-sama1.webp" alt="The figure lowering its hips" width="760" height="440" loading="lazy" decoding="async"><img class="shot" src="/about/img/class-sama2.webp" alt="The figure almost level" width="760" height="440" loading="lazy" decoding="async"><img class="shot" src="/about/img/class-sama3.webp" alt="The figure in Plank" width="760" height="440" loading="lazy" decoding="async">
+      </div>
+      <ol class="steps5">
+        <li><b>Video</b>7 yoga classes, 5.2 hours</li>
+        <li><b>Skeleton</b>112,130 frames, 6 a second, through the app’s own pose model</li>
+        <li><b>Name</b>each frame matched to the closest of 165 poses</li>
+        <li><b>Time</b>still to still, the median per move, kept when 2+ classes show it</li>
+        <li><b>Animate</b>102 moves timed; hands, feet and hips move in the filmed order</li>
+      </ol>
+      <p>Down Dog → Plank, as filmed and as Sama plays it. Its timing is the median of 24 times the move happened across 6 classes. Every move is timed on real teachers, not guessed.</p></div>
     <div class="tool wide"><p class="tlabel">Audio · Voice Studio</p><h3>My own voice, one script at a time</h3>
       <div class="split" style="align-items:start"><img class="shot" src="/about/img/tool-voice.webp" alt="Voice Studio: a movement cue with its script, the clip list and a bulk upload area" width="1400" height="875" decoding="async">
         <div class="stack"><p>Every line as an editable script. Record on the phone, name each file by its clip, drop them in. Each one is then cleaned, levelled to −19 LUFS and trimmed.</p>
