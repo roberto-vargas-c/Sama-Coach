@@ -544,6 +544,9 @@ body.tv #viewCoach{display:none!important}
 .wbtns .btn{min-height:48px;font-size:15px}
 .wauth{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:10px;margin-top:4px}
 .wfoot{margin:0;font-size:12.5px;color:var(--muted);opacity:0;animation:wrise .8s ease-out 3.1s forwards}
+.wlang{display:flex;gap:4px;justify-content:center;margin-top:10px}
+.wlang button{border:none;background:none;font:inherit;font-size:13.5px;color:var(--muted);padding:8px 10px;border-radius:999px;cursor:pointer}
+.wlang button[aria-pressed="true"]{color:var(--ink);font-weight:700;background:color-mix(in srgb,var(--ink) 7%,transparent)}
 @media (prefers-reduced-motion: reduce){.welcome *{animation-duration:.01s!important;animation-delay:0s!important}}
 .welcome.leaving{animation:wfade .45s ease-in forwards}
 @keyframes wfade{to{opacity:0;transform:scale(1.02)}}
@@ -595,6 +598,7 @@ body.tv #viewCoach{display:none!important}
 .pcard h2{font-family:var(--f-display);font-weight:400;font-size:21px;margin:0}
 .pcard h4{margin:6px 0 0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .pcard .hint{margin:0;font-size:13.5px;color:var(--muted)}
+.voicelang{margin:8px 0 0;font-size:13.5px;color:var(--muted);line-height:1.45}.abody .voicelang{margin:-2px 0 10px}
 .pcard textarea{font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);width:100%;resize:vertical;line-height:1.45}
 .pcard textarea:focus{outline:none;border-color:var(--accent)}
 .pcard .label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -738,6 +742,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
       </div>
     </div>
     <p class="wfoot">Photos and clips stay on your device. The coach only ever reads text.</p>
+    <div class="wlang wfoot" translate="no" role="group" aria-label="Language"><button type="button" data-l="en">English</button><button type="button" data-l="es">Español</button><button type="button" data-l="de">Deutsch</button></div>
   </div>
 </div>
 <div class="onboard" id="onboard" hidden>
@@ -833,6 +838,8 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
       <details class="avatar" id="avatarBox">
         <summary><span>Settings</span><b id="avatarSum">Scene, voice, camera</b></summary>
         <div class="abody">
+          <div class="arow"><span>Language</span><div class="segs" data-k="lang" translate="no"><button type="button" class="seg" data-v="en">English</button><button type="button" class="seg" data-v="es">Español</button><button type="button" class="seg" data-v="de">Deutsch</button></div></div>
+          <p class="hint voicelang" hidden>The voice guide in practices speaks English for now. Everything else is in your language.</p>
           <div class="arow"><span>Pose engine</span><div class="segs" data-k="engine"><button type="button" class="seg" data-v="auto">Auto</button><button type="button" class="seg" data-v="wasm">WebAssembly</button><button type="button" class="seg" data-v="gpu">GPU</button><button type="button" class="seg" data-v="cpu">CPU</button></div></div>
           <div class="arow"><span>Transition</span><div class="segs" data-k="trans"><button type="button" class="seg" data-v="blob">Blob</button><button type="button" class="seg" data-v="moves">Movement</button></div></div>
           <div class="arow"><span>Movement</span><div class="segs" data-k="pace"><button type="button" class="seg" data-v="calm">Calm</button><button type="button" class="seg" data-v="flowing">Flowing</button><button type="button" class="seg" data-v="quick">Quick</button></div></div>
@@ -911,6 +918,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
         <div class="pbtns"><button class="btn" id="planEdit" type="button" aria-pressed="false">Rearrange</button><button class="btn" id="planShuffle" type="button">Shuffle</button><button class="btn" id="planSave" type="button">Save</button></div>
       </div>
       <div class="pstart"><button class="btn primary" id="planStart" type="button">Start guided practice</button><button class="btn" id="planTv" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Show on TV</button></div>
+      <p class="voicelang" hidden>The voice guide speaks English for now. Everything on screen is in your language.</p>
       <ol class="plist" id="planList"></ol>
       <ul class="saved" id="savedList" hidden></ul>
     </div>
@@ -1157,11 +1165,13 @@ Savasana, 3 min"></textarea>
   </form>
 </dialog>
 
+<script src="/i18n/i18n.js"></script>
 <script src="/vendor/tf.min.js"></script>
 <script src="/vendor/tf-backend-wasm.min.js"></script>
 <script>
 (() => {
 const $ = id => document.getElementById(id);
+const LOC = () => (window.SamaI18n && SamaI18n.lang !== 'en') ? SamaI18n.lang : undefined; // dates and months in the chosen language
 // 27 points: MoveNet's 17 body points, then hands and feet from BlazePose.
 const KI = {nose:0,leye:1,reye:2,lear:3,rear:4,ls:5,rs:6,le:7,re:8,lw:9,rw:10,lh:11,rh:12,lk:13,rk:14,la:15,ra:16,
   lpi:17,rpi:18,lix:19,rix:20,lth:21,rth:22,lhe:23,rhe:24,lft:25,rft:26};
@@ -3819,7 +3829,7 @@ function drawFriendlyChecks(K, u, t){
   ctx.font = `600 ${12.5*u}px Figtree, system-ui, sans-serif`; ctx.textBaseline = 'middle';
   const placed = [];
   for (const {x, at} of spots){
-    const txt = x.c.l + (x.c.sides && x.side ? ` · ${x.side==='l' ? 'left' : 'right'}` : ''), tw = ctx.measureText(txt).width + 18*u, th = 24*u;
+    const T_ = window.SamaI18n ? SamaI18n.tr : (s => s), txt = T_(x.c.l) + (x.c.sides && x.side ? ` · ${T_(x.side==='l' ? 'left' : 'right')}` : ''), tw = ctx.measureText(txt).width + 18*u, th = 24*u;
     let lx = at.x + 30*u, ly = at.y - 28*u;
     if (lx + tw > cv.width - 6) lx = at.x - 30*u - tw;
     lx = Math.min(Math.max(lx, 6), cv.width - tw - 6); ly = Math.min(Math.max(ly, th/2 + 6), cv.height - th/2 - 6);
@@ -3995,7 +4005,7 @@ function renderHist(h = getHist()){
   for (const e of h.slice(0,8)){
     const li = document.createElement('li');
     const p = POSES.find(p => p.id===e.pose);
-    const d = new Date(e.at).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+    const d = new Date(e.at).toLocaleString(LOC(), {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
     li.innerHTML = `<span><span class="pn"></span> <span class="d"></span></span><span class="sc"></span>`;
     li.querySelector('.pn').textContent = e.label || (p ? p.name : e.pose);
     li.querySelector('.d').textContent = `· ${d}`;
@@ -4232,7 +4242,7 @@ $('voice').addEventListener('click', () => {
   vs.voice = !vs.voice; $('voice').setAttribute('aria-pressed', vs.voice);
   if (vs.voice) say(`Cues on for ${pose.name}.`);
 });
-function say(t){ try { if (tvConn) return; if (!('speechSynthesis' in window)) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = .95; speechSynthesis.speak(u); } catch {} }
+function say(t){ try { if (tvConn) return; if (!('speechSynthesis' in window)) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = .95; speechSynthesis.speak(u); } catch {} }
 function speakCue(){
   if (!vs.voice || !last) return;
   const now = performance.now(); if (now - vs.lastSpoke < 4000) return;
@@ -4842,7 +4852,7 @@ function renderSaved(){
 }
 $('planShuffle').addEventListener('click', () => { planOpts.seed = (planOpts.seed*7919 + 17) % 1000003; makePlan(); });
 $('planSave').addEventListener('click', () => {
-  const name = `${FOCUS[plan.opts.focus].label} · ${fmtMin(plan.total)} · ${new Date().toLocaleDateString(undefined,{month:'short', day:'numeric'})}`;
+  const name = `${FOCUS[plan.opts.focus].label} · ${fmtMin(plan.total)} · ${new Date().toLocaleDateString(LOC(),{month:'short', day:'numeric'})}`;
   const a = [{name, plan}, ...getSaved()].slice(0, 12); try { localStorage.setItem(SK, JSON.stringify(a)); } catch {}
   renderSaved(); cloudPush(); $('planSave').textContent = 'Saved'; setTimeout(() => $('planSave').textContent = 'Save', 1500);
 });
@@ -5447,7 +5457,7 @@ function renderLib(){
   const q = norm_(lib.q).split(/\s+/).filter(Boolean); let n = 0;
   for (const card of grid.children){
     const p = POSES.find(x => x.id===card.dataset.id), m = META[p.id] || {tags:[]}, info = POSE_INFO[p.id] || {about:'', consider:[]};
-    const hay = norm_([p.name, p.sk, p.cat, info.about, ...m.tags].join(' '));
+    const T_ = window.SamaI18n ? SamaI18n.tr : (s => s), hay = norm_([p.name, T_(p.name), p.sk, p.cat, T_(p.cat), info.about, ...m.tags].join(' '));
     const vis = (lib.cat==='All' || p.cat===lib.cat) && (!lib.lvl || diffOf(p.id)===lib.lvl) && (!lib.tag || m.tags.includes(lib.tag) || (lib.tag==='yin' && YIN_POOL.includes(p.id))) && q.every(w => hay.includes(w));
     card.hidden = !vis; if (vis) n++;
   }
@@ -5487,6 +5497,8 @@ const LIB_LEGEND = 'Pose library, one per line: id|name|difficulty L1 gentle …
 async function askCoach(messages, {json = false, signal, temperature} = {}){
   if (!COACH_URL) throw Object.assign(new Error('This copy of Sama is not connected to a coach server. Set the deployment address in the sama-coach-url meta tag.'), {code:'no_key'});
   let r;
+  { const L = window.SamaI18n && SamaI18n.lang, name = {es:'Spanish (neutral international Spanish, addressing the person as tú)', de:'German (addressing the person as du)'}[L];
+    if (name) messages = [...messages, {role:'system', content:`Write everything the person will read in ${name}. Pose names: use the usual ${L === 'es' ? 'Spanish' : 'German'} name, with the Sanskrit name where helpful. Keep JSON keys, pose ids and any ids or codes you are asked for exactly as specified, in English.`}]; }
   try { r = await fetch(COACH_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({messages, json, temperature}), signal}); }
   catch (e){ if (e && e.name === 'AbortError') throw Object.assign(new Error('Stopped.'), {code:'cancelled'}); throw Object.assign(new Error('Could not reach the coach. Check your connection.'), {code:'network'}); }
   let data = null; try { data = await r.json(); } catch {}
@@ -5681,7 +5693,7 @@ async function renderOptions(out){
 function checksDigest(){
   const h = getHist(), lines = [];
   for (const e of h.slice(0, 20)){
-    const d = new Date(e.at).toLocaleDateString(undefined, {month:'short', day:'numeric'});
+    const d = new Date(e.at).toLocaleDateString(LOC(), {month:'short', day:'numeric'});
     if (e.pose === 'practice') lines.push(`${d}: completed a ${Math.round(e.hold / 60)} min ${e.label || 'practice'}`);
     else lines.push(`${d}: ${poseName(e.pose)} ${e.score ?? '–'}/100${e.hold ? `, held in line ${e.hold.toFixed(1)} s` : ''}`);
   }
@@ -5887,7 +5899,7 @@ function reelFrame(now){
 }
 function reelFx(g, sl, el, R, now){
   const S = 720, acc = css('--accent') || '#B85A3B', ink = css('--ink') || '#2D2622';
-  const pill = (x, y, txt, color, a = 1) => { g.save(); g.globalAlpha = a; g.font = '600 26px system-ui, -apple-system, Segoe UI, sans-serif'; const w = g.measureText(txt).width + 36;
+  const pill = (x, y, txt, color, a = 1) => { if (window.SamaI18n) txt = SamaI18n.tr(txt); g.save(); g.globalAlpha = a; g.font = '600 26px system-ui, -apple-system, Segoe UI, sans-serif'; const w = g.measureText(txt).width + 36;
     g.fillStyle = '#fff'; g.shadowColor = 'rgba(0,0,0,.12)'; g.shadowBlur = 12; roundRectOn(g, x - w/2, y - 24, w, 48, 24); g.fill(); g.shadowBlur = 0; g.fillStyle = color; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, x, y + 1); g.restore(); };
   const ap = (t0, t1) => Math.max(0, Math.min(1, (el - t0)/(t1 - t0)));
   if (sl.fx === 'voice'){ // sound waves beside the figure's head, and a bubble of what the voice says
@@ -6136,7 +6148,7 @@ function practisedOn(){ const m = {}; for (const e of getHist()) if (e.pose === 
 function renderCalendar(){
   const grid = $('calGrid'); if (!grid) return;
   const sc = schedule(), done = practisedOn(), today = dKey(new Date()), y = calMonth.getFullYear(), mo = calMonth.getMonth();
-  $('calMonth').textContent = calMonth.toLocaleDateString(undefined, {month:'long', year:'numeric'});
+  $('calMonth').textContent = calMonth.toLocaleDateString(LOC(), {month:'long', year:'numeric'});
   grid.textContent = '';
   for (const [, l] of WEEKDAYS){ const w = document.createElement('div'); w.className = 'wd'; w.textContent = l.slice(0, 2); grid.appendChild(w); }
   const first = new Date(y, mo, 1), lead = (first.getDay() + 6) % 7, start = dAdd(first, -lead), showCycle = cycleOn() && cycle.adapt;
@@ -6164,7 +6176,7 @@ function renderCalendar(){
 function renderCalDay(){
   const box = $('calDay'), d = dParse(calSel), k = calSel, today = dKey(new Date()), sc = schedule(), done = practisedOn()[k];
   box.textContent = '';
-  const h = document.createElement('b'); h.textContent = d.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'}); box.appendChild(h);
+  const h = document.createElement('b'); h.textContent = d.toLocaleDateString(LOC(), {weekday:'long', day:'numeric', month:'long'}); box.appendChild(h);
   const line = t => { const p = document.createElement('span'); p.textContent = t; box.appendChild(p); return p; };
   if (done) line(`Practised ${Math.max(1, Math.round(done/60))} min.`);
   else if (sc.days.includes(d.getDay()) && k >= today) line(`Practice planned at ${sc.time}, ${sc.minutes} min.`);
@@ -6246,7 +6258,7 @@ async function gcalLoadMonth(y, mo){
     const j = await gcalFetch(`calendars/primary/events?${q}`), gid = schedule().gEvent;
     for (const e of j.items || []){
       const st = e.start && (e.start.dateTime || e.start.date); if (!st) continue; const d = e.start.dateTime ? new Date(st) : dParse(st), k = dKey(d);
-      (GCAL.events[k] = GCAL.events[k] || []).push({title: e.summary || '(busy)', time: e.start.dateTime ? d.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'}) : '', sama: !!(gid && e.recurringEventId === gid) || e.id === gid});
+      (GCAL.events[k] = GCAL.events[k] || []).push({title: e.summary || '(busy)', time: e.start.dateTime ? d.toLocaleTimeString(LOC(), {hour:'2-digit', minute:'2-digit'}) : '', sama: !!(gid && e.recurringEventId === gid) || e.id === gid});
     }
     for (const k in GCAL.events){ const seen = new Set(); GCAL.events[k] = GCAL.events[k].filter(e => { const h = e.time + e.title; if (seen.has(h)) return false; seen.add(h); return true; }); }
     renderCalendar();
@@ -6277,7 +6289,7 @@ function renderCycle(){
   else { const ph = CYCLE_PHASES[c.phase]; b.textContent = `Today: ${ph.label}, day ${c.day}${c.predicted ? ' (estimated)' : ''}`; pp.textContent = ph.text; }
   now.append(b, pp);
   const next = cycle.periods.length ? dAdd(dParse(cycle.periods[cycle.periods.length - 1].start), cycleLen()) : null;
-  if (next && next > new Date()){ const n = document.createElement('p'); n.className = 'hint'; n.textContent = `Next period expected around ${next.toLocaleDateString(undefined, {day:'numeric', month:'long'})} (cycle of ${cycleLen()} days).`; now.appendChild(n); }
+  if (next && next > new Date()){ const n = document.createElement('p'); n.className = 'hint'; n.textContent = `Next period expected around ${next.toLocaleDateString(LOC(), {day:'numeric', month:'long'})} (cycle of ${cycleLen()} days).`; now.appendChild(n); }
   const row = $('cycBtns'); row.textContent = '';
   const btn = (t, f, primary) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn small' + (primary ? ' primary' : ''); x.textContent = t; x.onclick = f; row.appendChild(x); };
   const today = dKey(new Date());
@@ -6322,7 +6334,7 @@ function renderProfile(){
   }
   pfFig.setPose(profile.goal && REF_SPECS[profile.goal] ? profile.goal : 'mountain');
   $('pfName').value = profile.name; $('pfNotes').value = profile.notes;
-  $('pfSince').textContent = profile.createdAt ? `Practising with Sama since ${new Date(profile.createdAt).toLocaleDateString(undefined, {month:'long', year:'numeric'})}` : 'New here';
+  $('pfSince').textContent = profile.createdAt ? `Practising with Sama since ${new Date(profile.createdAt).toLocaleDateString(LOC(), {month:'long', year:'numeric'})}` : 'New here';
   segmented($('pfGender'), [['woman','Woman'],['man','Man'],['open','Prefer not to say']], profile.gender || 'open', v => { saveProfile({gender:v}); renderProfile(); renderPlannerForm(); });
   segmented($('pfLevel'), [[1,'Beginner'],[2,'Intermediate'],[3,'Advanced']], profile.level, v => { saveProfile({level:v}); renderProfile(); });
   segmented($('pfBody'), BODY_OPTS, profile.body, v => { saveProfile({body: profile.body.includes(v) ? profile.body.filter(x => x !== v) : [...profile.body, v]}); renderProfile(); }, true);
@@ -6348,7 +6360,7 @@ function renderProfile(){
   const ul = $('pfHist'); ul.textContent = '';
   if (!h.length){ const li = document.createElement('li'); li.innerHTML = '<span class="d">No checks yet.</span>'; ul.appendChild(li); }
   for (const e of h.slice(0, 6)){
-    const li = document.createElement('li'); const d = new Date(e.at).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+    const li = document.createElement('li'); const d = new Date(e.at).toLocaleString(LOC(), {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
     li.innerHTML = '<span><span class="pn"></span> <span class="d"></span></span><span class="sc"></span>';
     li.querySelector('.pn').textContent = e.label || poseName(e.pose); li.querySelector('.d').textContent = `· ${d}`;
     li.querySelector('.sc').textContent = e.pose === 'practice' ? `${Math.round(e.hold/60)} min done` : `${e.score ?? '–'}/100`;
@@ -6526,6 +6538,13 @@ function tapTipOnce(){
   t.innerHTML = '<div><b>‹</b>Tap here<br>to go back</div><div><b>❙❙</b>Tap the middle<br>to pause</div><div><b>›</b>Tap here<br>for the next pose</div><small>Tap anywhere to start</small>';
   const close = () => { t.remove(); }; t.addEventListener('click', close); setTimeout(close, 6500); cv.parentNode.append(t);
 }
+// the voice guide is English only for now: say so wherever it matters, in any other language
+(function(){ const box = document.querySelector('.wlang'); if (!box) return; // the language, right on the welcome screen
+  const mark = () => { for (const b of box.children) b.setAttribute('aria-pressed', String(!!window.SamaI18n && b.dataset.l === SamaI18n.lang)); };
+  box.addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (b && window.SamaI18n) SamaI18n.setLang(b.dataset.l).then(mark); });
+  mark(); document.addEventListener('sama:lang', mark); })();
+function voiceLangNotes(){ const on = !!(window.SamaI18n && SamaI18n.lang !== 'en'); for (const el of document.querySelectorAll('.voicelang')) el.hidden = !on; }
+voiceLangNotes(); document.addEventListener('sama:lang', voiceLangNotes);
 // "Did you know?" tips: one small card at a time, never during a practice, the camera, the tour or the welcome, at most
 // once a day; each tip shows once and only while it is still news (the setting untouched, the cycle not set up, ...)
 const DYK = (() => {
@@ -6540,6 +6559,9 @@ const DYK = (() => {
     {id:'period', when:() => profile.gender !== 'man' && !(cycle.periods || []).length, title:'Sama can follow your cycle',
       text:'Add when your last period started and practices turn softer on your period and stronger when your energy is up. It stays on this device.',
       go:() => { switchView('profile'); const c = $('cycleCard'); if (c) c.hidden = false; return $('cycStart')?.closest('.crow') || c; }},
+    {id:'lang', when:() => !!(window.SamaI18n && SamaI18n.lang === 'en'), title:'Sama speaks Spanish and German too',
+      text:'Switch the language at the top of Settings. The voice guide in practices stays in English for now.',
+      go:() => settingsRow('lang')},
     {id:'camat', title:'Put the phone in front of the mat or beside it',
       text:'Sama works out where the camera is and checks the pose from that side. You can also set it yourself in Settings.',
       go:() => settingsRow('camat')},
@@ -6619,7 +6641,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
   for (const sw of box.querySelectorAll('.swatches')){ const k = sw.dataset.k; for (const c of AVATAR_CHOICES[k]){ const b = document.createElement('button'); b.type = 'button'; b.style.background = c; b.dataset.v = c; b.setAttribute('aria-label', k + ' ' + c); sw.appendChild(b); } }
   for (const grp of box.querySelectorAll('.segs[data-k]')) dropdownify(grp, {right:true});
   const sync = () => {
-    for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='camview' ? camView : k==='camat' ? camAt : k==='sceneset' ? scene : k==='motionset' ? (motionOn ? 'on' : 'off') : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===String(cur))); }
+    for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='lang' ? (window.SamaI18n ? SamaI18n.lang : 'en') : k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='camview' ? camView : k==='camat' ? camAt : k==='sceneset' ? scene : k==='motionset' ? (motionOn ? 'on' : 'off') : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===String(cur))); }
     only.hidden = false;
     $('avatarSum').textContent = 'Scene, voice, camera';
   };
@@ -6627,6 +6649,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
     const b = e.target.closest('button[data-v]'); if (!b) return; const k = b.closest('[data-k]').dataset.k;
     if (k==='pace'){ pace = b.dataset.v; try { localStorage.setItem('sama.pace', pace); } catch {} sync(); return; }
     if (k==='engine'){ engine = b.dataset.v; try { localStorage.setItem('sama.engine', engine); } catch {} sync(); (async () => { try { await pickBackend(); photoCpu = false; $('model').textContent = `Pose models ready · ${tf.getBackend()}`; selfTest().catch(() => {}); } catch {} })(); return; }
+    if (k==='lang'){ if (window.SamaI18n) SamaI18n.setLang(b.dataset.v).then(sync); return; }
     if (k==='trans'){ transStyle = b.dataset.v; try { localStorage.setItem('sama.trans', transStyle); } catch {} sync(); return; }
     if (k==='overlay'){ showOverlay = b.dataset.v==='on'; try { localStorage.setItem('sama.overlay', b.dataset.v); } catch {} sync(); render(); return; }
     if (k==='inset'){ showInset = b.dataset.v==='on'; try { localStorage.setItem('sama.inset', b.dataset.v); } catch {} sync(); render(); return; }
@@ -6648,7 +6671,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
   hIn.addEventListener('change', () => { saveAvatar(); retheme(); reRef(); });
   for (const h of hosts) h.addEventListener('click', e => { if (e.target.closest && e.target.closest('[data-k="matLen"]')) setTimeout(reRef, 0); });
   showH();
-  sync(); window.__syncLook = () => { sync(); showH(); };
+  sync(); window.__syncLook = () => { sync(); showH(); }; document.addEventListener('sama:lang', sync);
 })();
 const themeBtns = [...document.querySelectorAll('.theme button')];
 function setTheme(t, save = true){
