@@ -3022,7 +3022,8 @@ function drawBlobLogo(g, R){
   const L = logoMix(R); if (L <= 0) return;
   const r = flatHeadR(R), k = r/84, slide = (1 - L)*6; // the halves start closed (a plain circle) and part into the logo
   g.save(); g.globalAlpha *= L;
-  g.translate(R.head.x, R.head.y); g.scale(k, k); g.translate(-100, -100);
+  const turn = R.spin != null ? R.spin*Math.PI*2*(R.spinDir || 1) : -(1 - L)*Math.PI/2; // without a timed change (previews), it rolls in a quarter turn
+  g.translate(R.head.x, R.head.y); g.rotate(turn); g.scale(k, k); g.translate(-100, -100);
   g.save(); g.translate(slide, 0); g.fillStyle = '#B45A3C'; g.fill(LOGO_L); g.restore();
   g.save(); g.translate(-slide, 0); g.fillStyle = '#EBC9A2'; g.fill(LOGO_R); g.restore();
   g.restore();
@@ -3527,6 +3528,7 @@ function showReference(mirrored = refMirror){
       else if (at < dMelt + dHold){ const u = (at - dMelt)/dHold, sq = 1 + .06*Math.sin(Math.PI*u); const Rb = blobRef(target, 1, cA + (cB - cA)*ez(u)); curRef = {...Rb, scale: Rb.scale*sq, headR: Rb.headR*sq}; }
       else curRef = blobRef(target, 1 - ez((at - dMelt - dHold)/dGrow), cB);
       { const oa = (from.base || from).matOff || [0, 0], ob = target.matOff || [0, 0], m = ez(at/total); curRef = {...curRef, matOff: [oa[0] + (ob[0] - oa[0])*m, oa[1] + (ob[1] - oa[1])*m]}; }
+      curRef.spin = (at - dMelt - dHold/2)/total; curRef.spinDir = cB >= cA ? 1 : -1; // the logo turns once over the whole change, upright in the middle, rolling the way it travels
       render();
       if (at < total) tween.raf = requestAnimationFrame(step); else { tween = null; curRef = target; kp = target.kp; refresh(); }
     };
