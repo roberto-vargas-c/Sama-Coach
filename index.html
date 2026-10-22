@@ -5875,17 +5875,17 @@ function profileSummary(){
 // It breathes while idle and melts into a blob and grows back out when it changes pose.
 // ---------- the feature reel: tap the logo; a short animated tour of what Sama does, drawn live with your own figure ----------
 const REEL = [
-  {title:'A practice that guides you', text:'Sama talks you through every pose with a calm voice, breath reminders and soft music.', scene:'studio', poses:['mountain','upsalute','forwardfold','halflift','dog'], beat:1500, fx:'voice'},
-  {title:'Moves like a real class', text:'The figure steps, folds and jumps from pose to pose, timed on seven filmed yoga classes.', scene:'studio', poses:['mountain','forwardfold','plank','dog','lowlunge'], beat:2300, fx:'moves', moves:true},
-  {title:'You become the figure', text:'Put your phone in front of the mat or beside it. The figure moves with you, and your video never leaves your phone.', scene:'living', poses:['warrior2','reversewarrior','triangle'], beat:1700, fx:'camera'},
-  {title:'Friendly corrections', text:'Small, kind cues for what to adjust, and a cheer when you are in line.', scene:'plain', poses:['tree'], beat:4200, fx:'checks'},
-  {title:'165 poses, gentle to advanced', text:'Standing, seated, balances, backbends, inversions and wrist care, each with its story.', scene:'plain', poses:['crow','wheel','dancer','pigeon','headstand','lotus','halfmoon','camel'], beat:560},
-  {title:'A figure that looks like you', text:'Skin, hair, build, clothes and mat, at your own height on a standard or XL mat.', scene:'plain', poses:['tree','warrior2','chair','goddess','highlunge'], beat:1150, fx:'looks'},
-  {title:'A coach that plans with you', text:'Plans for your body and your goals, a road to your dream pose, and your practice days in your calendar.', scene:'beach', poses:['lowlunge','crescentmoon','warrior1'], beat:1500, fx:'plan'},
-  {title:'Practice that follows your cycle', text:'Softer on your period, stronger when your energy is up. It stays on your phone.', scene:'living', poses:['child','reclinedbound','cat','warrior2'], beat:1300, fx:'cycle'},
+  {title:'A practice that guides you', text:'Sama talks you through every pose with a calm voice, breath reminders and soft music.', scene:'studio', poses:['mountain','upsalute','forwardfold','halflift','dog'], beat:2400, fx:'voice'},
+  {title:'Moves like a real class', text:'The figure steps, folds and jumps from pose to pose, timed on seven filmed yoga classes.', scene:'studio', poses:['mountain','forwardfold','plank','dog','lowlunge'], beat:3300, fx:'moves', moves:true},
+  {title:'You become the figure', text:'Put your phone in front of the mat or beside it. The figure moves with you, and your video never leaves your phone.', scene:'living', poses:['warrior2','reversewarrior','triangle'], beat:2600, fx:'camera'},
+  {title:'Friendly corrections', text:'Small, kind cues for what to adjust, and a cheer when you are in line.', scene:'plain', poses:['tree'], beat:4600, fx:'checks'},
+  {title:'165 poses, gentle to advanced', text:'Standing, seated, balances, backbends, inversions and wrist care, each with its story.', scene:'plain', poses:['crow','wheel','dancer','pigeon','headstand','camel'], beat:1500},
+  {title:'A figure that looks like you', text:'Skin, hair, build, clothes and mat, at your own height on a standard or XL mat.', scene:'plain', poses:['tree','warrior2','chair','goddess','highlunge'], beat:1900, fx:'looks'},
+  {title:'A coach that plans with you', text:'Plans for your body and your goals, a road to your dream pose, and your practice days in your calendar.', scene:'beach', poses:['lowlunge','crescentmoon','warrior1'], beat:2300, fx:'plan'},
+  {title:'Practice that follows your cycle', text:'Softer on your period, stronger when your energy is up. It stays on your phone.', scene:'living', poses:['child','reclinedbound','cat','warrior2'], beat:2100, fx:'cycle'},
   {title:'English, Español, Deutsch', text:'The whole app in your language. The voice guide speaks English for now.', scene:'plain', poses:['easy'], beat:4200, fx:'langs'},
-  {title:'Practise anywhere', text:'Your living room, the beach, the park or a rooftop under the stars.', scene:['park','mountains','night','beach'], poses:['easy'], beat:1100},
-  {title:'Sama', text:'Your alignment, your practice, your coach.', scene:'plain', poses:['mountain'], beat:3500, end:true},
+  {title:'Practise anywhere', text:'Your living room, the beach, the park or a rooftop under the stars.', scene:['park','mountains','night','beach'], poses:['easy'], beat:1800},
+  {title:'Sama', text:'Your alignment, your practice, your coach.', scene:'plain', poses:['mountain'], beat:4000, end:true},
 ];
 const reel = {i:0, t0:0, raf:0, R:null, from:null, to:null, tp:0, pose:0, last:0, segs:null};
 const REEL_LOOKS = [
@@ -5905,7 +5905,7 @@ function reelSlide(i){
   $('rGo').hidden = !sl.end;
   [...$('rBars').children].forEach((b, k) => { b.firstChild.style.width = k < reel.i ? '100%' : '0'; });
 }
-function reelDur(sl){ return sl.end ? sl.beat : Math.max(3600, sl.poses.length*sl.beat); }
+function reelDur(sl){ return sl.end ? sl.beat : Math.max(3600, sl.poses.length*sl.beat, Array.isArray(sl.scene) ? sl.scene.length*sl.beat : 0); }
 function reelFrame(now){
   reel.raf = requestAnimationFrame(reelFrame);
   const sl = REEL[reel.i], el = now - reel.t0, dur = reelDur(sl);
@@ -5918,11 +5918,11 @@ function reelFrame(now){
   const ez = u => u*u*u*(u*(u*6-15)+10);
   let R = reel.to, u = 1;
   if (reel.segs){ // the real route, as one continuous movement
-    const total = reel.segs.reduce((a, sg) => a + sg.dur, 0), span = Math.min(sl.beat*.85, total);
+    const total = reel.segs.reduce((a, sg) => a + sg.dur, 0), span = Math.min(sl.beat*.8, Math.max(total, 1800));
     u = Math.min(1, (now - reel.tp)/span); const gt = u*u*(3 - 2*u)*total; let acc = 0, si = 0;
     while (si < reel.segs.length - 1 && acc + reel.segs[si].dur <= gt){ acc += reel.segs[si].dur; si++; }
     const sg = reel.segs[si]; if (u < 1) R = lerpRef(sg.from, sg.to, Math.min(1, (gt - acc)/sg.dur), sg.hop, true);
-  } else { u = Math.min(1, (now - reel.tp)/Math.min(900, sl.beat*.8));
+  } else { u = Math.min(1, (now - reel.tp)/Math.min(1500, sl.beat*.7));
     if (u < 1){ if (!reel.from) R = blobRef(reel.to, 1 - ez(u)); else if (u < .45) R = blobRef(reel.from, ez(u/.45), blobRef(reel.to, 1).head.x); else R = blobRef(reel.to, 1 - ez((u - .45)/.55)); } }
   if (!R) return; reel.R = u < 1 ? R : reel.to;
   const cv = $('rCv'), g = cv.getContext('2d'), S = 720, sc = cv.width/S;
@@ -5955,7 +5955,7 @@ function reelFx(g, sl, el, R, now){
   if (sl.fx === 'moves') pill(S/2, 70, 'Timed on 7 filmed classes', ink, ap(300, 700));
   if (sl.fx === 'looks') pill(S/2, 70, 'Your height · your mat', ink, ap(600, 1000));
   if (sl.fx === 'cycle'){
-    const st = [['Day 2 · rest and soften', '#D9677B'], ['Day 2 · rest and soften', '#D9677B'], ['Day 2 · rest and soften', '#D9677B'], ['Day 12 · energy is up', '#2E8B57']][Math.min(3, Math.floor(el/1300))];
+    const st = [['Day 2 · rest and soften', '#D9677B'], ['Day 2 · rest and soften', '#D9677B'], ['Day 2 · rest and soften', '#D9677B'], ['Day 12 · energy is up', '#2E8B57']][Math.min(3, Math.floor(el/sl.beat))];
     pill(S/2, 70, st[0], st[1], ap(200, 600));
   }
   if (sl.fx === 'langs'){
@@ -5970,9 +5970,6 @@ function reelFx(g, sl, el, R, now){
     const items = ['Mon · Wake up flow · 20 min', 'Wed · Hips · 30 min', 'Sat · Toward Crow · 45 min'];
     items.forEach((t, k) => pill(S/2, 60 + k*58, t, ink, ap(300 + k*400, 700 + k*400)));
   }
-  if (sl.end){ g.save(); g.globalAlpha = ap(200, 900); g.translate(S/2 - 50, 60); g.scale(100/132, 100/132); g.strokeStyle = acc; g.fillStyle = acc; g.lineCap = 'round';
-    g.lineWidth = 6; g.globalAlpha *= .4; g.beginPath(); g.moveTo(66, 14); g.lineTo(66, 118); g.stroke(); g.globalAlpha /= .4;
-    g.lineWidth = 12; g.beginPath(); g.moveTo(18, 112); g.bezierCurveTo(18, 60, 50, 46, 66, 24); g.bezierCurveTo(82, 46, 114, 60, 114, 112); g.stroke(); g.beginPath(); g.arc(66, 24, 12, 0, Math.PI*2); g.fill(); g.restore(); }
 }
 (function(){
   const b = document.querySelector('.brand'); if (!b) return; b.setAttribute('role', 'button'); b.setAttribute('tabindex', '0'); b.title = 'What Sama can do';
