@@ -271,13 +271,13 @@ footer{padding-block:28px;font-size:14px;color:var(--muted)}
         <p class="frow">Sama</p><img class="shot" src="/about/img/class-sama0.webp" alt="The Sama figure in Down Dog" width="760" height="440" loading="lazy" decoding="async"><img class="shot" src="/about/img/class-sama1.webp" alt="The figure lowering its hips" width="760" height="440" loading="lazy" decoding="async"><img class="shot" src="/about/img/class-sama2.webp" alt="The figure almost level" width="760" height="440" loading="lazy" decoding="async"><img class="shot" src="/about/img/class-sama3.webp" alt="The figure in Plank" width="760" height="440" loading="lazy" decoding="async">
       </div>
       <ol class="steps5">
-        <li><b>Video</b>7 yoga classes, 5.2 hours</li>
+        <li><b>Video</b>full yoga classes, start to finish</li>
         <li><b>Skeleton</b>112,130 frames, 6 a second, through the app’s own pose model</li>
         <li><b>Name</b>each frame matched to the closest of 165 poses</li>
-        <li><b>Time</b>still to still, the median per move, kept when 2+ classes show it</li>
+        <li><b>Time</b>still to still, the median per move, kept only when more than one class shows it</li>
         <li><b>Animate</b>102 moves timed; hands, feet and hips move in the filmed order</li>
       </ol>
-      <p>Down Dog → Plank, as filmed and as Sama plays it. Its timing is the median of 24 times the move happened across 6 classes. Every move is timed on real teachers, not guessed.</p></div>
+      <p>Down Dog → Plank, as filmed and as Sama plays it. Its timing is the median of every time the move happened in class. Every move is timed on real teachers, not guessed.</p></div>
     <div class="tool wide"><p class="tlabel">Audio · Voice Studio</p><h3>My own voice, one script at a time</h3>
       <div class="split" style="align-items:start"><img class="shot" src="/about/img/tool-voice.webp" alt="Voice Studio: a movement cue with its script, the clip list and a bulk upload area" width="1400" height="875" decoding="async">
         <div class="stack"><p>Every line as an editable script. Record on the phone, name each file by its clip, drop them in. Each one is then cleaned, levelled to −19 LUFS and trimmed.</p>
@@ -311,7 +311,7 @@ footer{padding-block:28px;font-size:14px;color:var(--muted)}
       <p>Hands, feet and knees that are on the mat in both poses are pinned. Every frame, two-bone inverse kinematics re-solves the elbow or knee so the hand or foot does not drift.</p>
       <ul class="mlist"><li>A knee only folds one way: the solver uses the joint’s hinge axis, and when a leg is straight at one end it follows the thigh’s swing, so knees open outward instead of crossing.</li><li>A foot that must travel <b>steps</b>: the body shifts first, the foot lifts about a third of the way in, travels on a low arc and lands.</li><li>Nothing sinks into the mat or floats above it.</li></ul></div>
     <div class="mcard"><p class="mnum">4 · The clock</p><h3>Timed on real teachers</h3>
-      <p>102 moves take exactly as long as they did in seven filmed classes: the median still-to-still time, kept only when at least two classes show the move. The rest are estimated from how far the joints travel, and floor and resting poses move a little slower.</p>
+      <p>102 moves take exactly as long as they do in real classes: the median still-to-still time, kept only when more than one class shows the move. The rest are estimated from how far the joints travel, and floor and resting poses move a little slower.</p>
       <div class="bars mbars"><div class="barrow"><span>Mountain → Upward Salute</span><i style="width:50%"></i><b>1.0 s</b></div><div class="barrow"><span>Child’s Pose → Tabletop</span><i style="width:50%"></i><b>1.0 s</b></div><div class="barrow"><span>Warrior II → Skandasana</span><i style="width:50%"></i><b>1.0 s</b></div><div class="barrow"><span>Low Lunge → Skandasana</span><i style="width:55%"></i><b>1.1 s</b></div><div class="barrow"><span>Plank → Down Dog</span><i style="width:60%"></i><b>1.2 s</b></div><div class="barrow"><span>Tabletop → Down Dog</span><i style="width:75%"></i><b>1.5 s</b></div><div class="barrow"><span>Down Dog → Plank</span><i style="width:75%"></i><b>1.5 s</b></div><div class="barrow"><span>Forward Fold → Half Lift</span><i style="width:75%"></i><b>1.5 s</b></div><div class="barrow"><span>Half Lift → Forward Fold</span><i style="width:90%"></i><b>1.8 s</b></div></div>
       <p class="mnote">At the Flowing pace. Calm stretches every move by 1.45×, Quick shortens it to 0.7×. Browsing plays the whole route as one movement that eases only at its start and end; a practice pauses a breath at each pose on the way.</p></div>
   </div>
