@@ -3219,6 +3219,16 @@ function rightLead(P, id){
   LEAD_INFO.set(out, {yaw, zc}); return out;
 }
 const isTwoSided = id => { const q = POSES.find(x => x.id === id); return !!(q && q.asym); };
+// Lying, arching and inverted poses are seen from the long side where the head is on the left, like every other pose
+// (the figure always faces the left of the screen). Decided once per pose and side from its best view.
+const HEAD_LEFT = new Map();
+function headLeftTurn(id, mirrored, Pm, M, flip){
+  const key = id + (mirrored ? '|m' : ''); if (HEAD_LEFT.has(key)) return HEAD_LEFT.get(key);
+  const v = (((M.cam + M.yaw) % 360) + 540) % 360 - 180, R = projectRef(v ? rotateY(Pm, v) : Pm, REF_S, flip), k = R.kp;
+  const hip = (k[11].x + k[12].x)/2, upright = (k[11].y + k[12].y)/2 - (k[5].y + k[6].y)/2 > 60;
+  const dx = R.head.x - hip, turn = (!upright && dx > 40 && R.face3[0] > -.6) || id === 'camel' ? 180 : 0; // head on the right and not looking back to the left (Boat looks at its feet); Camel kneels facing right
+  HEAD_LEFT.set(key, turn); return turn;
+}
 const refFor = (id, mirrored = false, angle = refAngle) => {
   const Pb = P3[id] || (P3[id] = applyPoseFix(id, build3d(REF_SPECS[id] || MOTION_SPECS[id], GROUND[id] || MOTION_GROUND[id] || '')));
   const P0 = isTwoSided(id) ? (P3[id + '|R'] || (P3[id + '|R'] = rightLead(Pb, id))) : Pb;
@@ -3230,7 +3240,7 @@ const refFor = (id, mirrored = false, angle = refAngle) => {
   // camera stays put (a screen mirror used to swing the camera half way round the mat between the two sides).
   const frontView = Math.abs(Math.abs(matYawOf(P0, id).cam) - 90) < 1;
   const swap = mirrored && (isTwoSided(id) && (hipsAlongDepth(P0) || facesAlongMat(id)) || frontView), Pm = swap ? (P3[id + '|other'] || (P3[id + '|other'] = isTwoSided(id) && hipsAlongDepth(P0) ? otherSide(P0) : matMirror(P0, id))) : P0, flip = mirrored && !swap;
-  const M = matYawOf(Pm, id), view = (((angle + M.cam + M.yaw) % 360) + 540) % 360 - 180; // the user's turn on top of the pose's best view
+  const M = matYawOf(Pm, id), turn = headLeftTurn(id, mirrored, Pm, M, flip), view = (((angle + M.cam + M.yaw + turn) % 360) + 540) % 360 - 180; // the user's turn on top of the pose's best view
   const R = projectRef(view ? rotateY(Pm, view) : Pm, REF_S, flip); R.poseId = id; R.angle = angle; R.viewAngle = view; R.otherSide = swap; R.matYaw = M.yaw; R.camYaw = camYawOf(R); if (!mirrored) R.lead = LEAD_INFO.get(P0) || null;
   R.parity = ((P0 !== Pb) ? 1 : 0) ^ (swap ? 1 : 0) ^ (flip ? 1 : 0); // 1: the skeleton is a mirror image (labels kept)
   R.kp0 = view ? projectRef(Pm, REF_S, flip).kp : R.kp; // the view the pose was designed in is what the alignment rules are written for
