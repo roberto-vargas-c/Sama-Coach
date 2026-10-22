@@ -253,6 +253,7 @@ body.practice .stage.sample #cvBg{display:block} /* full screen: the scene carri
 .tvways{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:14px;font-size:14.5px;line-height:1.5}
 .linkbox{display:flex;gap:6px;margin-top:8px}.linkbox input{flex:1;min-width:0;font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 .dbtns{display:flex;justify-content:flex-end;margin-top:16px}
+.hrow{display:flex;align-items:center;gap:10px;flex:1;min-width:0;max-width:280px}.hrow input{flex:1;min-width:0;accent-color:var(--accent)}.hrow b{font-variant-numeric:tabular-nums;font-size:13.5px;min-width:52px;text-align:right}
 .linkish{border:none;background:none;color:var(--accent);font:inherit;font-weight:600;padding:0;cursor:pointer;text-decoration:underline}
 /* TV layout: a big screen read from the sofa */
 body.tv{padding:3vh 3vw}
@@ -1015,6 +1016,9 @@ Savasana, 3 min"></textarea>
             <div class="arow"><span>Trouser fit</span><div class="segs" data-k="fit"><button type="button" class="seg" data-v="fitted">Fitted</button><button type="button" class="seg" data-v="relaxed">Relaxed</button><button type="button" class="seg" data-v="wide">Wide</button></div></div>
             <div class="arow flatonly"><span>Beard</span><div class="segs" data-k="beard"><button type="button" class="seg" data-v="no">No</button><button type="button" class="seg" data-v="yes">Yes</button></div></div>
             <div class="arow flatonly"><span>Mat</span><div class="swatches" data-k="mat"></div></div>
+            <div class="arow"><span>Your height</span><div class="hrow"><input type="range" id="heightIn" min="140" max="205" step="1" aria-label="Your height in centimetres"><b id="heightOut"></b></div></div>
+            <div class="arow"><span>Mat length</span><div class="segs" data-k="matLen"><button type="button" class="seg" data-v="173">173 cm</button><button type="button" class="seg" data-v="183">183 cm</button><button type="button" class="seg" data-v="200">200 cm</button><button type="button" class="seg" data-v="215">215 cm</button></div></div>
+            <p class="hint">Height and mat length set how much of the mat your body covers in each pose, so you can see where to place your hands and feet.</p>
           </div>
           </div>
         </details>
@@ -2903,7 +2907,7 @@ function drawSilhouetteScene(g, R, bg, ink, matColor){
 }
 
 // ---------- avatar: the same figure, but coloured and dressed the way the user chose ----------
-const AVATAR_DEFAULT = {v:4, mode:'flat', fit:'fitted', skin:'#C68B62', hair:'short', hairColor:'#2B1D16', build:'regular', top:'tank', topColor:'#FBF5EA', bottom:'leggings', bottomColor:'#26344F', sleeves:'short', pattern:'stripes', patternColor:'#26344F', beard:'no', mat:'#EBC9A2'}; // the main character: cream shirt with ink navy stripes, ink navy trousers, sand mat (the logo's colours)
+const AVATAR_DEFAULT = {v:4, mode:'flat', fit:'fitted', skin:'#C68B62', hair:'short', hairColor:'#2B1D16', build:'regular', top:'tank', topColor:'#FBF5EA', bottom:'leggings', bottomColor:'#26344F', sleeves:'short', pattern:'stripes', patternColor:'#26344F', beard:'no', mat:'#EBC9A2', height:175, matLen:215}; // the main character: cream shirt with ink navy stripes, ink navy trousers, sand mat (the logo's colours)
 const AVATAR_CHOICES = {
   skin:['#F6D7C3','#E8B99A','#C68B62','#9E6240','#6E4330','#3E2A21'],
   hairColor:['#2B1D16','#5A3825','#A8703E','#D9B36B','#8C8C8C','#B23A2E'],
@@ -2977,10 +2981,15 @@ function flatColor(av, part, far){
 function flatHeadR(R){ return faceFrame(R).r*1.28; }
 function figShift(R){ const o = R.matOff; if (!o || (!o[0] && !o[1])) return 0; const c = camYawOf(R), u = [Math.cos(c), -Math.sin(c)], w = [-u[1], u[0]];
   return u[0]*o[0] + w[0]*o[1]; }
+// The mat in body proportions: the figure is drawn at a fixed size, so a taller person sees a shorter mat under them.
+// Defaults (175 cm on a 215 cm mat) are the drawing as it has always been.
+const HEIGHT_DEF = 175, MATLEN_DEF = 215;
+function matPx(S){ const h = Math.max(120, Math.min(220, +avatar.height || HEIGHT_DEF)), m = Math.max(140, Math.min(240, +avatar.matLen || MATLEN_DEF)), base = S*.84;
+  return {L: base*(m/MATLEN_DEF)*(HEIGHT_DEF/h), W: base/3*(HEIGHT_DEF/h)}; }
 function drawFlatMat(g, R, color){
   // the figure stands in the middle of the mat. The mat (3:1) lies on the floor and turns with the camera: seen along its
   // length from the side, end-on from the front of the mat. Floor depth goes up the screen, narrowing a little with distance.
-  const S = R.S, c = camYawOf(R), L = S*.84, W = L/3, th = S*.014, cx = S/2, cy = R.floor + 2;
+  const S = R.S, c = camYawOf(R), {L, W} = matPx(S), th = S*.014, cx = S/2, cy = R.floor + 2;
   const u = [Math.cos(c), -Math.sin(c)], w = [-u[1], u[0]]; // the mat's long and short axes on the floor (x right, z away)
   const off = R.matOff || [0, 0], P = (a0, b0) => { const a = a0 + off[0], b = b0 + off[1], gx = u[0]*a + w[0]*b, gz = u[1]*a + w[1]*b; return [cx + gx*(1 - gz/L*.5), cy - gz*.2]; }; // a little perspective: the far end is narrower
   const top = [P(-L/2, -W/2), P(L/2, -W/2), P(L/2, W/2), P(-L/2, W/2)];
@@ -3270,7 +3279,7 @@ let FOLD_HANDS = null, FOLD_REACH = 0;  // how far ahead of its feet Forward Fol
 // the mat's centre relative to the stage centre, in the mat's own axes [along, across] (px): [0, 0] is the mat in the middle
 function matOffsetOf(R, id){
   if (!id || R.blob || !R.kp) return [0, 0];
-  const S = R.S, k = R.scale, c = camYawOf(R), u = [Math.cos(c), -Math.sin(c)], w = [-u[1], u[0]], Lpx = S*.84, Wpx = Lpx/3;
+  const S = R.S, k = R.scale, c = camYawOf(R), u = [Math.cos(c), -Math.sin(c)], w = [-u[1], u[0]], {L: Lpx, W: Wpx} = matPx(S);
   const flo = i => { const p = R.kp[i]; return [p.x - S/2, (p.w ? p.w[2] : 0)*k]; }, mid = (i, j) => { const a = flo(i), b = flo(j); return [(a[0]+b[0])/2, (a[1]+b[1])/2]; };
   const along = q => q[0]*u[0] + q[1]*u[1], across = q => q[0]*w[0] + q[1]*w[1];
   const sgn = R.mirrored ? -1 : 1; // a mirror image stands at the other end
@@ -3293,7 +3302,7 @@ function matOffsetOf(R, id){
 // Nudge a mat offset as little as possible so that everything touching the floor lies on the mat (a margin in from the edges).
 // A null across value means "centre the contacts across the mat". Contacts wider than the mat are centred on it.
 function matKeepOn(R, off){
-  const S = R.S, k = R.scale, c = camYawOf(R), u = [Math.cos(c), -Math.sin(c)], w = [-u[1], u[0]], Lpx = S*.84, Wpx = Lpx/3, m = .04*k;
+  const S = R.S, k = R.scale, c = camYawOf(R), u = [Math.cos(c), -Math.sin(c)], w = [-u[1], u[0]], {L: Lpx, W: Wpx} = matPx(S), m = .04*k;
   const touch = R.kp.map(p => p && p.y >= R.floor - .06*k ? [p.x - S/2, (p.w ? p.w[2] : 0)*k] : null).filter(Boolean);
   if (!touch.length) return [off[0] || 0, off[1] || 0];
   const as = touch.map(q => q[0]*u[0] + q[1]*u[1]), bs = touch.map(q => q[0]*w[0] + q[1]*w[1]);
@@ -6508,7 +6517,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
   for (const sw of box.querySelectorAll('.swatches')){ const k = sw.dataset.k; for (const c of AVATAR_CHOICES[k]){ const b = document.createElement('button'); b.type = 'button'; b.style.background = c; b.dataset.v = c; b.setAttribute('aria-label', k + ' ' + c); sw.appendChild(b); } }
   for (const grp of box.querySelectorAll('.segs[data-k]')) dropdownify(grp, {right:true});
   const sync = () => {
-    for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='camview' ? camView : k==='camat' ? camAt : k==='sceneset' ? scene : k==='motionset' ? (motionOn ? 'on' : 'off') : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===cur)); }
+    for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='camview' ? camView : k==='camat' ? camAt : k==='sceneset' ? scene : k==='motionset' ? (motionOn ? 'on' : 'off') : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===String(cur))); }
     only.hidden = false;
     $('avatarSum').textContent = 'Scene, voice, camera';
   };
@@ -6530,7 +6539,14 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
     sync(); retheme();
   };
   for (const h of hosts) h.addEventListener('click', onClick);
-  sync(); window.__syncLook = sync;
+  // height: the figure keeps its size and the mat under it changes, so where hands and feet land on the mat matches a body of that height
+  const hIn = $('heightIn'), hOut = $('heightOut'), showH = () => { const h = +avatar.height || HEIGHT_DEF; hIn.value = h; hOut.textContent = h + ' cm'; };
+  const reRef = () => { if (mode === 'sample' && curRef && curRef.poseId && !curRef.blob && !tween){ curRef = refFor(curRef.poseId, refMirror); kp = curRef.kp; } render(); };
+  hIn.addEventListener('input', () => { avatar.height = +hIn.value; hOut.textContent = hIn.value + ' cm'; reRef(); });
+  hIn.addEventListener('change', () => { saveAvatar(); retheme(); reRef(); });
+  for (const h of hosts) h.addEventListener('click', e => { if (e.target.closest && e.target.closest('[data-k="matLen"]')) setTimeout(reRef, 0); });
+  showH();
+  sync(); window.__syncLook = () => { sync(); showH(); };
 })();
 const themeBtns = [...document.querySelectorAll('.theme button')];
 function setTheme(t, save = true){
