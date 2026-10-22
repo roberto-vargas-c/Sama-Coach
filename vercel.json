@@ -125,5 +125,25 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "sama-coach-ai.vercel.app"
+        }
+      ],
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*SamaApp.*"
+        }
+      ],
+      "destination": "https://sama.rest/:path*",
+      "permanent": false
+    }
   ]
 }

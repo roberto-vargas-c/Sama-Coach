@@ -5448,7 +5448,7 @@ function openPose(p){
 // call judges the result. Requests go to /api/coach, a tiny proxy that holds the API key.
 // Where the proxy lives. Served from Vercel the page uses its own /api/coach. A copy bundled inside the
 // Android app (or opened from a file) has no server of its own: put the deployment's address in the
-// <meta name="sama-coach-url"> tag in the head, e.g. https://sama-coach.vercel.app
+// <meta name="sama-coach-url"> tag in the head, e.g. https://sama.rest
 const COACH_URL = (() => { const m = document.querySelector('meta[name="sama-coach-url"]'), u = m ? m.content.trim().replace(/\/$/, '') : '';
   if (u) return u + '/api/coach'; return /^https?:$/.test(location.protocol) ? '/api/coach' : ''; })();
 const PARAMS_DOC = '{"minutes": one of 10|20|30|45|60|90, "level": 1|2|3 (1 beginner, 2 intermediate, 3 advanced), "focus": one of ' + Object.keys(FOCUS).join('|') + ', "easy": subset of ["wrists","knees","back"] (body parts to go easy on), "goal": null or one of ' + Object.keys(GOALS).join('|') + ' (a goal pose to build toward), "include": [pose ids that must be in], "avoid": [pose ids to leave out]}';
