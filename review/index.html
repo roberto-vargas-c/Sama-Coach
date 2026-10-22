@@ -87,7 +87,7 @@ dialog.ed::backdrop{background:rgba(20,14,10,.6)}
 .bt.pri{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
-</head><body><div class="wrap">
+<script>try{var t=localStorage.getItem('sama.theme')||'light';if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}</script></head><body><div class="wrap">
 <header><h1>Pose review</h1><p>Every reference pose as the app draws it now, from three sides: the view the app opens with, a second view along the mat, and a three-quarter view between them, with the pose’s alignment rules measured on the reference. Click any figure to drag its joints. Mark each one <b>Looks right</b> or <b>Wrong</b>, and say what is off. For a pose that is wrong, add a photo of how it should look: the joints are found in the photo and saved with your verdict.</p></header>
 <div class="bar">
  <div class="row" id="sum"></div>

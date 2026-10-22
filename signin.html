@@ -3,14 +3,15 @@
 <title>Sign in · Sama</title>
 <style>
 :root{--bg:#F4EDE2;--card:#FBF6EE;--ink:#2D2622;--muted:#7B6E63;--accent:#B45A3C;--line:#E4D9CB}
-@media (prefers-color-scheme: dark){:root{--bg:#171310;--card:#211C18;--ink:#F1E8DC;--muted:#B3A596;--accent:#E08A68;--line:#3A312A}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#171310;--card:#211C18;--ink:#F1E8DC;--muted:#B3A596;--accent:#E08A68;--line:#3A312A}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;max-width:380px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px}
 h1{font:400 30px Georgia,serif;margin:0}p{margin:0;color:var(--muted)}
 button,a.btn{display:block;width:100%;padding:14px;border-radius:12px;border:0;background:var(--accent);color:#FFF7F0;font:600 16px system-ui,sans-serif;text-decoration:none;cursor:pointer}
 button.sec{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .err{color:var(--accent);font-weight:600}
-</style></head><body>
+</style><script>try{var t=localStorage.getItem('sama.theme')||'light';if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}</script>
+</head><body>
 <div class="card">
   <h1>Sama</h1>
   <p id="msg">Sign in with Google, then come back to the app.</p>

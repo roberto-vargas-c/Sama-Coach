@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sama features</title>
+<meta name="description" content="Everything Sama does: alignment checks with your camera, guided practices, a pose library, an AI coach, your own figure, cycle-aware plans and more.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/fonts/fonts.css">
+<style>
+:root{--paper:#FBF5EA;--card:#F4EADB;--ink:#26344F;--text:#2D2622;--muted:#5E534A;--line:#E3D7C6;--terra:#B45A3C;--terra-soft:#F2DCCF;
+  --f-display:"Young Serif",Georgia,serif;--f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#1B1715;--card:#262019;--ink:#C9D3EA;--text:#EEE4D6;--muted:#B3A596;--line:#3A312A;--terra:#E0916F;--terra-soft:#3A2820;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#1B1715;--card:#262019;--ink:#C9D3EA;--text:#EEE4D6;--muted:#B3A596;--line:#3A312A;--terra:#E0916F;--terra-soft:#3A2820;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--text);font-family:var(--f-body);font-size:17px;line-height:1.55;padding:max(28px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 72px max(16px,env(safe-area-inset-left,0px))}
+main{max-width:1040px;margin:0 auto}
+a{color:var(--terra)}
+.back{display:inline-flex;align-items:center;gap:8px;font-weight:600;text-decoration:none;font-size:15px}
+h1{font-family:var(--f-display);font-weight:400;color:var(--ink);font-size:clamp(34px,7vw,52px);line-height:1.08;margin:22px 0 10px;text-wrap:balance;max-width:20ch}
+.lede{color:var(--muted);font-size:19px;margin:0 0 22px;max-width:60ch}
+.jump{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px;padding:0;list-style:none}
+.jump a{display:inline-block;padding:7px 14px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--ink);font-size:14.5px;font-weight:600;background:var(--card)}
+.jump a:hover{border-color:var(--terra);color:var(--terra)}
+section{padding-top:34px;scroll-margin-top:12px}
+h2{font-family:var(--f-display);font-weight:400;color:var(--ink);font-size:clamp(26px,4.5vw,32px);line-height:1.15;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 16px;max-width:62ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
+.f{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px}
+.f h3{margin:0 0 4px;font-size:17px;font-weight:700;color:var(--ink);line-height:1.3}
+.f p{margin:0;font-size:15.5px;color:var(--muted);line-height:1.5}
+.tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:var(--terra-soft);color:var(--terra);font-size:12px;font-weight:700;vertical-align:2px;letter-spacing:.02em}
+.cta{margin-top:44px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 22px 24px}
+.cta h2{margin-bottom:6px}
+.cta p{margin:0 0 16px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 22px;border-radius:999px;background:var(--ink);color:var(--paper);font-weight:700;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);margin-left:8px}
+footer{margin-top:28px;color:var(--muted);font-size:14px}
+footer a{color:var(--muted)}
+</style>
+<script>try{var t=localStorage.getItem('sama.theme')||'light';if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}</script>
+</head>
+<body>
+<main>
+<a class="back" href="/">← Back to Sama</a>
+<h1>Everything Sama can do</h1>
+<p class="lede">A yoga guide that watches your alignment through your camera, plans and talks you through practices, and shapes them around you. Free, without ads, and the camera never leaves your phone.</p>
+<ul class="jump" aria-label="Sections">
+  <li><a href="#check">Check alignment</a></li>
+  <li><a href="#practice">Practices</a></li>
+  <li><a href="#library">Library</a></li>
+  <li><a href="#coach">Coach</a></li>
+  <li><a href="#you">Your figure</a></li>
+  <li><a href="#cycle">Your cycle</a></li>
+  <li><a href="#progress">Progress</a></li>
+  <li><a href="#privacy">Privacy</a></li>
+  <li><a href="#anywhere">Anywhere</a></li>
+</ul>
+
+<section id="check">
+  <h2>Check your alignment</h2>
+  <p class="sub">Point your camera at the mat and Sama measures your joints against the pose, live.</p>
+  <div class="grid">
+    <div class="f"><h3>Live camera, photo or clip</h3><p>Check a pose live, take a photo, record a short clip or pick one from your gallery.</p></div>
+    <div class="f"><h3>Joint-by-joint checks</h3><p>Knees, hips, spine, shoulders and arms are each measured against a target with a fair margin, and grouped into legs, torso and arms.</p></div>
+    <div class="f"><h3>A score and what to fix first</h3><p>Every check gives a score, what is already in line, and the one correction that matters most.</p></div>
+    <div class="f"><h3>Camera in front or beside the mat</h3><p>Sama detects where your phone is and checks the pose from that side. Move it later and it notices, or set it yourself.</p></div>
+    <div class="f"><h3>See yourself as your figure</h3><p>The camera view can show you as your own figure, or as the video with the skeleton drawn over it.</p></div>
+    <div class="f"><h3>Alignment lines</h3><p>Turn on lines on the figure to see each angle Sama measures, with a small reference figure in the corner.</p></div>
+    <div class="f"><h3>Runs on your phone</h3><p>Two pose models (MoveNet and BlazePose, with hands and feet) run inside the browser. Choose the engine, or leave it on Auto.</p></div>
+    <div class="f"><h3>Report a pose</h3><p>If a pose or a check looks wrong, report it in two taps. Every report is reviewed and the pose gets fixed.</p></div>
+  </div>
+</section>
+
+<section id="practice">
+  <h2>Guided practices</h2>
+  <p class="sub">Plan a practice in seconds and let a calm voice take you through it.</p>
+  <div class="grid">
+    <div class="f"><h3>Plan your own</h3><p>Pick the length, your focus, your level and a goal pose. Tell Sama to take it easy on wrists, knees, your back or your period.</p></div>
+    <div class="f"><h3>Ready-made practices</h3><p>Kind to your back, Morning wake-up, Sun salutation flow, Strong and steady, Open hips, Find your balance, Evening wind-down, Yin and Ashtanga primary.</p></div>
+    <div class="f"><h3>Save the ones you love</h3><p>Keep your favourite practices and start them again with one tap.</p></div>
+    <div class="f"><h3>Voice guide and music</h3><p>A calm voice names each pose and each move between them, with soft background music. Both can be turned off.</p></div>
+    <div class="f"><h3>Real movement between poses <span class="tag">New</span></h3><p>The figure steps, folds, squats and jumps from pose to pose, timed on filmed yoga classes. Prefer something softer? The blob melts from one pose into the next.</p></div>
+    <div class="f"><h3>Calm, Flowing or Quick</h3><p>Choose how fast the moves go, from slow mornings to a power flow.</p></div>
+    <div class="f"><h3>Tap to move on</h3><p>Tap the right of the picture for the next pose, the middle to pause and the left to go back.</p></div>
+    <div class="f"><h3>Watch on your TV</h3><p>Cast or mirror to a TV, or switch to the big TV layout with the camera and the timer.</p></div>
+    <div class="f"><h3>Record your moves</h3><p>Optionally keep your joint positions between poses (never video) to look back on, download or delete.</p></div>
+  </div>
+</section>
+
+<section id="library">
+  <h2>The pose library</h2>
+  <p class="sub">165 poses, from Mountain to Firefly.</p>
+  <div class="grid">
+    <div class="f"><h3>Search in English or Sanskrit</h3><p>Find any pose by name, filter by family and level, from gentle to advanced.</p></div>
+    <div class="f"><h3>Every angle</h3><p>Turn the figure to see a pose from the front, the side or in between, and switch to the other side.</p></div>
+    <div class="f"><h3>Where a pose comes from</h3><p>Each pose has its Sanskrit name, what it means and a short history.</p></div>
+    <div class="f"><h3>Seven places to practise</h3><p>Put the mat on a plain background, in a studio, a living room, a park, on a beach, in the mountains or on a night rooftop.</p></div>
+  </div>
+</section>
+
+<section id="coach">
+  <h2>Your AI coach</h2>
+  <p class="sub">A coach that knows your practice, powered by GPT-6.1 Sol. It only ever reads text, never your camera.</p>
+  <div class="grid">
+    <div class="f"><h3>Plan with me</h3><p>Answer a few questions, one at a time, and get a practice made for you.</p></div>
+    <div class="f"><h3>Review my checks</h3><p>Feedback on how your alignment is going: strengths, what to work on and what to fix first.</p></div>
+    <div class="f"><h3>Review a routine</h3><p>Paste or pick a routine and get a corrected version with notes on what works and what is missing.</p></div>
+    <div class="f"><h3>Roadmap to a pose</h3><p>The weeks and the poses that build toward a pose you dream of, like Crow or a headstand.</p></div>
+    <div class="f"><h3>Your calendar</h3><p>A month view of your practices, practice days and cycle, right next to the coach.</p></div>
+  </div>
+</section>
+
+<section id="you">
+  <h2>Your figure, your look</h2>
+  <p class="sub">The guide on the mat looks like you, everywhere in the app.</p>
+  <div class="grid">
+    <div class="f"><h3>Make it yours</h3><p>Skin tone, hair and hair colour, build, top, pattern, trousers or shorts, sleeves, beard and mat colour.</p></div>
+    <div class="f"><h3>Your height on your mat <span class="tag">New</span></h3><p>Set your height and a standard (183 cm) or XL (213 cm) mat to see where you really land on it.</p></div>
+    <div class="f"><h3>Colours that suit you</h3><p>The background, walls and floors adjust to your skin tone so the figure always stands out.</p></div>
+    <div class="f"><h3>Light or dark</h3><p>Light by default, with a dark mode and an automatic option that follows your phone.</p></div>
+  </div>
+</section>
+
+<section id="cycle">
+  <h2>Practice that follows your cycle</h2>
+  <p class="sub">Optional, and it stays on your device.</p>
+  <div class="grid">
+    <div class="f"><h3>Your cycle at a glance</h3><p>Log your periods, see predicted days and ovulation in the calendar, and set your cycle and period length.</p></div>
+    <div class="f"><h3>Softer when you need it</h3><p>On your period, practices skip inversions, deep twists and strong core work. When your energy is up, they get stronger.</p></div>
+  </div>
+</section>
+
+<section id="progress">
+  <h2>Progress and planning</h2>
+  <div class="grid">
+    <div class="f"><h3>Your progress</h3><p>Checks, best score, poses in line and minutes practised, your recent checks, and each step on the road to your goal pose.</p></div>
+    <div class="f"><h3>Practice days</h3><p>Pick your days and a time, and see them in Sama's calendar.</p></div>
+    <div class="f"><h3>Google Calendar</h3><p>Put your practice days in Google Calendar with a reminder.</p></div>
+    <div class="f"><h3>Your profile</h3><p>Your level, your goal pose, how often you want to practise, and notes the coach should know, like an old injury.</p></div>
+  </div>
+</section>
+
+<section id="privacy">
+  <h2>Private by design</h2>
+  <div class="grid">
+    <div class="f"><h3>The camera stays on your phone</h3><p>Photos, clips and the camera stream are never uploaded. Only text reaches the coach.</p></div>
+    <div class="f"><h3>No tracking</h3><p>No ads, no analytics, no tracking cookies, so there is no cookie banner either.</p></div>
+    <div class="f"><h3>Sync if you want it</h3><p>Sign in with Google to keep your practice across phone, laptop and the app. Or don't, and everything stays on this device.</p></div>
+    <div class="f"><h3>Your data, your call</h3><p>Download everything Sama knows about you as one file, or delete it. <a href="/privacy.html">Read what Sama stores</a>.</p></div>
+  </div>
+</section>
+
+<section id="anywhere">
+  <h2>On every screen</h2>
+  <div class="grid">
+    <div class="f"><h3>On your home screen</h3><p>Add Sama to your iPhone or Android home screen and it opens like an app, no download needed.</p></div>
+    <div class="f"><h3>Android app</h3><p>A small Android app with the full Sama inside, including casting to your TV.</p></div>
+    <div class="f"><h3>A welcome and a tour</h3><p>A short welcome gets to know you, and a tour shows you around. Replay both any time.</p></div>
+    <div class="f"><h3>Did you know? <span class="tag">New</span></h3><p>Now and then a small tip points out something you may have missed, and takes you straight to it.</p></div>
+  </div>
+</section>
+
+<div class="cta">
+  <h2>Try it on your mat</h2>
+  <p>Sama runs in your browser. Open it on your phone, prop it up and start with a single pose.</p>
+  <a class="btn" href="/">Open Sama</a><a class="btn ghost" href="/about/">The story</a>
+</div>
+<footer><a href="/privacy.html">Privacy</a> · <a href="/about/">About</a> · Made by Roberto Vargas</footer>
+</main>
+</body>
+</html>
