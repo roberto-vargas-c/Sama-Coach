@@ -3,10 +3,10 @@
 <link rel="stylesheet" href="/fonts/fonts.css">
 <style>body{margin:0}
 /* Layout: a sticky toolbar (counts + filters) over a wrapping grid of pose cards; each card = two views, rule checks, a verdict row. */
-:root{--bg:#F4EDE2;--card:#FBF7F0;--stage:#FBF5EA;--ink:#26344F;--text:#2D2622;--muted:#7B6E63;--line:#E3D7C6;--accent:#B45A3C;--accent-ink:#FFF8F2;--sand:#EBC9A2;--good:#4E8A55;--bad:#BF4530;--warn:#B9822A;
+:root{--bg:#EFEBE4;--card:#F8F6F2;--stage:#F3F1EA;--ink:#2F4A3B;--text:#23302A;--muted:#6D7468;--line:#DCD7CD;--accent:#9C5A3C;--accent-ink:#FBF7F2;--sand:#B5C2AE;--good:#4E8A55;--bad:#BF4530;--warn:#B9822A;
 --f-display:"Young Serif",Georgia,serif;--f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1B1715;--card:#262019;--stage:#FBF5EA;--ink:#C9D3EA;--text:#EEE4D6;--muted:#A3968A;--line:#3A312A;--accent:#E0916F;--accent-ink:#2A1810;--sand:#D9B48C;--good:#7FB37E;--bad:#EE6D58;--warn:#E0A64B;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#1B1715;--card:#262019;--stage:#FBF5EA;--ink:#C9D3EA;--text:#EEE4D6;--muted:#A3968A;--line:#3A312A;--accent:#E0916F;--accent-ink:#2A1810;--sand:#D9B48C;--good:#7FB37E;--bad:#EE6D58;--warn:#E0A64B;color-scheme:dark}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#141A16;--card:#1D241F;--stage:#F3F1EA;--ink:#B8CDB8;--text:#E7EBE3;--muted:#9BA597;--line:#313A33;--accent:#D39274;--accent-ink:#22140D;--sand:#9DAE95;--good:#7FB37E;--bad:#EE6D58;--warn:#E0A64B;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141A16;--card:#1D241F;--stage:#F3F1EA;--ink:#B8CDB8;--text:#E7EBE3;--muted:#9BA597;--line:#313A33;--accent:#D39274;--accent-ink:#22140D;--sand:#9DAE95;--good:#7FB37E;--bad:#EE6D58;--warn:#E0A64B;color-scheme:dark}
 *{box-sizing:border-box}[hidden]{display:none!important}
 body{background:var(--bg);color:var(--text);font-family:var(--f-body);font-size:15px;line-height:1.45;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
@@ -230,15 +230,15 @@ function drawSkel(cv, kp, edited, force){ const g = cv.getContext('2d'), s = cv.
   g.lineCap = 'round';
   for (const [a, b] of SK_BONES){ const A = kp[a], B = kp[b]; if (!A || !B) continue;
     g.strokeStyle = 'rgba(38,52,79,.55)'; g.lineWidth = 9; g.beginPath(); g.moveTo(A[0]*s, A[1]*s); g.lineTo(B[0]*s, B[1]*s); g.stroke();
-    g.strokeStyle = '#FBF5EA'; g.lineWidth = 4; g.beginPath(); g.moveTo(A[0]*s, A[1]*s); g.lineTo(B[0]*s, B[1]*s); g.stroke(); }
+    g.strokeStyle = '#F3F1EA'; g.lineWidth = 4; g.beginPath(); g.moveTo(A[0]*s, A[1]*s); g.lineTo(B[0]*s, B[1]*s); g.stroke(); }
   kp.forEach((q, i) => { if (!q || i === 1 || i === 2 || i === 3 || i === 4) return; g.beginPath(); g.arc(q[0]*s, q[1]*s, i > 16 ? 5 : 8.5, 0, 7);
-    g.fillStyle = i === 0 ? '#FBF5EA' : isLeft(i) ? '#E0703A' : '#2FA39A'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = '#26344F'; g.stroke(); }); }
+    g.fillStyle = i === 0 ? '#F3F1EA' : isLeft(i) ? '#E0703A' : '#2FA39A'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = '#2F4A3B'; g.stroke(); }); }
 const BONES = [[5,6],[5,7],[7,9],[6,8],[8,10],[5,11],[6,12],[11,12],[11,13],[13,15],[12,14],[14,16],[0,5],[0,6]];
 function drawPhoto(cv, img, kp, ph){ const g = cv.getContext('2d'), N = cv.width, W = img.naturalWidth, H = img.naturalHeight, s = N/Math.max(W, H), ox = (N - W*s)/2, oy = (N - H*s)/2, ks = ph && ph.w ? W/ph.w : 1;
   g.clearRect(0, 0, N, N); g.drawImage(img, ox, oy, W*s, H*s); if (!kp) return; const P = k => [ox + k[0]*ks*s, oy + k[1]*ks*s];
-  g.lineWidth = 3; g.lineCap = 'round'; g.strokeStyle = '#EBC9A2';
+  g.lineWidth = 3; g.lineCap = 'round'; g.strokeStyle = '#B5C2AE';
   for (const [a, b] of BONES){ if (kp[a][2] < .25 || kp[b][2] < .25) continue; const A = P(kp[a]), B = P(kp[b]); g.beginPath(); g.moveTo(A[0], A[1]); g.lineTo(B[0], B[1]); g.stroke(); }
-  for (const k of kp){ if (k[2] < .25) continue; const [x, y] = P(k); g.beginPath(); g.arc(x, y, 4.5, 0, 7); g.fillStyle = '#B45A3C'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = '#FBF5EA'; g.stroke(); } }
+  for (const k of kp){ if (k[2] < .25) continue; const [x, y] = P(k); g.beginPath(); g.arc(x, y, 4.5, 0, 7); g.fillStyle = '#9C5A3C'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = '#F3F1EA'; g.stroke(); } }
 async function thumbOf(img){ const m = 480, s = Math.min(1, m/Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth*s); c.height = Math.round(img.naturalHeight*s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', .72); }
 async function shrink(img){ const m = 900, s = Math.min(1, m/Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth*s); c.height = Math.round(img.naturalHeight*s);
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); return await new Promise(r => c.toBlob(r, 'image/jpeg', .85)); }
@@ -329,9 +329,9 @@ function edDraw(){ const cv = $('edcv'), g = cv.getContext('2d'), N = cv.width; 
 function drawSkelOn(g, kp, s, big){ g.lineCap = 'round'; const u = $('edcv').width/parseFloat($('edcv').style.width || $('edcv').width)*big; // device px per CSS px
   for (const [a, b] of SK_BONES){ const A = kp[a], B = kp[b]; if (!A || !B) continue;
     g.strokeStyle = 'rgba(38,52,79,.6)'; g.lineWidth = 8*u; g.beginPath(); g.moveTo(A[0]*s, A[1]*s); g.lineTo(B[0]*s, B[1]*s); g.stroke();
-    g.strokeStyle = '#FBF5EA'; g.lineWidth = 3.5*u; g.beginPath(); g.moveTo(A[0]*s, A[1]*s); g.lineTo(B[0]*s, B[1]*s); g.stroke(); }
+    g.strokeStyle = '#F3F1EA'; g.lineWidth = 3.5*u; g.beginPath(); g.moveTo(A[0]*s, A[1]*s); g.lineTo(B[0]*s, B[1]*s); g.stroke(); }
   kp.forEach((q, i) => { if (!q || (i >= 1 && i <= 4)) return; g.beginPath(); g.arc(q[0]*s, q[1]*s, (i > 16 ? 6 : 10)*u, 0, 7);
-    g.fillStyle = i === ED.drag ? '#FFD166' : i === 0 ? '#FBF5EA' : isLeft(i) ? '#E0703A' : '#2FA39A'; g.fill(); g.lineWidth = 2.5*u; g.strokeStyle = '#26344F'; g.stroke(); }); }
+    g.fillStyle = i === ED.drag ? '#FFD166' : i === 0 ? '#F3F1EA' : isLeft(i) ? '#E0703A' : '#2FA39A'; g.fill(); g.lineWidth = 2.5*u; g.strokeStyle = '#2F4A3B'; g.stroke(); }); }
 function edLoad(){ const p = ED.p, v = verdicts[p.id] || {}, ed = v.edit || {}, base = KP(p, ED.view), mine = ed[EK(ED.view)];
   const pend = ED.pending && ED.pending[ED.view]; ED.kp = (pend || mine || base).map(q => q ? q.slice() : null); ED.dirty = !!(ED.pending && Object.keys(ED.pending).length); ED.img = new Image(); ED.img.onload = edDraw; ED.img.src = IMG(p, ED.view);
   for (const b of $('edViews').children) b.setAttribute('aria-pressed', +b.dataset.v === ED.view); $('edSt').textContent = mine ? 'Showing your saved correction' : ''; edDraw(); }
