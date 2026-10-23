@@ -617,6 +617,36 @@ body.tv #viewCoach{display:none!important}
 .nstudio .nmeta{color:var(--muted);font-size:14px}
 .nstudio .nact{display:flex;flex-wrap:wrap;gap:6px}
 .nstudio .nact a{min-height:36px;padding:4px 12px;font-size:14px;text-decoration:none}
+.nearteach{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
+.nearteach p{margin:0;flex:1;min-width:220px;font-size:14.5px;color:var(--muted)}
+.nearteach p b{color:var(--ink);font-weight:600}
+.nearteach .btn{display:inline-flex;align-items:center;gap:6px}
+.nclasses h3{margin:0 0 2px;font-size:18px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink)}
+.nclasses .hint{margin:0 0 8px}
+.nclist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ncls{border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:4px;background:var(--bg)}
+.nclasses .ncls h4{margin:0;font-size:16px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink)}
+.ncls .cwhen{font-size:14.5px;color:var(--ink)}
+.ncls .cwhen b{font-weight:600;color:var(--brand)}
+.ncls .cmeta,.ncls .cnote{font-size:13.5px;color:var(--muted)}
+.ncls .cnote{margin:0}
+.ncls .nact{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.ncls .nact a,.ncls .nact button{min-height:34px;padding:4px 12px;font-size:13.5px;text-decoration:none}
+.ncls .crep{background:none;border:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline;padding:4px 6px}
+.nstudio .nsclass{margin:0;font-size:14px;color:var(--ink)}
+.nstudio .nsclass b{color:var(--brand);font-weight:600}
+.clsdlg form{display:grid;gap:10px}
+.clsdlg label,.clsdlg .cfield{display:grid;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
+.clsdlg input,.clsdlg select,.clsdlg textarea{width:100%;box-sizing:border-box;min-height:42px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:15px;font-weight:400;padding:6px 10px}
+.clsdlg label textarea{min-height:64px;margin:0;resize:vertical;font-weight:400}
+.clsdlg label input,.clsdlg label select{font-weight:400}
+.clsdlg .c2,.clsdlg .c3{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+.clsdlg .c3{grid-template-columns:1fr 1fr 1fr}
+.clsdlg .rchips{gap:6px}
+.clsdlg .rchips button{padding:6px 10px;font-weight:400}
+.clsdlg .dbtns{display:flex;flex-wrap:wrap;justify-content:flex-end;margin-top:6px}
+.clsdlg .cdel{margin-right:auto;color:#a33b2a}
+@media (max-width:420px){.clsdlg .c3{grid-template-columns:1fr 1fr}.clsdlg .c3 label:last-child{grid-column:1/-1}}
 .osmcredit{font-size:12px;color:var(--muted);margin:0}.osmcredit a{color:inherit}
 body.tv #viewNear, body.practice #viewNear{display:none!important}
 @media (min-width:860px){.pgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}}
@@ -1050,8 +1080,18 @@ Savasana, 3 min"></textarea>
         <form class="nearform" id="nearForm"><input id="nearPlace" type="search" placeholder="Or type a city or area" aria-label="City or area" autocomplete="off"><button class="btn" type="submit">Search</button></form>
       </div>
       <p class="hint nearpriv">Your location is used only for this search. It goes to OpenStreetMap to find the studios and is not saved.</p>
+      <div class="nearteach"><p><b>Teach yoga or run a studio?</b> Add your class so people nearby can find it in Sama.</p><button class="btn small" id="nearAdd" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Add your class</button></div>
+    </div>
+    <div class="pcard nclasses" id="myClasses" hidden>
+      <h3>Your classes</h3>
+      <ul class="nclist" id="myClassList"></ul>
     </div>
     <p class="nearstatus" id="nearStatus" role="status" hidden></p>
+    <div class="pcard nclasses" id="nearClasses" hidden>
+      <h3>Classes from the community</h3>
+      <p class="hint">Added by teachers and studios near here. Book with them directly.</p>
+      <ul class="nclist" id="nearClassList"></ul>
+    </div>
     <div class="pcard nearbook" id="nearBook" hidden>
       <p><b>Book a class</b> <span class="hint" id="nearCity"></span></p>
       <div class="crow"><a class="btn small" id="nearCP" target="_blank" rel="noopener">ClassPass</a><a class="btn small" id="nearUSC" target="_blank" rel="noopener">Urban Sports Club</a></div>
@@ -1179,6 +1219,26 @@ Savasana, 3 min"></textarea>
   <textarea id="repNote" maxlength="500" placeholder="What is off? e.g. the back heel should be flat"></textarea>
   <p class="rst" id="repSt" role="status"></p>
   <div class="dbtns"><button class="btn" type="button" id="repCancel">Cancel</button><button class="btn primary" type="button" id="repSend">Send report</button></div>
+</dialog>
+<dialog class="repdlg clsdlg" id="clsDlg">
+  <h2 id="clsTitle">Add your class</h2>
+  <p class="rsub">People using Sama near this place will see it. Only you can change or remove it.</p>
+  <form id="clsForm" novalidate>
+    <label>Class name<input id="cName" maxlength="80" autocomplete="off" placeholder="e.g. Slow Vinyasa Flow"></label>
+    <label>Where<select id="cWhere"></select></label>
+    <label id="cPlaceL" hidden>Address or place<input id="cPlace" maxlength="120" autocomplete="off" placeholder="Street and city, or the studio and city"></label>
+    <div class="c2"><label>Style<select id="cStyle"><option value="Hatha">Hatha</option><option value="Vinyasa">Vinyasa</option><option value="Yin">Yin</option><option value="Ashtanga">Ashtanga</option><option value="Restorative">Restorative</option><option value="Power">Power</option><option value="Iyengar">Iyengar</option><option value="Kundalini">Kundalini</option><option value="Prenatal">Prenatal</option><option value="Other">Other</option></select></label>
+      <label>Level<select id="cLevel"><option value="All levels">All levels</option><option value="Beginners">Beginners</option><option value="Intermediate">Intermediate</option><option value="Advanced">Advanced</option></select></label></div>
+    <div class="cfield"><span class="clab">Days</span><div class="rchips" id="cDays"></div></div>
+    <div class="c3"><label>Starts<input type="time" id="cTime" value="18:00"></label>
+      <label>Length<select id="cDur"><option value="45">45 min</option><option value="60" selected>60 min</option><option value="75">75 min</option><option value="90">90 min</option><option value="120">120 min</option></select></label>
+      <label>Language<input id="cLang" maxlength="30" autocomplete="off"></label></div>
+    <label>Price (optional)<input id="cPrice" maxlength="40" autocomplete="off" placeholder="e.g. €15 drop-in, or on ClassPass"></label>
+    <label>Booking link (optional)<input id="cUrl" type="url" maxlength="300" autocomplete="off" placeholder="https://"></label>
+    <label>Anything else (optional)<textarea id="cNote" maxlength="280" placeholder="e.g. Mats provided, beginners welcome"></textarea></label>
+  </form>
+  <p class="rst" id="cSt" role="status"></p>
+  <div class="dbtns"><button class="btn cdel" type="button" id="cDel" hidden>Remove</button><button class="btn" type="button" id="cCancel">Cancel</button><button class="btn primary" type="button" id="cSave">Publish class</button></div>
 </dialog>
 <div class="dyk sup" id="sup" role="dialog" aria-labelledby="supTitle" hidden>
   <button class="x" type="button" id="supClose" aria-label="Close">×</button>
@@ -6672,7 +6732,7 @@ const authReady = /[?&]embed=1/.test(location.search) ? Promise.resolve() : auth
 // search and is never stored. Booking hands over to ClassPass or Urban Sports Club: neither lets another app book for someone.
 const NEAR = (() => {
   const OVERPASS = 'https://overpass-api.de/api/interpreter', NOMINATIM = 'https://nominatim.openstreetmap.org';
-  let busy = false, last = 0;
+  let busy = false, last = null, lastReq = 0;
   const status = (t) => { const el = $('nearStatus'); el.hidden = !t; el.textContent = t || ''; };
   const km = (a, b) => { const R = 6371, r = Math.PI/180, dLa = (b.lat - a.lat)*r, dLo = (b.lon - a.lon)*r;
     const h = Math.sin(dLa/2)**2 + Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(h)); };
@@ -6681,7 +6741,7 @@ const NEAR = (() => {
   const uscUrl = city => `https://urbansportsclub.com/${uscLang()}/sports/yoga${city ? '/' + slug(city) : ''}`;
   const CP_URL = 'https://classpass.com/search';
   // Nominatim asks for at most one request a second
-  const polite = async () => { const w = 1100 - (Date.now() - last); if (w > 0) await new Promise(r => setTimeout(r, w)); last = Date.now(); };
+  const polite = async () => { const w = 1100 - (Date.now() - lastReq); if (w > 0) await new Promise(r => setTimeout(r, w)); lastReq = Date.now(); };
   const cityOf = a => a && (a.city || a.town || a.village || a.municipality || a.county) || '';
   async function geocode(q){ await polite();
     const r = await fetch(`${NOMINATIM}/search?format=jsonv2&limit=1&addressdetails=1&q=${encodeURIComponent(q)}`, {headers: {'Accept-Language': (window.SamaI18n && SamaI18n.lang) || 'en'}});
@@ -6739,7 +6799,7 @@ const NEAR = (() => {
     $('nearCity').textContent = city ? '· ' + city : ''; $('nearCP').href = CP_URL; $('nearUSC').href = uscUrl(city); $('nearBook').hidden = false;
     const ul = $('nearList'); ul.textContent = '';
     for (const s_ of list){
-      const li = document.createElement('li'); li.className = 'nstudio';
+      const li = document.createElement('li'); li.className = 'nstudio'; li.dataset.id = s_.id;
       const h = document.createElement('h3'); h.textContent = s_.name; h.setAttribute('translate', 'no');
       const m = document.createElement('div'); m.className = 'nmeta'; const loc_ = (window.SamaI18n && SamaI18n.lang !== 'en') ? SamaI18n.lang : undefined, dist = s_.d < 1 ? `${Math.round(s_.d*100)*10} m` : `${s_.d.toLocaleString(loc_, {maximumFractionDigits: 1, minimumFractionDigits: 1})} km`;
       m.textContent = [dist, [s_.street, s_.city].filter(Boolean).join(', ')].filter(Boolean).join(' · ');
@@ -6751,22 +6811,152 @@ const NEAR = (() => {
     }
   }
   async function run(getPlace){
-    if (busy) return; busy = true; $('nearList').textContent = ''; $('nearBook').hidden = true;
+    if (busy) return; busy = true; $('nearList').textContent = ''; $('nearBook').hidden = true; $('nearClasses').hidden = true;
     try {
       status('Finding where you are…'); const p = await getPlace(); if (!p) { status('That place could not be found. Try a city name.'); return; }
       status('Looking for yoga studios…');
       let list = await studios(p, 15000); const close = list.filter(s_ => s_.d <= 5); if (close.length >= 5) list = close;
       const city = p.city || await reverse(p);
-      render(list, city);
+      last = {p, list, city}; render(list, city); showClasses(p);
       status(list.length ? '' : 'No yoga studios are listed on OpenStreetMap near here yet. You can still look on ClassPass or Urban Sports Club.');
     } catch (e){ console.warn('near', e); status(e && e.code === 1 ? 'Location is off for Sama. Type a city instead, or allow location in your browser.' : 'The studio search is not reachable right now. Check your connection and try again.'); }
     finally { busy = false; }
   }
   const here = () => new Promise((res, rej) => { if (!navigator.geolocation) return rej({code: 1});
     navigator.geolocation.getCurrentPosition(g => res({lat: g.coords.latitude, lon: g.coords.longitude}), rej, {enableHighAccuracy: false, timeout: 15000, maximumAge: 600000}); });
+  // ---------- classes people add (Firestore "classes", public to read, only the owner can change one) ----------
+  // Each class keeps a 4-letter geohash (a tile of about 40 x 20 km); a search reads its tile and the 8 around it.
+  const B32 = '0123456789bcdefghjkmnpqrstuvwxyz';
+  const gh = (lat, lon) => { const a = [-90, 90], o = [-180, 180]; let h = '', bit = 0, ch = 0, even = true;
+    while (h.length < 4){ const r = even ? o : a, v = even ? lon : lat, m = (r[0] + r[1])/2; if (v >= m){ ch = ch*2 + 1; r[0] = m; } else { ch *= 2; r[1] = m; } even = !even; if (++bit === 5){ h += B32[ch]; bit = 0; ch = 0; } }
+    return h; };
+  const tiles = p => { const t = new Set(); for (const dy of [-1, 0, 1]) for (const dx of [-1, 0, 1]) t.add(gh(Math.max(-89.9, Math.min(89.9, p.lat + dy*0.1758)), ((p.lon + dx*0.3516 + 540) % 360) - 180)); return [...t]; };
+  const DAYS = [1, 2, 3, 4, 5, 6, 7]; // ISO: Monday 1 … Sunday 7
+  const dayName = (d, len = 'short') => new Date(2024, 0, d).toLocaleDateString(LOC(), {weekday: len}); // 1 Jan 2024 was a Monday
+  const fmtTime = t => { const [h, m] = t.split(':').map(Number); return new Date(2024, 0, 1, h, m).toLocaleTimeString(LOC(), {hour: 'numeric', minute: '2-digit'}); };
+  const untilNext = c => { const now = new Date(), wd = (now.getDay() + 6) % 7 + 1, mins = now.getHours()*60 + now.getMinutes(), [h, m] = c.time.split(':').map(Number), t = h*60 + m;
+    return Math.min(...c.days.map(d => { let dd = (d - wd + 7) % 7; if (dd === 0 && t < mins) dd = 7; return dd*1440 + t - mins; })); };
+  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  const span = (txt, own) => { const e = el('span', '', txt); if (own) e.setAttribute('translate', 'no'); return e; };
+  let mine = [];
+  function classItem(c, withPlace){
+    const li = el('li', 'ncls'), h = el('h4', '', c.title); h.setAttribute('translate', 'no');
+    const when = el('div', 'cwhen'), days = el('b', '', c.days.map(d => dayName(d)).join(', ')); days.setAttribute('translate', 'no');
+    when.append(days, span(' · ' + fmtTime(c.time) + ' · ', true), span(`${c.dur} min`));
+    const meta = el('div', 'cmeta'); meta.append(span(c.style), span(' · ', true), span(c.level));
+    if (c.lang) meta.append(span(' · ' + c.lang, true));
+    if (c.price) meta.append(span(' · ' + c.price, true));
+    li.append(h, when, meta);
+    if (withPlace){ const w = el('div', 'cmeta'); w.append(span(c.studio, true)); if (c.d != null) w.append(span(' · ' + (c.d < 1 ? `${Math.round(c.d*100)*10} m` : `${c.d.toLocaleString(LOC(), {maximumFractionDigits: 1, minimumFractionDigits: 1})} km`), true)); li.append(w); }
+    if (c.note){ const n = el('p', 'cnote', c.note); n.setAttribute('translate', 'no'); li.append(n); }
+    const act = el('div', 'nact');
+    if (/^https:\/\//i.test(c.url || '')) act.append(link(c.url, 'Book'));
+    act.append(link(c.studioId ? `https://www.openstreetmap.org/${c.studioId}` : `https://www.openstreetmap.org/?mlat=${c.lat}&mlon=${c.lon}#map=18/${c.lat}/${c.lon}`, 'Map'));
+    if (AUTH.user && c.owner === AUTH.user.uid){ const b = el('button', 'btn small', 'Edit'); b.type = 'button'; b.addEventListener('click', () => openForm(c)); act.append(b); }
+    else { const b = el('button', 'crep', 'Report'); b.type = 'button'; b.addEventListener('click', () => report(c, b)); act.append(b); }
+    li.append(act); return li;
+  }
+  async function showClasses(p){
+    const box = $('nearClasses'), ul = $('nearClassList'); for (const x of document.querySelectorAll('.nsclass')) x.remove();
+    try {
+      await authReady; if (!AUTH.db) return;
+      const snap = await AUTH.db.collection('classes').where('g4', 'in', tiles(p)).limit(300).get();
+      const list = snap.docs.map(d => Object.assign({id: d.id}, d.data())).filter(c => Array.isArray(c.days) && c.days.length && /^\d\d:\d\d$/.test(c.time || ''))
+        .map(c => Object.assign(c, {d: km(p, c)})).filter(c => c.d <= 15).sort((a, b) => untilNext(a) - untilNext(b));
+      ul.textContent = ''; for (const c of list) ul.append(classItem(c, true)); box.hidden = !list.length;
+      // the studio's own card says when its classes are
+      for (const c of list){ if (!c.studioId) continue; const card = document.querySelector(`.nstudio[data-id="${CSS.escape(c.studioId)}"]`); if (!card) continue;
+        const line = el('p', 'nsclass'), b = el('b', '', c.days.map(d => dayName(d)).join(', ') + ' ' + fmtTime(c.time)); b.setAttribute('translate', 'no');
+        line.append(b, span(' · ' + c.title, true)); card.querySelector('.nmeta').after(line); }
+    } catch (e){ console.warn('near classes', e); }
+  }
+  async function showMine(){
+    try { await authReady; } catch {}
+    const box = $('myClasses'); if (!AUTH.db || !AUTH.user){ box.hidden = true; mine = []; return; }
+    try {
+      const snap = await AUTH.db.collection('classes').where('owner', '==', AUTH.user.uid).limit(50).get();
+      mine = snap.docs.map(d => Object.assign({id: d.id}, d.data())).sort((a, b) => untilNext(a) - untilNext(b));
+      const ul = $('myClassList'); ul.textContent = ''; for (const c of mine) ul.append(classItem(c, true)); box.hidden = !mine.length;
+    } catch (e){ console.warn('my classes', e); }
+  }
+  async function report(c, b){
+    b.disabled = true;
+    try { await authReady; const doc = {classId: c.id, at: Date.now()}; if (AUTH.user) doc.uid = AUTH.user.uid; await AUTH.db.collection('classReports').add(doc); b.textContent = 'Reported. Thank you.'; }
+    catch (e){ b.disabled = false; b.textContent = 'Could not send. Try again'; console.warn('class report', e); }
+  }
+  // the form
+  const dlg = $('clsDlg'); let editing = null, delArmed = false;
+  for (const d of DAYS){ const b = el('button', '', dayName(d)); b.type = 'button'; b.dataset.d = d; b.setAttribute('aria-pressed', 'false'); b.setAttribute('translate', 'no');
+    b.addEventListener('click', () => b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'))); $('cDays').append(b); }
+  const st = t => { $('cSt').textContent = t || ''; };
+  function fillWhere(c){
+    const sel = $('cWhere'); sel.textContent = '';
+    const opt = (v, t, own) => { const o = el('option', '', t); o.value = v; if (own) o.setAttribute('translate', 'no'); sel.append(o); };
+    if (c) opt('keep', c.studio, true);
+    if (last) last.list.forEach((s_, i) => opt(String(i), `${s_.name} · ${s_.d < 1 ? Math.round(s_.d*100)*10 + ' m' : s_.d.toFixed(1) + ' km'}`, true));
+    opt('other', 'Another place…');
+    sel.value = c ? 'keep' : last && last.list.length ? '0' : 'other'; $('cPlaceL').hidden = sel.value !== 'other';
+  }
+  $('cWhere').addEventListener('change', () => { $('cPlaceL').hidden = $('cWhere').value !== 'other'; if (!$('cPlaceL').hidden) $('cPlace').focus(); });
+  async function openForm(c, studioIndex){
+    try { await authReady; } catch {}
+    if (!AUTH.db){ notice('Adding classes is not available right now', 'Check your connection and try again.'); return; }
+    if (!AUTH.user){ notice('Sign in to add your class', 'Classes are linked to your account, so only you can change or remove them. Sign in here in your profile, then come back to Studios.'); switchView('profile'); return; }
+    editing = c || null; delArmed = false;
+    $('clsTitle').textContent = c ? 'Edit your class' : 'Add your class'; $('cSave').textContent = c ? 'Save changes' : 'Publish class';
+    $('cDel').hidden = !c; $('cDel').textContent = 'Remove'; $('cSave').disabled = false; st('');
+    $('cName').value = c ? c.title : ''; $('cPlace').value = '';
+    $('cStyle').value = c ? c.style : 'Vinyasa'; $('cLevel').value = c ? c.level : 'All levels';
+    $('cTime').value = c ? c.time : '18:00'; $('cDur').value = String(c ? c.dur : 60);
+    let langName = ''; try { const l = (window.SamaI18n && SamaI18n.lang) || 'en', n = new Intl.DisplayNames([l], {type: 'language'}).of(l) || ''; langName = n.charAt(0).toUpperCase() + n.slice(1); } catch {}
+    $('cLang').value = c ? (c.lang || '') : langName;
+    $('cPrice').value = c ? (c.price || '') : ''; $('cUrl').value = c ? (c.url || '') : ''; $('cNote').value = c ? (c.note || '') : '';
+    for (const b of $('cDays').children){ b.textContent = dayName(+b.dataset.d); b.setAttribute('aria-pressed', String(!!c && c.days.includes(+b.dataset.d))); }
+    fillWhere(c); if (studioIndex != null) { $('cWhere').value = String(studioIndex); $('cPlaceL').hidden = true; }
+    dlg.showModal(); if (!c) $('cName').focus();
+  }
+  $('clsForm').addEventListener('input', () => st(''));
+  $('cCancel').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  $('cSave').addEventListener('click', async () => {
+    const title = $('cName').value.trim(), days = [...$('cDays').children].filter(b => b.getAttribute('aria-pressed') === 'true').map(b => +b.dataset.d).sort();
+    const time = $('cTime').value, where = $('cWhere').value;
+    let url = $('cUrl').value.trim(); if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url; url = url.replace(/^http:\/\//i, 'https://');
+    if (title.length < 2) return st('Give the class a name.');
+    if (!days.length) return st('Pick at least one day.');
+    if (!/^\d\d:\d\d$/.test(time)) return st('Set the start time.');
+    if (url && !/^https:\/\/[^\s/]+\.[^\s]+$/i.test(url)) return st('The booking link does not look like a web address.');
+    if (where === 'other' && $('cPlace').value.trim().length < 3) return st('Type the address or the studio and city.');
+    $('cSave').disabled = true; st(where === 'other' ? 'Finding the place…' : 'Saving…');
+    try {
+      let place;
+      if (where === 'keep') place = {studio: editing.studio, studioId: editing.studioId || '', lat: editing.lat, lon: editing.lon};
+      else if (where === 'other'){ const q = $('cPlace').value.trim(), g = await geocode(q); if (!g) { $('cSave').disabled = false; return st('That place could not be found. Add the city, or pick a studio from the list.'); }
+        place = {studio: q.split(',')[0].trim().slice(0, 100), studioId: '', lat: g.lat, lon: g.lon}; }
+      else { const s_ = last.list[+where]; place = {studio: s_.name.slice(0, 100), studioId: s_.id, lat: s_.lat, lon: s_.lon}; }
+      place.lat = +place.lat.toFixed(5); place.lon = +place.lon.toFixed(5);
+      const doc = Object.assign({owner: AUTH.user.uid, ownerName: (profile.name || AUTH.user.displayName || '').slice(0, 60), title: title.slice(0, 80), g4: gh(place.lat, place.lon),
+        days, time, dur: +$('cDur').value, style: $('cStyle').value, level: $('cLevel').value, lang: $('cLang').value.trim().slice(0, 30), price: $('cPrice').value.trim().slice(0, 40),
+        url: url.slice(0, 300), note: $('cNote').value.trim().slice(0, 280), updatedAt: Date.now(), createdAt: editing ? (editing.createdAt || Date.now()) : Date.now()}, place);
+      const col = AUTH.db.collection('classes'), save = editing ? col.doc(editing.id).set(doc) : col.add(doc);
+      await Promise.race([save, new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 12000))]);
+      st(editing ? 'Saved.' : 'Your class is published.'); setTimeout(() => dlg.open && dlg.close(), 900);
+      showMine(); if (last) showClasses(last.p);
+    } catch (e){ console.warn('class save', e); $('cSave').disabled = false; st(/permission/i.test(e && e.message || '') ? 'Sama could not save this class (not allowed). Sign in again and retry.' : 'Could not save right now. Check your connection and try again.'); }
+  });
+  $('cDel').addEventListener('click', async () => {
+    if (!editing) return;
+    if (!delArmed){ delArmed = true; $('cDel').textContent = 'Remove for good?'; return; }
+    $('cDel').disabled = true;
+    try { await AUTH.db.collection('classes').doc(editing.id).delete(); dlg.close(); showMine(); if (last) showClasses(last.p); }
+    catch (e){ console.warn('class delete', e); st('Could not remove it right now. Try again.'); }
+    finally { $('cDel').disabled = false; }
+  });
+  $('nearAdd').addEventListener('click', () => openForm(null));
+
   $('nearLoc').addEventListener('click', () => run(here));
   $('nearForm').addEventListener('submit', ev => { ev.preventDefault(); const q = $('nearPlace').value.trim(); if (q) run(() => geocode(q)); });
-  return {run, slug, uscUrl};
+  return {run, slug, uscUrl, showMine, gh, tiles, openForm};
 })();
 // ---------- views ----------
 function switchView(v){
@@ -6778,6 +6968,7 @@ function switchView(v){
   if (v==='plan' && !plan) makePlan();
   if (v==='plan'){ renderPresets(); renderSaved(); }
   if (v==='lib') renderLib();
+  if (v==='near') NEAR.showMine();
 }
 for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', () => switchView(b.dataset.view));
 
@@ -6954,7 +7145,7 @@ function drawEdited(g, id, mirrored, angle, pts){
   const R = {...R0, kp, head, neck, crown, ls:kp[5], rs:kp[6], lh:kp[11], rh:kp[12], kp0:kp};
   drawScene(g, R); return R;
 }
-window.__sama = {PLAN_ORDER, NEAR, EASE, P3, POSE_FIX, REF_SPECS, GROUND, build3d, finishExtremities, KI, LEN, DYK, SUPPORT, drawEdited, figShift, estimate, get camPlace(){ return {camAt, camSeen, camVote, eff: effectivePlace()}; }, senseCamPlace, poseFor, placeAngle, designPlace, startTour, transitionCues, CUE_TEXT, get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
+window.__sama = {PLAN_ORDER, NEAR, AUTH, EASE, P3, POSE_FIX, REF_SPECS, GROUND, build3d, finishExtremities, KI, LEN, DYK, SUPPORT, drawEdited, figShift, estimate, get camPlace(){ return {camAt, camSeen, camVote, eff: effectivePlace()}; }, senseCamPlace, poseFor, placeAngle, designPlace, startTour, transitionCues, CUE_TEXT, get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
 function retheme(){
   applySkinBg();
   for (const k in THUMBS) delete THUMBS[k];

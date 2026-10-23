@@ -1,0 +1,55 @@
+rules_version = '2';
+// Firestore rules for Sama (project sama-coach-ef83b).
+// Paste into Firebase console → Firestore Database → Rules → Publish.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && request.auth.token.email == 'robert.en.var@gmail.com' && request.auth.token.email_verified; }
+    function str(v, lo, hi) { return v is string && v.size() >= lo && v.size() <= hi; }
+
+    // each person's own profile, history, saved practices and look
+    match /users/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // "Report a problem" on a pose: anyone can send one, the review page (admin) reads and updates them
+    match /poseReports/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // classes teachers and studios add in the Studios tab: public to read, only the owner changes or removes one
+    function validClass(d) {
+      return d.keys().hasOnly(['owner', 'ownerName', 'title', 'studio', 'studioId', 'lat', 'lon', 'g4', 'days', 'time', 'dur',
+                               'style', 'level', 'lang', 'price', 'url', 'note', 'createdAt', 'updatedAt'])
+        && d.keys().hasAll(['owner', 'title', 'studio', 'lat', 'lon', 'g4', 'days', 'time', 'dur', 'style', 'level'])
+        && d.owner == request.auth.uid
+        && str(d.title, 2, 80) && str(d.studio, 1, 100)
+        && (!('studioId' in d) || str(d.studioId, 0, 40))
+        && (!('ownerName' in d) || str(d.ownerName, 0, 60))
+        && d.lat is number && d.lat >= -90 && d.lat <= 90 && d.lon is number && d.lon >= -180 && d.lon <= 180
+        && str(d.g4, 4, 4)
+        && d.days is list && d.days.size() >= 1 && d.days.size() <= 7
+        && d.time is string && d.time.matches('^[0-2][0-9]:[0-5][0-9]$')
+        && d.dur is int && d.dur >= 15 && d.dur <= 240
+        && str(d.style, 1, 30) && str(d.level, 1, 30)
+        && (!('lang' in d) || str(d.lang, 0, 30))
+        && (!('price' in d) || str(d.price, 0, 40))
+        && (!('url' in d) || d.url == '' || (str(d.url, 9, 300) && d.url.matches('^https://[^ ]+$')))
+        && (!('note' in d) || str(d.note, 0, 280));
+    }
+    match /classes/{id} {
+      allow read: if true;
+      allow create: if signedIn() && validClass(request.resource.data);
+      allow update: if signedIn() && resource.data.owner == request.auth.uid && validClass(request.resource.data);
+      allow delete: if signedIn() && (resource.data.owner == request.auth.uid || isAdmin());
+    }
+
+    // "Report" on someone's class
+    match /classReports/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['classId', 'at', 'uid'])
+        && str(request.resource.data.classId, 1, 40) && request.resource.data.at is int;
+      allow read, delete: if isAdmin();
+    }
+  }
+}
