@@ -45,6 +45,14 @@ service cloud.firestore {
       allow delete: if signedIn() && (resource.data.owner == request.auth.uid || isAdmin());
     }
 
+    // Help messages, kept only when the email to the team could not be sent
+    match /supportRequests/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['message', 'email', 'transcript', 'info', 'at'])
+        && str(request.resource.data.message, 0, 4000) && str(request.resource.data.email, 0, 200)
+        && str(request.resource.data.transcript, 0, 12000) && str(request.resource.data.info, 0, 2000) && request.resource.data.at is int;
+      allow read, delete: if isAdmin();
+    }
+
     // "Report" on someone's class
     match /classReports/{id} {
       allow create: if request.resource.data.keys().hasOnly(['classId', 'at', 'uid'])

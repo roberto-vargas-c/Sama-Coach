@@ -621,6 +621,7 @@ body.tv #viewCoach{display:none!important}
 .nearteach p{margin:0;flex:1;min-width:220px;font-size:14.5px;color:var(--muted)}
 .nearteach p b{color:var(--ink);font-weight:600}
 .nearteach .btn{display:inline-flex;align-items:center;gap:6px}
+.nearsignin{display:grid;gap:6px}.nearsignin .hint{margin:0}
 .nclasses h3{margin:0 0 2px;font-size:18px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink)}
 .nclasses .hint{margin:0 0 8px}
 .nclist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -635,6 +636,30 @@ body.tv #viewCoach{display:none!important}
 .ncls .crep{background:none;border:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline;padding:4px 6px}
 .nstudio .nsclass{margin:0;font-size:14px;color:var(--ink)}
 .nstudio .nsclass b{color:var(--brand);font-weight:600}
+.repdlg.helpdlg{width:min(94vw,520px);height:min(86vh,680px);padding:0;display:none;flex-direction:column;overflow:hidden}
+.repdlg.helpdlg[open]{display:flex}
+.helpdlg .hhead{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;border-bottom:1px solid var(--line)}
+.helpdlg .hhead h2{margin:0}
+.helpdlg .x{border:none;background:none;color:var(--muted);font-size:26px;line-height:1;cursor:pointer;padding:4px 8px}
+.helpdlg .hlog{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+.hmsg{max-width:86%;padding:9px 13px;border-radius:16px;font-size:14.5px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.hmsg.bot{align-self:flex-start;background:var(--bg);border:1px solid var(--line);border-bottom-left-radius:6px}
+.hmsg.user{align-self:flex-end;background:var(--brand);color:var(--brand-ink);border-bottom-right-radius:6px}
+.hmsg.wait{color:var(--muted);font-style:italic}
+.hmsg .btn{margin-top:8px;white-space:normal}
+.helpdlg .hfoot,.helpdlg .hcontact{border-top:1px solid var(--line);padding:10px 18px 14px;display:grid;gap:8px}
+.helpdlg .hchips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.helpdlg .hchips button{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.helpdlg .hform{display:flex;gap:8px;align-items:flex-end}
+.helpdlg .hform textarea{flex:1;margin:0;min-height:46px;max-height:120px;resize:none}
+.helpdlg .hlink{justify-self:start;background:none;border:none;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:2px 0}
+.helpdlg .hcontact{overflow-y:auto}
+.helpdlg .hcontact h3{margin:0;font-size:17px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink)}
+.helpdlg .hcontact .hint{margin:0}
+.helpdlg .hcontact label{display:grid;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
+.helpdlg .hcontact textarea,.helpdlg .hcontact input{width:100%;box-sizing:border-box;margin:0;min-height:42px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:15px;font-weight:400;padding:8px 10px}
+.helpdlg .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.helpdlg .dbtns{margin-top:0}
 .clsdlg form{display:grid;gap:10px}
 .clsdlg label,.clsdlg .cfield{display:grid;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
 .clsdlg input,.clsdlg select,.clsdlg textarea{width:100%;box-sizing:border-box;min-height:42px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:15px;font-weight:400;padding:6px 10px}
@@ -1081,6 +1106,7 @@ Savasana, 3 min"></textarea>
       </div>
       <p class="hint nearpriv">Your location is used only for this search. It goes to OpenStreetMap to find the studios and is not saved.</p>
       <div class="nearteach"><p><b>Teach yoga or run a studio?</b> Add your class so people nearby can find it in Sama.</p><button class="btn small" id="nearAdd" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Add your class</button></div>
+      <div class="nearsignin" id="nearSignin" hidden><p class="hint">Sign in to add your class. It is linked to your account, so only you can change or remove it.</p><div class="crow"><button class="btn small primary" id="nsGoogle" type="button">Continue with Google</button><button class="btn small" id="nsEmail" type="button">Email me a link</button></div></div>
     </div>
     <div class="pcard nclasses" id="myClasses" hidden>
       <h3>Your classes</h3>
@@ -1138,6 +1164,11 @@ Savasana, 3 min"></textarea>
           <h2>Support Sama</h2>
           <p class="hint">Sama is free, without ads, and made by one person. If it helps your practice, you can support it with a small donation.</p>
           <div class="crow"><button class="btn kofi" id="coffeeBtn" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 5.5c0-1 1-1 1-2M12 5.5c0-1 1-1 1-2"/></svg> Support Sama on Ko-fi</button></div>
+        </div>
+        <div class="pcard" id="helpCard">
+          <h2>Help</h2>
+          <p class="hint">A question about Sama, or something not working? Ask here. If the answer doesn’t solve it, you can send it to the Sama team.</p>
+          <div class="crow"><button class="btn small primary" id="pfHelp" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .8c0 1.7-2.5 2.2-2.5 3.6"/><path d="M12 17h.01"/></svg> Get help</button></div>
         </div>
         <div class="pcard">
           <h2>Account</h2>
@@ -1219,6 +1250,24 @@ Savasana, 3 min"></textarea>
   <textarea id="repNote" maxlength="500" placeholder="What is off? e.g. the back heel should be flat"></textarea>
   <p class="rst" id="repSt" role="status"></p>
   <div class="dbtns"><button class="btn" type="button" id="repCancel">Cancel</button><button class="btn primary" type="button" id="repSend">Send report</button></div>
+</dialog>
+<dialog class="repdlg helpdlg" id="helpDlg" aria-labelledby="hTitle">
+  <div class="hhead"><h2 id="hTitle">Sama help</h2><button class="x" type="button" id="hClose" aria-label="Close">×</button></div>
+  <div class="hlog" id="hLog" aria-live="polite"></div>
+  <div class="hfoot" id="hAsk">
+    <div class="hchips" id="hChips"><button type="button">The camera doesn’t start</button><button type="button">There is no sound in practices</button><button type="button">How do I keep my practice on all my devices?</button><button type="button">How do I add my yoga class?</button></div>
+    <form class="hform" id="hForm"><textarea id="hIn" rows="2" maxlength="1500" placeholder="Ask about Sama, e.g. the camera doesn’t start" aria-label="Your question"></textarea><button class="btn primary" type="submit" id="hSend">Ask</button></form>
+    <button class="hlink" type="button" id="hHuman">Write to the Sama team instead</button>
+  </div>
+  <div class="hcontact" id="hContact" hidden>
+    <h3>Send to the Sama team</h3>
+    <p class="hint">Your message and this conversation go to the person who makes Sama, with your device type and app version so they can help.</p>
+    <label>What is going on<textarea id="hMsg" rows="3" maxlength="4000" placeholder="What happened, and what did you expect?"></textarea></label>
+    <label>Your email, for a reply (optional)<input id="hMail" type="email" maxlength="200" autocomplete="email" placeholder="you@example.com"></label>
+    <input id="hWeb" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <p class="rst" id="hSt" role="status"></p>
+    <div class="dbtns"><button class="btn" type="button" id="hBack">Back</button><button class="btn primary" type="button" id="hSubmit">Send</button></div>
+  </div>
 </dialog>
 <dialog class="repdlg clsdlg" id="clsDlg">
   <h2 id="clsTitle">Add your class</h2>
@@ -6724,6 +6773,7 @@ function renderAuthUI(){
   if (AUTH.user){ txt.textContent = `Signed in as ${AUTH.user.displayName || AUTH.user.email}. Your checks, saved practices and profile sync to your account.`; mk('Sign out', '', authSignOut); }
   else { txt.textContent = 'Sign in to keep your data across your phone, laptop and the app.'; mk('Continue with Google', 'primary', () => authSignIn('google')); mk('Email me a link', '', () => authSignIn('email')); }
   $('wAuth').hidden = !AUTH.available;
+  if (AUTH.user && $('nearSignin')) $('nearSignin').hidden = true;
 }
 const authReady = /[?&]embed=1/.test(location.search) ? Promise.resolve() : authInit(); // the embedded copy never signs in or syncs
 
@@ -6900,8 +6950,9 @@ const NEAR = (() => {
   $('cWhere').addEventListener('change', () => { $('cPlaceL').hidden = $('cWhere').value !== 'other'; if (!$('cPlaceL').hidden) $('cPlace').focus(); });
   async function openForm(c, studioIndex){
     try { await authReady; } catch {}
-    if (!AUTH.db){ notice('Adding classes is not available right now', 'Check your connection and try again.'); return; }
-    if (!AUTH.user){ notice('Sign in to add your class', 'Classes are linked to your account, so only you can change or remove them. Sign in here in your profile, then come back to Studios.'); switchView('profile'); return; }
+    if (!AUTH.db){ status('Adding classes is not available right now. Check your connection and try again.'); return; }
+    if (!AUTH.user){ $('nearSignin').hidden = false; $('nearSignin').scrollIntoView({block: 'nearest', behavior: 'smooth'}); return; }
+    $('nearSignin').hidden = true;
     editing = c || null; delArmed = false;
     $('clsTitle').textContent = c ? 'Edit your class' : 'Add your class'; $('cSave').textContent = c ? 'Save changes' : 'Publish class';
     $('cDel').hidden = !c; $('cDel').textContent = 'Remove'; $('cSave').disabled = false; st('');
@@ -6953,6 +7004,8 @@ const NEAR = (() => {
     finally { $('cDel').disabled = false; }
   });
   $('nearAdd').addEventListener('click', () => openForm(null));
+  $('nsGoogle').addEventListener('click', () => authSignIn('google'));
+  $('nsEmail').addEventListener('click', () => authSignIn('email'));
 
   $('nearLoc').addEventListener('click', () => run(here));
   $('nearForm').addEventListener('submit', ev => { ev.preventDefault(); const q = $('nearPlace').value.trim(); if (q) run(() => geocode(q)); });
@@ -7229,6 +7282,75 @@ if (document.fonts) document.fonts.ready.then(() => render());
       $('repSt').textContent = 'Thank you. Your report was sent.'; setTimeout(() => dlg.open && dlg.close(), 1400);
     } catch (e){ $('repSt').textContent = 'Could not send it right now. Check your connection and try again.'; $('repSend').disabled = false; console.warn('report', e); }
   });
+})();
+
+// ---------- help: an assistant for questions about the app (/api/support), then the Sama team by email ----------
+// The team's address lives on the server (SUPPORT_EMAIL); the page only ever posts to /api/support.
+(() => {
+  const URL_ = COACH_URL ? COACH_URL.replace(/\/coach$/, '/support') : '';
+  const dlg = $('helpDlg'), log = $('hLog'); let convo = [], busy = false, started = false;
+  const lang = () => (window.SamaI18n && SamaI18n.lang) || 'en';
+  const scroll = () => { log.scrollTop = log.scrollHeight; };
+  function bubble(role, text, own){ const d = document.createElement('div'); d.className = 'hmsg ' + role; d.textContent = text; if (own) d.setAttribute('translate', 'no'); log.append(d); scroll(); return d; }
+  function teamButton(where){ const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small primary'; b.textContent = 'Send this to the Sama team'; b.addEventListener('click', contact); where.append(document.createElement('br'), b); scroll(); }
+  function open(){
+    if (!started){ started = true; bubble('bot', 'Hi! Ask me anything about using Sama: the camera, practices, your account, studios, the app on your phone or TV.'); }
+    $('hAsk').hidden = false; $('hContact').hidden = true; dlg.showModal(); setTimeout(() => $('hIn').focus(), 50);
+  }
+  async function ask(q){
+    q = q.trim(); if (!q || busy) return; busy = true; $('hSend').disabled = true; $('hChips').hidden = true;
+    convo.push({role: 'user', content: q}); bubble('user', q, true); $('hIn').value = '';
+    const wait = bubble('bot wait', 'Thinking…');
+    try {
+      if (!URL_) throw new Error('offline');
+      const r = await fetch(URL_, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({mode: 'ask', messages: convo, lang: lang()}), signal: AbortSignal.timeout ? AbortSignal.timeout(50000) : undefined});
+      const j = await r.json().catch(() => ({})); if (!r.ok || !j.reply) throw new Error(j.error || 'http ' + r.status);
+      wait.remove(); convo.push({role: 'assistant', content: j.reply});
+      const b = bubble('bot', j.reply.replace(/\*\*(.+?)\*\*/g, '$1').replace(/^#+\s*/gm, ''), true);
+      if (j.needs_human) teamButton(b);
+    } catch (e){
+      console.warn('help', e); wait.remove();
+      const b = bubble('bot', 'I can’t answer right now. You can still send your question to the Sama team.'); teamButton(b);
+    } finally { busy = false; $('hSend').disabled = false; }
+  }
+  function contact(){
+    $('hAsk').hidden = true; $('hContact').hidden = false; $('hSt').textContent = ''; $('hSubmit').disabled = false;
+    const lastQ = [...convo].reverse().find(m => m.role === 'user');
+    if (!$('hMsg').value) $('hMsg').value = lastQ ? lastQ.content : '';
+    if (!$('hMail').value && AUTH.user && AUTH.user.email) $('hMail').value = AUTH.user.email;
+    setTimeout(() => $('hMsg').focus(), 50);
+  }
+  function info(){
+    const app = window.SamaNative ? 'Android app' : (matchMedia('(display-mode: standalone)').matches || navigator.standalone) ? 'home-screen app' : 'browser';
+    let ver = ''; try { ver = window.SamaNative && SamaNative.version ? SamaNative.version() : ''; } catch {}
+    return {app, appVersion: ver, browser: navigator.userAgent, language: lang(), screen: `${screen.width}x${screen.height} @${devicePixelRatio}`, signedIn: AUTH.user ? 'yes (' + AUTH.user.uid + ')' : 'no', page: location.host};
+  }
+  $('hSubmit').addEventListener('click', async () => {
+    const message = $('hMsg').value.trim(), email = $('hMail').value.trim();
+    if (message.length < 3 && !convo.length){ $('hSt').textContent = 'Write a few words about what is going on.'; return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ $('hSt').textContent = 'That email address does not look right. Leave it empty if you prefer.'; return; }
+    $('hSubmit').disabled = true; $('hSt').textContent = 'Sending…';
+    const transcript = convo.map(m => (m.role === 'user' ? 'Person: ' : 'Sama Help: ') + m.content).join('\n\n');
+    const payload = {mode: 'send', message, email, transcript, info: info(), website: $('hWeb').value};
+    let ok = false;
+    try { if (URL_){ const r = await fetch(URL_, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)}); ok = r.ok; } } catch (e){ console.warn('help send', e); }
+    if (!ok){ // the email did not go out: keep it in the database so it is not lost
+      try { await authReady; if (AUTH.db){ const doc = {message: message.slice(0, 4000), email: email.slice(0, 200), transcript: transcript.slice(0, 12000), info: JSON.stringify(payload.info).slice(0, 2000), at: Date.now()};
+        await Promise.race([AUTH.db.collection('supportRequests').add(doc), new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 10000))]); ok = true; } } catch (e){ console.warn('help store', e); }
+    }
+    if (!ok){ $('hSt').textContent = 'Could not send it right now. Check your connection and try again.'; $('hSubmit').disabled = false; return; }
+    $('hContact').hidden = true; $('hAsk').hidden = false; $('hMsg').value = '';
+    bubble('bot', email ? 'Sent. Thank you! The Sama team will reply to your email.' : 'Sent. Thank you! The Sama team will look at it.');
+  });
+  $('hForm').addEventListener('submit', e => { e.preventDefault(); ask($('hIn').value); });
+  $('hIn').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); ask($('hIn').value); } });
+  for (const b of $('hChips').children) b.addEventListener('click', () => ask(b.textContent));
+  $('hHuman').addEventListener('click', contact);
+  $('hBack').addEventListener('click', () => { $('hContact').hidden = true; $('hAsk').hidden = false; });
+  $('hClose').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  $('pfHelp').addEventListener('click', open);
+  window.__samaHelp = {open, contact};
 })();
 
 // ---------- add to home screen ----------

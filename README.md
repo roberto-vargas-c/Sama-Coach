@@ -18,6 +18,7 @@ Design rule: **the model never invents poses or timings.** It returns planner pa
 ```
 index.html                 the whole app (page, styles, pose library, planner, coach)
 api/coach.js               serverless proxy: adds OPENAI_API_KEY and forwards to OpenAI
+api/support.js             Profile → Help: answers app questions, emails the team (address from SUPPORT_EMAIL)
 dev.js                     local server that mimics Vercel (static files + /api/coach)
 *.json, *.wasm             pose models and the TensorFlow.js WebAssembly backend
 vercel.json                long cache headers for the model files
@@ -48,6 +49,8 @@ Or from the command line: `npm i -g vercel && vercel && vercel env add OPENAI_AP
 |---|---|
 | `OPENAI_API_KEY` | required |
 | `OPENAI_MODEL` | model used for every call (default `gpt-4o-mini`; `gpt-4o` coaches better and costs more) |
+| `SUPPORT_EMAIL` | where Profile → Help sends messages (never shown in the page). Without `RESEND_API_KEY` it goes through FormSubmit, which emails this inbox once to confirm |
+| `RESEND_API_KEY` | optional: send help messages through Resend instead (`SUPPORT_FROM` sets the sender, default `onboarding@resend.dev`) |
 | `OPENAI_ALLOWED_MODELS` | comma-separated list the page may request (default: the gpt-4o and gpt-4.1 families) |
 | `OPENAI_BASE_URL` | any OpenAI-compatible endpoint (default `https://api.openai.com/v1`) |
 | `CORS_ORIGIN` | only needed if the page is hosted on another origin than the function |

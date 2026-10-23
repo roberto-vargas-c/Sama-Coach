@@ -6,16 +6,16 @@ try { // minimal .env loader, no dependency
     const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
   }
 } catch {}
-const coach = require('./api/coach.js');
+const coach = require('./api/coach.js'), support = require('./api/support.js');
 const TYPES = {'.html':'text/html; charset=utf-8', '.js':'text/javascript', '.json':'application/json', '.wasm':'application/wasm', '.css':'text/css', '.png':'image/png', '.svg':'image/svg+xml', '.ico':'image/x-icon', '.webmanifest':'application/manifest+json'};
 const port = +process.env.PORT || 3000;
 http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
-  if (url.pathname === '/api/coach'){
+  if (url.pathname === '/api/coach' || url.pathname === '/api/support'){
     // a tiny shim of Vercel's response helpers
     res.status = c => { res.statusCode = c; return res; };
     res.json = o => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(o)); };
-    return coach(req, res);
+    return (url.pathname === '/api/support' ? support : coach)(req, res);
   }
   let file = path.join(__dirname, decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
   if (!file.startsWith(__dirname)) { res.statusCode = 403; return res.end(); }
