@@ -600,6 +600,25 @@ body.tv #viewCoach{display:none!important}
 .pbtn canvas{width:34px;height:34px;display:block}
 .pbtn[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
 .pgrid{display:grid;grid-template-columns:1fr;gap:16px}
+.tab{white-space:nowrap}
+@media (max-width:560px){.tabs{gap:2px}.tab{flex:1 1 auto;white-space:normal;padding:8px 7px;font-size:13px;line-height:1.15}}
+.near{display:flex;flex-direction:column;gap:12px;max-width:820px}
+.near .pcard{cursor:default}
+.nearctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.nearform{display:flex;gap:8px;flex:1;min-width:220px}
+.nearform input{flex:1;min-width:0;min-height:46px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;padding:0 12px}
+.nearpriv{font-size:13px}
+.nearstatus{margin:0;color:var(--muted)}
+.nearbook .crow{display:flex;flex-wrap:wrap;gap:8px}
+.nearbook a.btn{text-decoration:none}
+.nearlist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.nstudio{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;gap:6px}
+.nstudio h3{margin:0;font-size:18px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink)}
+.nstudio .nmeta{color:var(--muted);font-size:14px}
+.nstudio .nact{display:flex;flex-wrap:wrap;gap:6px}
+.nstudio .nact a{min-height:36px;padding:4px 12px;font-size:14px;text-decoration:none}
+.osmcredit{font-size:12px;color:var(--muted);margin:0}.osmcredit a{color:inherit}
+body.tv #viewNear, body.practice #viewNear{display:none!important}
 @media (min-width:860px){.pgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}}
 .pcol{display:flex;flex-direction:column;gap:16px;min-width:0}
 .pcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:12px}
@@ -786,6 +805,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
     <button class="tab" type="button" role="tab" data-view="plan" aria-selected="false">Plan a practice</button>
     <button class="tab" type="button" role="tab" data-view="lib" aria-selected="false">Library</button>
     <button class="tab" type="button" role="tab" data-view="coach" aria-selected="false">Coach</button>
+    <button class="tab" type="button" role="tab" data-view="near" aria-selected="false">Studios</button>
   </div>
   <div id="viewCheck" class="view-wrap">
   <div class="searchrow"><label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="search" placeholder="Search poses: name, Sanskrit, family…" autocomplete="off" aria-label="Search poses"></label>
@@ -1020,6 +1040,25 @@ Savasana, 3 min"></textarea>
       </div>
       <div class="cout" id="rmOut"></div>
     </div>
+  </section>
+  <section id="viewNear" class="near" hidden>
+    <div class="pcard nearhead">
+      <h2>Yoga studios near you</h2>
+      <p class="hint">Yoga is also a community. Find a studio close by, practise with others, and book a class with ClassPass or Urban Sports Club.</p>
+      <div class="nearctl">
+        <button class="btn primary" id="nearLoc" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg> Use my location</button>
+        <form class="nearform" id="nearForm"><input id="nearPlace" type="search" placeholder="Or type a city or area" aria-label="City or area" autocomplete="off"><button class="btn" type="submit">Search</button></form>
+      </div>
+      <p class="hint nearpriv">Your location is used only for this search. It goes to OpenStreetMap to find the studios and is not saved.</p>
+    </div>
+    <p class="nearstatus" id="nearStatus" role="status" hidden></p>
+    <div class="pcard nearbook" id="nearBook" hidden>
+      <p><b>Book a class</b> <span class="hint" id="nearCity"></span></p>
+      <div class="crow"><a class="btn small" id="nearCP" target="_blank" rel="noopener">ClassPass</a><a class="btn small" id="nearUSC" target="_blank" rel="noopener">Urban Sports Club</a></div>
+      <p class="hint">Studios that take part show their classes there. Booking happens in their app or website.</p>
+    </div>
+    <ul class="nearlist" id="nearList"></ul>
+    <p class="osmcredit">Studio data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></p>
   </section>
   <section id="viewProfile" class="profile" hidden>
     <div class="pgrid">
@@ -6534,10 +6573,79 @@ function renderAuthUI(){
 }
 const authReady = /[?&]embed=1/.test(location.search) ? Promise.resolve() : authInit(); // the embedded copy never signs in or syncs
 
+// ---------- yoga studios near you (OpenStreetMap) ----------
+// Studios come from OpenStreetMap (Overpass); a typed place is looked up with Nominatim. The position is sent only to make the
+// search and is never stored. Booking hands over to ClassPass or Urban Sports Club: neither lets another app book for someone.
+const NEAR = (() => {
+  const OVERPASS = 'https://overpass-api.de/api/interpreter', NOMINATIM = 'https://nominatim.openstreetmap.org';
+  let busy = false, last = 0;
+  const status = (t) => { const el = $('nearStatus'); el.hidden = !t; el.textContent = t || ''; };
+  const km = (a, b) => { const R = 6371, r = Math.PI/180, dLa = (b.lat - a.lat)*r, dLo = (b.lon - a.lon)*r;
+    const h = Math.sin(dLa/2)**2 + Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(h)); };
+  const slug = t => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ß/g, 'ss').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const uscLang = () => { const l = (window.SamaI18n && SamaI18n.lang) || 'en'; return ['de', 'es', 'fr', 'it', 'nl', 'pt'].includes(l) ? l : 'en'; };
+  const uscUrl = city => `https://urbansportsclub.com/${uscLang()}/sports/yoga${city ? '/' + slug(city) : ''}`;
+  const CP_URL = 'https://classpass.com/search';
+  // Nominatim asks for at most one request a second
+  const polite = async () => { const w = 1100 - (Date.now() - last); if (w > 0) await new Promise(r => setTimeout(r, w)); last = Date.now(); };
+  const cityOf = a => a && (a.city || a.town || a.village || a.municipality || a.county) || '';
+  async function geocode(q){ await polite();
+    const r = await fetch(`${NOMINATIM}/search?format=jsonv2&limit=1&addressdetails=1&q=${encodeURIComponent(q)}`, {headers: {'Accept-Language': (window.SamaI18n && SamaI18n.lang) || 'en'}});
+    const j = await r.json(); if (!j.length) return null; return {lat: +j[0].lat, lon: +j[0].lon, city: cityOf(j[0].address) || j[0].name}; }
+  async function reverse(p){ try { await polite(); const r = await fetch(`${NOMINATIM}/reverse?format=jsonv2&zoom=10&addressdetails=1&lat=${p.lat}&lon=${p.lon}`, {headers: {'Accept-Language': 'en'}});
+    const j = await r.json(); return cityOf(j.address); } catch { return ''; } }
+  async function studios(p, radius){
+    const a = `(around:${radius},${p.lat.toFixed(5)},${p.lon.toFixed(5)})`;
+    const q = `[out:json][timeout:25];(nwr["sport"~"yoga",i]${a};nwr["leisure"]["name"~"yoga",i]${a};nwr["amenity"]["name"~"yoga",i]${a};nwr["club"]["name"~"yoga",i]${a};nwr["shop"!~"."]["office"!~"."]["name"~"yoga",i]["addr:street"]${a};);out center tags 120;`;
+    const r = await fetch(OVERPASS, {method: 'POST', body: 'data=' + encodeURIComponent(q), headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
+    if (!r.ok) throw new Error('overpass ' + r.status);
+    const seen = new Set(), out = [];
+    for (const e of (await r.json()).elements || []){
+      const t = e.tags || {}, lat = e.lat ?? (e.center && e.center.lat), lon = e.lon ?? (e.center && e.center.lon);
+      if (!t.name || lat == null) continue;
+      const key = t.name.toLowerCase() + '|' + lat.toFixed(3) + lon.toFixed(3); if (seen.has(key)) continue; seen.add(key);
+      out.push({name: t.name, lat, lon, d: km(p, {lat, lon}), web: t.website || t['contact:website'] || '', street: [t['addr:street'], t['addr:housenumber']].filter(Boolean).join(' '), city: t['addr:city'] || '', id: `${e.type}/${e.id}`});
+    }
+    return out.sort((x, y) => x.d - y.d).slice(0, 40);
+  }
+  const link = (href, txt, cls = 'btn small') => { const a = document.createElement('a'); a.className = cls; a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.textContent = txt; return a; };
+  function render(list, city){
+    $('nearCity').textContent = city ? '· ' + city : ''; $('nearCP').href = CP_URL; $('nearUSC').href = uscUrl(city); $('nearBook').hidden = false;
+    const ul = $('nearList'); ul.textContent = '';
+    for (const s_ of list){
+      const li = document.createElement('li'); li.className = 'nstudio';
+      const h = document.createElement('h3'); h.textContent = s_.name; h.setAttribute('translate', 'no');
+      const m = document.createElement('div'); m.className = 'nmeta'; const loc_ = (window.SamaI18n && SamaI18n.lang !== 'en') ? SamaI18n.lang : undefined, dist = s_.d < 1 ? `${Math.round(s_.d*100)*10} m` : `${s_.d.toLocaleString(loc_, {maximumFractionDigits: 1, minimumFractionDigits: 1})} km`;
+      m.textContent = [dist, [s_.street, s_.city].filter(Boolean).join(', ')].filter(Boolean).join(' · ');
+      const act = document.createElement('div'); act.className = 'nact';
+      act.append(link(CP_URL, 'ClassPass'), link(uscUrl(s_.city || city), 'Urban Sports Club'));
+      if (/^https?:\/\//i.test(s_.web)) act.append(link(s_.web, 'Website'));
+      act.append(link(`https://www.openstreetmap.org/${s_.id}`, 'Map'));
+      li.append(h, m, act); ul.append(li);
+    }
+  }
+  async function run(getPlace){
+    if (busy) return; busy = true; $('nearList').textContent = ''; $('nearBook').hidden = true;
+    try {
+      status('Finding where you are…'); const p = await getPlace(); if (!p) { status('That place could not be found. Try a city name.'); return; }
+      status('Looking for yoga studios…');
+      let list = await studios(p, 5000); if (list.length < 5) list = await studios(p, 15000);
+      const city = p.city || await reverse(p);
+      render(list, city);
+      status(list.length ? '' : 'No yoga studios are listed on OpenStreetMap near here yet. You can still look on ClassPass or Urban Sports Club.');
+    } catch (e){ console.warn('near', e); status(e && e.code === 1 ? 'Location is off for Sama. Type a city instead, or allow location in your browser.' : 'The studio search is not reachable right now. Check your connection and try again.'); }
+    finally { busy = false; }
+  }
+  const here = () => new Promise((res, rej) => { if (!navigator.geolocation) return rej({code: 1});
+    navigator.geolocation.getCurrentPosition(g => res({lat: g.coords.latitude, lon: g.coords.longitude}), rej, {enableHighAccuracy: false, timeout: 15000, maximumAge: 600000}); });
+  $('nearLoc').addEventListener('click', () => run(here));
+  $('nearForm').addEventListener('submit', ev => { ev.preventDefault(); const q = $('nearPlace').value.trim(); if (q) run(() => geocode(q)); });
+  return {run, slug, uscUrl};
+})();
 // ---------- views ----------
 function switchView(v){
   for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', b.dataset.view===v);
-  $('viewCheck').hidden = v!=='check'; $('viewPlan').hidden = v!=='plan'; $('viewLib').hidden = v!=='lib'; $('viewCoach').hidden = v!=='coach'; $('viewProfile').hidden = v!=='profile';
+  $('viewCheck').hidden = v!=='check'; $('viewPlan').hidden = v!=='plan'; $('viewLib').hidden = v!=='lib'; $('viewCoach').hidden = v!=='coach'; $('viewNear').hidden = v!=='near'; $('viewProfile').hidden = v!=='profile';
   $('pBtn').setAttribute('aria-pressed', String(v==='profile'));
   if (v==='coach') renderCoach();
   if (v==='profile') renderProfile();
@@ -6720,7 +6828,7 @@ function drawEdited(g, id, mirrored, angle, pts){
   const R = {...R0, kp, head, neck, crown, ls:kp[5], rs:kp[6], lh:kp[11], rh:kp[12], kp0:kp};
   drawScene(g, R); return R;
 }
-window.__sama = {DYK, SUPPORT, drawEdited, figShift, estimate, get camPlace(){ return {camAt, camSeen, camVote, eff: effectivePlace()}; }, senseCamPlace, poseFor, placeAngle, designPlace, startTour, transitionCues, CUE_TEXT, get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
+window.__sama = {NEAR, DYK, SUPPORT, drawEdited, figShift, estimate, get camPlace(){ return {camAt, camSeen, camVote, eff: effectivePlace()}; }, senseCamPlace, poseFor, placeAngle, designPlace, startTour, transitionCues, CUE_TEXT, get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
 function retheme(){
   applySkinBg();
   for (const k in THUMBS) delete THUMBS[k];
