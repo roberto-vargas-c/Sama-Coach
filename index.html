@@ -2764,14 +2764,14 @@ function blobRef(R, b, cxTarget){
 
 // ---------- transitions: the way from one pose into another ----------
 // Poses are grouped by posture; moving between postures goes through hub poses (e.g. standing -> forward fold -> jump back to plank -> downward dog).
-const POSTURE_HUB = {stand:'mountain', fold:'forwardfold', squat:'garland', seated:'staff', supine:'savasana', shoulder:'plow', plank:'plank', dog:'dog', prone:'cobra', kneel:'tabletop', kneelup:'thunderbolt', child:'child', head:'headstand', arm:'crow', lunge:'lowlunge', lungeh:'runnerslunge', bridge:'bridge'};
+const POSTURE_HUB = {stand:'mountain', fold:'forwardfold', squat:'garland', seated:'staff', supine:'savasana', shoulder:'plow', plank:'plank', dog:'dog', prone:'cobra', kneel:'tabletop', kneelup:'thunderbolt', child:'child', head:'headstand', arm:'crow', lunge:'lowlunge', lungeh:'runnerslunge', bridge:'bridge', stance:'warrior1', pigeon:'pigeon'};
 // where a side change happens: a symmetric pose of the same family (lunges step back to downward dog and forward on the other foot)
-const SIDE_HUB = {stand:'mountain', fold:'forwardfold', squat:'garland', seated:'staff', supine:'savasana', shoulder:'plow', plank:'plank', dog:'dog', prone:'cobra', kneel:'tabletop', kneelup:'thunderbolt', child:'child', head:'headstand', arm:'garland', lunge:'dog', lungeh:'dog', bridge:'bridge'};
+const SIDE_HUB = {stand:'mountain', fold:'forwardfold', squat:'garland', seated:'staff', supine:'savasana', shoulder:'plow', plank:'plank', dog:'dog', prone:'cobra', kneel:'tabletop', kneelup:'thunderbolt', child:'child', head:'headstand', arm:'garland', lunge:'dog', lungeh:'dog', bridge:'bridge', stance:'mountain', pigeon:'dog'};
 const POSTURE_EDGES = { // from -> [to, kind]; 'jump' hops, 'move' flows
-  stand:[['fold','move'],['lunge','move'],['kneelup','move'],['squat','move']], // straight down into a squat, facing the same way (no fold first)
-  fold:[['stand','move'],['plank','jump'],['squat','move'],['arm','move'],['lungeh','move']],
+  stand:[['fold','move'],['lunge','move'],['kneelup','move'],['squat','move'],['stance','move']], // straight down into a squat, facing the same way (no fold first)
+  fold:[['stand','move'],['plank','jump'],['dog','jump'],['squat','move'],['arm','move'],['lungeh','move']], // classes step or hop straight back to Plank or Down Dog
   squat:[['fold','move'],['seated','move'],['arm','move'],['stand','move']],
-  seated:[['squat','move'],['supine','move'],['kneel','move']],
+  seated:[['squat','move'],['supine','move'],['kneel','move'],['kneelup','move']],
   supine:[['seated','move'],['shoulder','move'],['bridge','move']],
   shoulder:[['supine','move']],
   bridge:[['supine','move']],
@@ -2783,9 +2783,19 @@ const POSTURE_EDGES = { // from -> [to, kind]; 'jump' hops, 'move' flows
   child:[['kneel','move'],['head','move'],['prone','move']],
   head:[['child','move']],
   arm:[['squat','move'],['fold','move']],
-  lunge:[['stand','move'],['lungeh','move']],            // hands come down before anything else
-  lungeh:[['lunge','move'],['dog','move'],['plank','move'],['kneel','move'],['fold','move']],
+  lunge:[['stand','move'],['lungeh','move'],['stance','move']],            // hands come down before anything else; or the back knee lifts into a long stride
+  lungeh:[['lunge','move'],['dog','move'],['plank','move'],['kneel','move'],['fold','move'],['stance','move'],['pigeon','move']],
+  // the long-stride standing poses (Warrior I and II, Triangle, Side Angle, High Lunge…): reached as in class, by stepping one foot
+  // back from standing, or by stepping a foot forward between the hands and rising; never by appearing out of Mountain
+  stance:[['stand','move'],['lungeh','move'],['lunge','move']],
+  // Pigeon: lowered from a lunge with the hands down (as in class), left back to Down Dog or to hands and knees
+  pigeon:[['lungeh','move'],['dog','move'],['kneel','move']],
 };
+const STANCE = new Set(['warrior1', 'warrior2', 'triangle', 'sideangle', 'highlunge', 'reversewarrior', 'humblewarrior', 'revsideangle', 'crescentmoon', 'skandasana']);
+const STANCE_SIDE = new Set(['warrior2', 'triangle', 'sideangle', 'reversewarrior', 'skandasana']); // facing the long side: from Mountain the feet step wide
+// the body position a route plans with: postureOf, but long-stride standing poses are their own stop, and Garland is a squat
+const PIGEON = new Set(['pigeon', 'sleepingpigeon', 'kingpigeon']);
+function routeOf(id){ return STANCE.has(id) ? 'stance' : PIGEON.has(id) ? 'pigeon' : id === 'garland' ? 'squat' : id === 'supinetwist' ? 'supine' : postureOf(id); } // a supine twist lies on the back
 const POSTURE_CACHE = {};
 const BELLY_UP = new Set(['fish','wheel','onelegwheel','reversetable','upwardplank','wildthing']);
 function postureOf(id){
@@ -2850,8 +2860,8 @@ function transitionPathSteps(fromId, toId, fromMir = false, toMir = false, sweep
   const base = transitionPathBase(fromId, toId, fromMir, toMir);
   if (!sweepFix) return base;
   // stepping a foot between a lunge and plank or downward dog swings that thigh a long way, and that is how a class moves (video)
-  const STEP = new Set(['lungeh>plank', 'plank>lungeh', 'lungeh>dog', 'dog>lungeh']);
-  const worst = (path, a, ma) => { let w = 0, p = a, pm = ma; for (const st of path){ const m = st.mir ?? (st.id === toId ? toMir : pm); if (!STEP.has(postureOf(p) + '>' + postureOf(st.id))) w = Math.max(w, thighSweep(p, st.id, pm, m)); p = st.id; pm = m; } return w; };
+  const STEP = new Set(['lungeh>plank', 'plank>lungeh', 'lungeh>dog', 'dog>lungeh', 'lungeh>stance', 'stance>lungeh', 'stand>stance', 'stance>stand', 'stance>stance', 'lunge>stance', 'stance>lunge', 'lungeh>pigeon', 'pigeon>lungeh', 'pigeon>dog', 'pigeon>kneel']);
+  const worst = (path, a, ma) => { let w = 0, p = a, pm = ma; for (const st of path){ const m = st.mir ?? (st.id === toId ? toMir : pm); if (st.kind !== 'jump' && !STEP.has(routeOf(p) + '>' + routeOf(st.id))) w = Math.max(w, thighSweep(p, st.id, pm, m)); p = st.id; pm = m; } return w; };
   const w0 = worst(base, fromId, fromMir); if (w0 <= SWEEP_LIMIT) return base;
   let best = base, bw = w0;
   for (const h of new Set([...Object.values(POSTURE_HUB), 'tabletop', 'dog', 'child', 'staff'])){ if (h === fromId || h === toId) continue;
@@ -2861,7 +2871,7 @@ function transitionPathSteps(fromId, toId, fromMir = false, toMir = false, sweep
   return best;
 }
 function transitionPathBase(fromId, toId, fromMir = false, toMir = false){
-  const a = postureOf(fromId), b = postureOf(toId);
+  const a = routeOf(fromId), b = routeOf(toId);
   const isAsym = id => { const p = POSES.find(q => q.id===id); return !!(p && p.asym); };
   const sideSwitch = fromMir !== toMir && (isAsym(fromId) || isAsym(toId));
   if (sideSwitch){ // go to the family's symmetric pose on the old side, then on from there to the new side
@@ -2875,7 +2885,8 @@ function transitionPathBase(fromId, toId, fromMir = false, toMir = false){
   for (;;){
     let c = null; for (const k in cost) if (!done.has(k) && (c===null || cost[k] < cost[c])) c = k;
     if (c===null || c===b) break; done.add(c);
-    for (const [n,k] of POSTURE_EDGES[c]||[]){ const w = cost[c] + (k==='jump' && pace !== 'quick' ? 3.5 : 0) + ((c==='lungeh'&&(n==='fold'||n==='dog'||n==='plank'))||(n==='lungeh'&&(c==='fold'||c==='dog'||c==='plank')) ? 1.5 : ((c==='stand'&&n==='kneel')||(c==='kneel'&&n==='stand')||(c==='stand'&&n==='kneelup')||(c==='kneelup'&&n==='stand')||(c==='kneelup'&&n==='seated')||(c==='seated'&&n==='kneelup')) ? 2.5 : ((c==='plank'&&n==='bridge')||(c==='bridge'&&n==='plank')) ? 3.5 : ((c==='stand'&&n==='lunge')||(c==='lunge'&&n==='stand')) ? 2 : 1); if (!(n in cost) || w < cost[n]){ cost[n] = w; prev[n] = [c,k]; } }
+    if ((c === 'stance' || c === 'pigeon') && c !== a) continue; // a long-stride pose or Pigeon is a place to arrive, not a way through
+    for (const [n,k] of POSTURE_EDGES[c]||[]){ const w = cost[c] + (k==='jump' && pace !== 'quick' ? 1.2 : 0) + ((c==='lungeh'&&(n==='fold'||n==='dog'||n==='plank'))||(n==='lungeh'&&(c==='fold'||c==='dog'||c==='plank')) ? 1.5 : ((c==='stand'&&n==='kneel')||(c==='kneel'&&n==='stand')||(c==='stand'&&n==='kneelup')||(c==='kneelup'&&n==='stand')||false) ? 2.5 : ((c==='plank'&&n==='bridge')||(c==='bridge'&&n==='plank')) ? 3.5 : ((c==='stand'&&n==='lunge')||(c==='lunge'&&n==='stand')) ? 2 : 1); if (!(n in cost) || w < cost[n]){ cost[n] = w; prev[n] = [c,k]; } }
   }
   if (!(b in cost)) return [{id:toId, kind:'move'}];
   const steps = []; let c = b; while (prev[c]){ const [p,k] = prev[c]; steps.unshift({cat:c, kind:k}); c = p; }
@@ -2884,7 +2895,7 @@ function transitionPathBase(fromId, toId, fromMir = false, toMir = false){
   if (LIE.has(b) && toId !== POSTURE_HUB[b]) out.splice(out.length - 1, 0, {id:POSTURE_HUB[b], kind:'move'});
   if (LIE.has(a) && fromId !== POSTURE_HUB[a]) out.unshift({id:POSTURE_HUB[a], kind:'move'});
   for (let i = 0; i < out.length; i++){ if (out[i].kind !== 'jump') continue;
-    const prevId = i ? out[i-1].id : fromId, pc = postureOf(prevId), tc = postureOf(out[i].id);
+    const prevId = i ? out[i-1].id : fromId, pc = routeOf(prevId), tc = routeOf(out[i].id);
     if (!JUMP_ENDS.has(out[i].id) && POSTURE_HUB[tc]){ out.splice(i + 1, 0, {id:out[i].id, kind:'move'}); out[i] = {...out[i], id:POSTURE_HUB[tc]}; }
     if (!JUMP_ENDS.has(prevId) && POSTURE_HUB[pc]){ out.splice(i, 0, {id:POSTURE_HUB[pc], kind:'move'}); i++; } }
   return out.filter((st,i) => st.id !== (i ? out[i-1].id : fromId) || i===out.length-1);
@@ -5028,11 +5039,27 @@ function enterItem(){
   try { const nx = sess.P.items.slice(sess.i + 1, sess.i + 4); voicePrefetch(nx.flatMap(x => [x.id, 'again_' + x.id])); if (nx.some(x => (META[x.id] || {}).lvl >= 3)) voicePrefetch([...LEAD_ADV, 'clip_adv_inversion', 'clip_adv_armbalance', 'clip_adv_deep']); } catch {}
 }
 // a breath reminder now and then while a longer hold goes on, never over another clip
+const SHOULDERS_WORK = new Set(['plank', 'dog', 'arm', 'head', 'shoulder', 'bridge', 'prone', 'kneel', 'lungeh']); // the arms (or the shoulders) carry the body
+const ROUNDED = new Set(['cat', 'rabbit', 'kneetonose', 'plow', 'earpressure', 'savasana']);
+const BELLY_FIRM = new Set(['plank', 'forearmplank', 'kneeplank', 'boat', 'halfboat', 'tabletoplegs', 'legraises', 'supinelegsup', 'lsit', 'sideplank', 'chaturanga', 'kneeschaturanga']);
+const LONG_EXHALE = new Set(['child', 'widechild', 'legsup']);
+const BREATH_NOT = {
+  clip_breath_exhale: (id, post) => SHOULDERS_WORK.has(post),
+  clip_breath_inhale: id => ROUNDED.has(id),
+  clip_breath_belly: (id, post) => BELLY_FIRM.has(id) || post === 'arm',
+  clip_breath_count: id => LONG_EXHALE.has(id) || (sess && sess.P && sess.P.opts && sess.P.opts.focus === 'evening'),
+};
 function breathReminder(){
   if (!voiceOn || !sess || sess.remote || sess.paused || sess.phase !== 'hold' || voice.playing) return;
   const x = sess.P.items[sess.i]; if (!x || x.secs < 14 || sess.left < 7) return;
   const now = performance.now(); if (now - (voice.lastEnd || 0) < 11000 || now - (voice.lastBreath || 0) < 12000) return;
-  let pick; do { pick = BREATH_CLIPS[Math.floor(Math.random()*BREATH_CLIPS.length)]; } while (pick === voice.lastBreathId && BREATH_CLIPS.length > 1);
+  // each reminder only where it fits the shape: no "soften the shoulders" while they carry the body, no "lengthen the spine" in a
+  // pose that rounds it, no belly breathing while the belly holds firm, no counted breath where a longer breath out is asked for,
+  // and none at all in Resting Pose (let the breath move on its own)
+  if (x.id === 'savasana') return;
+  let post = ''; try { post = postureOf(x.id); } catch {}
+  const pool = BREATH_CLIPS.filter(c => !(BREATH_NOT[c] && BREATH_NOT[c](x.id, post)));
+  let pick; do { pick = pool[Math.floor(Math.random()*pool.length)]; } while (pick === voice.lastBreathId && pool.length > 1);
   voice.lastBreath = now; voice.lastBreathId = pick; voicePlay([pick]);
 }
 // the breathing light in the practice bar: five seconds in, five out, through every hold
@@ -5095,11 +5122,18 @@ const CUE_TEXT = {
   cue_feet_wide:'Step your feet wide apart.', cue_feet_together:'Step your feet back together.',
   cue_turn_side:'Turn to face the long side of your mat.', cue_turn_front:'Turn to face the front of your mat.',
   cue_foot_down:'Lower your lifted foot back to the mat.', cue_lift_right:'Shift your weight onto your left foot, and lift your right foot.',
-  cue_lift_left:'Shift your weight onto your right foot, and lift your left foot.', cue_sit_back:'Bend your knees, and sit your hips back.', cue_straighten:'Straighten your legs, and stand tall.'};
+  cue_lift_left:'Shift your weight onto your right foot, and lift your left foot.', cue_sit_back:'Bend your knees, and sit your hips back.', cue_straighten:'Straighten your legs, and stand tall.',
+  // new lines, to be recorded (until then the move is simply not cued, never cued wrongly)
+  cue_step_back_long_left:'Take a big step back with your left foot.', cue_step_back_long_right:'Take a big step back with your right foot.',
+  cue_rise_stance:'Spin the back heel down, and rise up.', cue_step_back_to_plank:'Step the front foot back, into plank.',
+  cue_back_knee_up:'Tuck the back toes, and lift the back knee.', cue_back_knee_down:'Lower the back knee gently to the mat.',
+  cue_lunge_to_pigeon:'Lower the front knee behind your wrist, and slide the back leg long.', cue_pigeon_to_dog:'Tuck the back toes, and press back to Down Dog.',
+  cue_pigeon_to_lunge:'Tuck the back toes, and lift into a lunge.', cue_tripod_setup:'Place your hands flat, shoulder-width apart, and set the crown of your head in front of them.'};
 // a change of position: the cue (mir = the new pose is on its left side, so the other foot leads)
 const CUE_EDGE = {
   'stand>fold':'cue_fold_forward', 'stand>lunge':m => m ? 'cue_step_back_right' : 'cue_step_back_left', 'stand>kneelup':'cue_kneel_down',
-  'fold>stand':'cue_rise_up', 'fold>plank':'cue_step_back_plank', 'fold>squat':'cue_squat_down', 'fold>arm':'cue_hands_down', 'fold>lungeh':m => m ? 'cue_step_back_right' : 'cue_step_back_left',
+  // (into a halfway lift the body only lifts the chest; its own line says so)
+  'fold>stand':(m, to) => to === 'halflift' ? null : 'cue_rise_up', 'fold>plank':'cue_step_back_plank', 'fold>dog':'cue_step_back', 'fold>squat':'cue_squat_down', 'fold>arm':'cue_hands_down', 'fold>lungeh':m => m ? 'cue_step_back_right' : 'cue_step_back_left',
   'squat>fold':'cue_fold_from_squat', 'squat>seated':'cue_sit_down', 'squat>arm':'cue_hands_down',
   'seated>squat':'cue_rise_squat', 'seated>supine':'cue_lie_back', 'seated>kneel':'cue_to_tabletop',
   'supine>seated':'cue_sit_up', 'supine>shoulder':'cue_legs_over', 'supine>bridge':'cue_feet_in', 'shoulder>supine':'cue_roll_down',
@@ -5109,25 +5143,38 @@ const CUE_EDGE = {
   'prone>plank':'cue_press_up', 'prone>dog':'cue_press_back', 'prone>kneel':'cue_to_tabletop', 'prone>child':'cue_back_to_child',
   'kneel>plank':'cue_step_back', 'kneel>dog':'cue_tuck_lift', 'kneel>seated':'cue_swing_sit', 'kneel>child':'cue_back_to_child', 'kneel>lungeh':m => m ? 'cue_step_forward_left' : 'cue_step_forward_right',
   'kneel>prone':'cue_lower_down', 'kneel>kneelup':'cue_rise_knees',
-  'kneelup>kneel':'cue_to_tabletop', 'kneelup>stand':'cue_stand_from_knees', 'kneelup>seated':'cue_sit_heels', 'kneelup>child':'cue_back_to_child',
-  'child>kneel':'cue_to_tabletop', 'child>head':'cue_headstand_setup', 'child>prone':'cue_slide_forward', 'head>child':'cue_come_down',
+  'kneelup>kneel':'cue_to_tabletop', 'kneelup>stand':'cue_stand_from_knees', 'kneelup>child':'cue_back_to_child',
+  'child>kneel':'cue_to_tabletop', 'child>head':(m, to) => to === 'headstand' || to === 'headstandsplit' ? 'cue_headstand_setup' : to === 'tripodheadstand' ? ['cue_tripod_setup'] : null, // the forearm setup is wrong for Tripod 'child>prone':'cue_slide_forward', 'head>child':'cue_come_down',
   'arm>squat':'cue_feet_down', 'arm>fold':'cue_feet_down',
   'lunge>stand':'cue_rise_from_lunge', 'lunge>lungeh':'cue_hands_frame',
-  'lungeh>lunge':'cue_lift_chest_arms', 'lungeh>dog':'cue_step_back_dog', 'lungeh>plank':'cue_step_back_dog', 'lungeh>kneel':'cue_knees_down', 'lungeh>fold':'cue_step_to_front'};
+  'lungeh>lunge':'cue_lift_chest_arms', 'lungeh>dog':'cue_step_back_dog', 'lungeh>plank':['cue_step_back_to_plank'], 'lungeh>kneel':'cue_knees_down', 'lungeh>fold':'cue_step_to_front',
+  'stand>squat':'cue_squat_down', 'squat>stand':'cue_straighten',
+  // long-stride poses: from Mountain step one foot back (facing the long side, the in-place cues say "feet wide" and "turn" instead);
+  // from a lunge with the hands down, rise (High Lunge keeps the back heel lifted)
+  'stand>stance':(m, to) => STANCE_SIDE.has(to) ? null : m ? 'cue_step_back_long_right' : 'cue_step_back_long_left',
+  'stance>stand':(m, to, from) => STANCE_SIDE.has(from) ? null : 'cue_step_to_front',
+  'lungeh>stance':(m, to) => to === 'highlunge' || to === 'crescentmoon' ? 'cue_lift_chest_arms' : ['cue_rise_stance'],
+  'stance>lungeh':'cue_hands_frame', 'lunge>stance':['cue_back_knee_up'], 'stance>lunge':['cue_back_knee_down'],
+  'lungeh>pigeon':['cue_lunge_to_pigeon'], 'pigeon>dog':['cue_pigeon_to_dog'], 'pigeon>lungeh':['cue_pigeon_to_lunge'], 'pigeon>kneel':'cue_to_tabletop',
+  'kneelup>seated':(m, to, from) => from === 'thunderbolt' ? 'cue_swing_sit' : 'cue_sit_heels', 'seated>kneelup':(m, to) => to === 'thunderbolt' ? 'cue_sit_heels' : 'cue_rise_knees'};
 const CUE_UPRIGHT = new Set(['stand', 'kneelup', 'lunge', 'seated', 'squat']);
 function transitionCues(prev, x){
   if (!prev || !x || prev.id === x.id) return [];
   const pm = prev.side === 'left', xm = x.side === 'left', out = [];
   try {
-    const route = [postureOf(prev.id), ...transitionPath(prev.id, x.id, pm, xm).map(st => postureOf(st.id))];
-    for (let i = 1; i < route.length; i++){ if (route[i] === route[i-1]) continue; const c = CUE_EDGE[route[i-1] + '>' + route[i]]; const id = typeof c === 'function' ? c(xm) : c; if (id && !out.includes(id)) out.push(id); }
+    const steps = [prev.id, ...transitionPath(prev.id, x.id, pm, xm).map(st => st.id)], route = steps.map(routeOf);
+    // a cue may name its preferred line and fall back to others; one that is not recorded yet is left out rather than replaced by a wrong one
+    const pick = c => { const l = Array.isArray(c) ? c : [c]; return l.find(id => id && (!VOICE_HAVE.size || VOICE_HAVE.has(id))) || null; };
+    for (let i = 1; i < route.length; i++){ if (route[i] === route[i-1]) continue; const c = CUE_EDGE[route[i-1] + '>' + route[i]]; const id = pick(typeof c === 'function' ? c(xm, steps[i], steps[i-1]) : c); if (id && !out.includes(id)) out.push(id); }
     // what changes in place: feet, facing, arms (in the mat's frame, so the camera's turn doesn't count)
     const A = refFor(prev.id, pm, 0), B = refFor(x.id, xm, 0), a = postureOf(prev.id), b = postureOf(x.id);
     const mat = R => { const c = camYawOf(R), co = Math.cos(-c), si = Math.sin(-c); const t = v => [v[0]*co + v[2]*si, v[1], -v[0]*si + v[2]*co]; return n => t(R.P[n]); };
     const PA = mat(A), PB = mat(B), flat = (p, q) => Math.hypot(p[0] - q[0], p[2] - q[2]);
-    if (a === 'stand' && b === 'stand' && route.length === 2){
+    const upright = q => ['stand', 'stance'].includes(routeOf(q));
+    if (upright(prev.id) && upright(x.id) && route.length === 2){
       const wa = flat(PA('la'), PA('ra')), wb = flat(PB('la'), PB('ra'));
-      if (wb - wa > .4) out.push('cue_feet_wide'); else if (wa - wb > .4) out.push('cue_feet_together');
+      const longA = STANCE.has(prev.id) && !STANCE_SIDE.has(prev.id), longB = STANCE.has(x.id) && !STANCE_SIDE.has(x.id); // a long stride is a step back or forward, said by the route
+      if (!longB && wb - wa > .4) out.push('cue_feet_wide'); else if (!longA && wa - wb > .4) out.push('cue_feet_together');
       const face = G => { const f = G('front'); return Math.abs(f[0]) > Math.abs(f[2]) ? 'front' : 'side'; };
       const fa = face(PA), fb = face(PB); if (fa !== fb && Math.hypot(PB('front')[0], PB('front')[2]) > .5 && Math.hypot(PA('front')[0], PA('front')[2]) > .5) out.push(fb === 'front' ? 'cue_turn_front' : 'cue_turn_side');
       // one foot up or down (Tree, balances), knees bending or straightening (Chair)
