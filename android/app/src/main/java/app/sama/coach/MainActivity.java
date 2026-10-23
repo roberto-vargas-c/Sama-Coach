@@ -12,6 +12,7 @@ import android.provider.Settings;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
@@ -48,10 +49,12 @@ import java.util.List;
  * window.SamaNative (keepAwake, immersive, openCastSettings).
  */
 public class MainActivity extends AppCompatActivity {
-    private static final int REQ_CAMERA = 1, REQ_FILE = 2;
+    private static final int REQ_CAMERA = 1, REQ_FILE = 2, REQ_LOCATION = 3;
     private WebView web;
     private TextView offline;
     private PermissionRequest pendingPermission;
+    private GeolocationPermissions.Callback pendingGeo;
+    private String pendingGeoOrigin;
     private ValueCallback<Uri[]> fileCallback;
     private Uri captureUri;
 
@@ -74,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
+        s.setGeolocationEnabled(true);
         android.webkit.CookieManager.getInstance().setAcceptThirdPartyCookies(web, true); // the Firebase auth handler lives on firebaseapp.com
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setAllowFileAccess(false);
@@ -101,6 +105,14 @@ public class MainActivity extends AppCompatActivity {
                     pendingPermission = request;
                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, REQ_CAMERA);
                 }
+            }
+            @Override public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback cb) {
+                // "Studios near you" asks for the position (navigator.geolocation); only the app's own site gets it
+                boolean ours = origin != null && Uri.parse(origin).getHost() != null && BuildConfig.SAMA_URL.contains(Uri.parse(origin).getHost().replaceFirst("^www\\.", ""));
+                if (!ours) { cb.invoke(origin, false, false); return; }
+                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) { cb.invoke(origin, true, false); return; }
+                pendingGeo = cb; pendingGeoOrigin = origin;
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_LOCATION);
             }
             @Override public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams params) {
                 if (fileCallback != null) fileCallback.onReceiveValue(null);
@@ -168,6 +180,10 @@ public class MainActivity extends AppCompatActivity {
         if (code == REQ_CAMERA && pendingPermission != null) {
             if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) pendingPermission.grant(pendingPermission.getResources()); else pendingPermission.deny();
             pendingPermission = null;
+        }
+        if (code == REQ_LOCATION && pendingGeo != null) {
+            pendingGeo.invoke(pendingGeoOrigin, results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED, false);
+            pendingGeo = null; pendingGeoOrigin = null;
         }
     }
 

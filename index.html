@@ -6668,7 +6668,7 @@ function renderAuthUI(){
 const authReady = /[?&]embed=1/.test(location.search) ? Promise.resolve() : authInit(); // the embedded copy never signs in or syncs
 
 // ---------- yoga studios near you (OpenStreetMap) ----------
-// Studios come from OpenStreetMap (Overpass); a typed place is looked up with Nominatim. The position is sent only to make the
+// Studios come from OpenStreetMap (Photon and Overpass); a typed place is looked up with Nominatim. The position is sent only to make the
 // search and is never stored. Booking hands over to ClassPass or Urban Sports Club: neither lets another app book for someone.
 const NEAR = (() => {
   const OVERPASS = 'https://overpass-api.de/api/interpreter', NOMINATIM = 'https://nominatim.openstreetmap.org';
@@ -6688,17 +6688,49 @@ const NEAR = (() => {
     const j = await r.json(); if (!j.length) return null; return {lat: +j[0].lat, lon: +j[0].lon, city: cityOf(j[0].address) || j[0].name}; }
   async function reverse(p){ try { await polite(); const r = await fetch(`${NOMINATIM}/reverse?format=jsonv2&zoom=10&addressdetails=1&lat=${p.lat}&lon=${p.lon}`, {headers: {'Accept-Language': 'en'}});
     const j = await r.json(); return cityOf(j.address); } catch { return ''; } }
-  async function studios(p, radius){
+  // Two OpenStreetMap sources, asked together. Photon (komoot's OSM search) is fast and rarely busy; the public Overpass
+  // servers are often at capacity (502/504) and slow, so Overpass only gets a short window and adds websites when it answers.
+  const PHOTON = 'https://photon.komoot.io/api/';
+  const PLACE_KEYS = new Set(['leisure', 'amenity', 'club', 'sport', 'healthcare', 'building', 'office', 'shop', 'craft']);
+  const timed = ms => (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(ms) : undefined;
+  async function photon(p, radius){
+    const out = [];
+    const dLat = radius/111000, dLon = radius/(111000*Math.cos(p.lat*Math.PI/180));
+    const bbox = [p.lon - dLon, p.lat - dLat, p.lon + dLon, p.lat + dLat].map(x => x.toFixed(4)).join(',');
+    for (const q of ['yoga']){
+      const r = await fetch(`${PHOTON}?q=${encodeURIComponent(q)}&bbox=${bbox}&limit=50`, {signal: timed(10000)});
+      if (!r.ok) throw new Error('photon ' + r.status);
+      for (const f of (await r.json()).features || []){
+        const t = f.properties || {}, [lon, lat] = f.geometry.coordinates;
+        if (!t.name || !/yoga/i.test(t.name) || !PLACE_KEYS.has(t.osm_key) || t.type === 'street') continue;
+        out.push({name: t.name, lat, lon, web: '', street: [t.street, t.housenumber].filter(Boolean).join(' '), city: t.city || t.town || t.village || '', id: `${{N: 'node', W: 'way', R: 'relation'}[t.osm_type] || 'node'}/${t.osm_id}`});
+      }
+    }
+    return out;
+  }
+  async function overpass(p, radius){
     const a = `(around:${radius},${p.lat.toFixed(5)},${p.lon.toFixed(5)})`;
-    const q = `[out:json][timeout:25];(nwr["sport"~"yoga",i]${a};nwr["leisure"]["name"~"yoga",i]${a};nwr["amenity"]["name"~"yoga",i]${a};nwr["club"]["name"~"yoga",i]${a};nwr["shop"!~"."]["office"!~"."]["name"~"yoga",i]["addr:street"]${a};);out center tags 120;`;
-    const r = await fetch(OVERPASS, {method: 'POST', body: 'data=' + encodeURIComponent(q), headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
-    if (!r.ok) throw new Error('overpass ' + r.status);
-    const seen = new Set(), out = [];
-    for (const e of (await r.json()).elements || []){
-      const t = e.tags || {}, lat = e.lat ?? (e.center && e.center.lat), lon = e.lon ?? (e.center && e.center.lon);
-      if (!t.name || lat == null) continue;
-      const key = t.name.toLowerCase() + '|' + lat.toFixed(3) + lon.toFixed(3); if (seen.has(key)) continue; seen.add(key);
-      out.push({name: t.name, lat, lon, d: km(p, {lat, lon}), web: t.website || t['contact:website'] || '', street: [t['addr:street'], t['addr:housenumber']].filter(Boolean).join(' '), city: t['addr:city'] || '', id: `${e.type}/${e.id}`});
+    const q = `[out:json][timeout:15];(nwr["sport"~"yoga",i]${a};nwr["leisure"~"^(fitness_centre|sports_centre|studio)$"]["name"~"yoga",i]${a};nwr["amenity"~"^(studio|community_centre|dojo)$"]["name"~"yoga",i]${a};nwr["club"]["name"~"yoga",i]${a};);out tags center 120;`;
+    { const url = OVERPASS;   // the backup servers were slower still when tested, so one try, capped at 6 s
+      try {
+        const r = await fetch(url, {method: 'POST', body: 'data=' + encodeURIComponent(q), headers: {'Content-Type': 'application/x-www-form-urlencoded'}, signal: timed(6000)});
+        if (!r.ok) return null;
+        const j = await r.json(); if (j.remark && /error/i.test(j.remark)) return null;
+        return (j.elements || []).map(e => { const t = e.tags || {}, lat = e.lat ?? (e.center && e.center.lat), lon = e.lon ?? (e.center && e.center.lon);
+          return t.name && lat != null ? {name: t.name, lat, lon, web: t.website || t['contact:website'] || '', street: [t['addr:street'], t['addr:housenumber']].filter(Boolean).join(' '), city: t['addr:city'] || '', id: `${e.type}/${e.id}`} : null; }).filter(Boolean);
+      } catch (e){ console.warn('near overpass', url, e); }
+    }
+    return null;
+  }
+  async function studios(p, radius){
+    const [ph, op] = await Promise.all([photon(p, radius).catch(e => (console.warn('near photon', e), null)), overpass(p, radius)]);
+    if (!ph && !op) throw new Error('no studio source answered');
+    const byId = new Map(), seen = new Set(), out = [];
+    for (const s_ of [...(op || []), ...(ph || [])]){   // Overpass first: it carries websites
+      const d = km(p, s_); if (d > radius/1000) continue;
+      const key = s_.name.toLowerCase().replace(/\W+/g, '') + '|' + s_.lat.toFixed(3) + s_.lon.toFixed(3);
+      if (byId.has(s_.id) || seen.has(key)) { const o = byId.get(s_.id); if (o && !o.street) o.street = s_.street; continue; }
+      s_.d = d; byId.set(s_.id, s_); seen.add(key); out.push(s_);
     }
     return out.sort((x, y) => x.d - y.d).slice(0, 40);
   }
@@ -6723,7 +6755,7 @@ const NEAR = (() => {
     try {
       status('Finding where you are…'); const p = await getPlace(); if (!p) { status('That place could not be found. Try a city name.'); return; }
       status('Looking for yoga studios…');
-      let list = await studios(p, 5000); if (list.length < 5) list = await studios(p, 15000);
+      let list = await studios(p, 15000); const close = list.filter(s_ => s_.d <= 5); if (close.length >= 5) list = close;
       const city = p.city || await reverse(p);
       render(list, city);
       status(list.length ? '' : 'No yoga studios are listed on OpenStreetMap near here yet. You can still look on ClassPass or Urban Sports Club.');
