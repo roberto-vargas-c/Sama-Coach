@@ -1,21 +1,27 @@
 rules_version = '2';
-// Firestore rules for Sama (project sama-coach-ef83b).
-// Paste into Firebase console → Firestore Database → Rules → Publish.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function isAdmin() { return signedIn() && request.auth.token.email == 'robert.en.var@gmail.com' && request.auth.token.email_verified; }
+    function isAdmin() { return request.auth != null && request.auth.token.email == 'robert.en.var@gmail.com'; }
     function str(v, lo, hi) { return v is string && v.size() >= lo && v.size() <= hi; }
 
-    // each person's own profile, history, saved practices and look
+    // each signed-in person reads and writes only their own data (sync)
     match /users/{uid} {
-      allow read, write: if signedIn() && request.auth.uid == uid;
+      allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // "Report a problem" on a pose: anyone can send one, the review page (admin) reads and updates them
+    // anyone can send a pose report; only you can read and handle them
     match /poseReports/{id} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['pose','name','reasons','note','mir','angle','from','app','at','status','score','uid'])
+        && request.resource.data.pose is string && request.resource.data.pose.size() < 64
+        && request.resource.data.note is string && request.resource.data.note.size() <= 500
+        && request.resource.data.status == 'open';
+      allow read, update: if request.auth != null && request.auth.token.email == 'robert.en.var@gmail.com';
+    }
+
+    // your verdicts on the website Pose Review
+    match /review2/{id} {
+      allow read, write: if request.auth != null && request.auth.token.email == 'robert.en.var@gmail.com';
     }
 
     // classes teachers and studios add in the Studios tab: public to read, only the owner changes or removes one
