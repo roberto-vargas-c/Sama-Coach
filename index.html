@@ -897,14 +897,14 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
   </header>
 
   <div class="tabs" role="tablist" aria-label="Sections">
-    <button class="tab" type="button" role="tab" data-view="today" aria-selected="false">Today</button>
+    <button class="tab" type="button" role="tab" data-view="today" aria-selected="true">Today</button>
     <button class="tab" type="button" role="tab" data-view="coach" aria-selected="false">Coach</button>
     <button class="tab" type="button" role="tab" data-view="lib" aria-selected="false">Library</button>
-    <button class="tab" type="button" role="tab" data-view="check" aria-selected="true"><span class="tl">Check alignment</span><span class="ts">Check</span></button>
+    <button class="tab" type="button" role="tab" data-view="check" aria-selected="false"><span class="tl">Check alignment</span><span class="ts">Check</span></button>
     <button class="tab" type="button" role="tab" data-view="plan" aria-selected="false"><span class="tl">Plan a practice</span><span class="ts">Plan</span></button>
     <button class="tab" type="button" role="tab" data-view="near" aria-selected="false">Studios</button>
   </div>
-  <section id="viewToday" class="today" hidden>
+  <section id="viewToday" class="today">
     <div class="tstage" id="tStage">
       <div class="tfigwrap"><canvas id="tFig" width="900" height="900" aria-hidden="true"></canvas><span class="tcap" id="tCap"></span></div>
       <div class="tpanel" id="tPanel">
@@ -926,7 +926,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
       </div>
     </div>
   </section>
-  <div id="viewCheck" class="view-wrap">
+  <div id="viewCheck" class="view-wrap" hidden>
   <div class="searchrow"><label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="search" placeholder="Search poses: name, Sanskrit, family…" autocomplete="off" aria-label="Search poses"></label>
   <div class="cats" id="cats" role="tablist" aria-label="Pose families"></div>
   <div class="levels" id="levels" aria-label="Difficulty"></div></div>
@@ -5271,7 +5271,7 @@ function startSession(P){
   sess = {P, i:0, phase:'prep', left:TRANSITION, last:performance.now(), paused:false, remote:false};
   try { voicePrefetch([...introClips(P), 'clip_begin', 'clip_otherside', ...LEAD_GENERIC, ...Object.values(LEAD_POSTURE), ...P.items.slice(0, 3).map(x => x.id), 'clip_end', ...Object.keys(CUE_TEXT)]); } catch {}
   voice.said = new Set(); voiceStop(); voiceUnlock(); sess.boot = true;
-  switchView('check'); $('sess').hidden = false; tvSend({t:'plan', plan:encodePlan(P)}); enterItem(); sess.boot = false;
+  sess.from = lastView && lastView !== 'check' ? lastView : null; switchView('check'); $('sess').hidden = false; tvSend({t:'plan', plan:encodePlan(P)}); enterItem(); sess.boot = false;
   if (!voiceOn) voiceForItem();
   if (voiceOn){ sess.phase = 'intro'; sess.left = 1; renderSess(); voicePlay(introClips(P), () => { if (sess && sess.phase === 'intro'){ sess.phase = 'prep'; sess.left = 3; renderSess(); voiceForItem(); } }); }
   try { window.SamaNative && window.SamaNative.keepAwake(true); } catch {}
@@ -5503,7 +5503,9 @@ function nextItem(d){
 function endSession(done){
   if (!sess) return; motionEnd(); clearInterval(sess.timer);
   const progK = !sess.remote && sess.P && sess.P.programK != null ? sess.P.programK : null;
+  const from = sess.from;
   if (done && progK != null){ PROG.complete(progK); TODAY.short = false; setTimeout(() => switchView('today'), 50); }
+  else if (from && !sess.remote) setTimeout(() => switchView(from), 50); // back to where the practice was started (Today, the planner, the coach)
   voiceStop(); if (done && voiceOn && !sess.remote) voicePlay(['clip_end'], () => musicStop()); else musicStop();
   if ($('sessBreath')) $('sessBreath').hidden = true;
   if (done && !sess.remote) setTimeout(() => SUPPORT.practiceDone(), 2600); // after the closing words
@@ -6516,7 +6518,7 @@ function renderToday(){
     sayLines([name ? `Hi ${name}!` : 'Hi!', 'Shall I plan your practice for you? Three quick questions, and every day your next practice will be ready right here.']);
     let b = $('tSetupBtns'); if (!b){ b = document.createElement('div'); b.className = 'tbtns'; b.id = 'tSetupBtns';
       const go = document.createElement('button'); go.type = 'button'; go.className = 'btn primary tgo'; go.textContent = 'Plan my practice'; go.onclick = () => planSetup();
-      const own = document.createElement('button'); own.type = 'button'; own.className = 'btn'; own.textContent = 'I’ll explore on my own'; own.onclick = () => switchView('check');
+      const own = document.createElement('button'); own.type = 'button'; own.className = 'btn'; own.textContent = 'I’ll explore on my own'; own.onclick = () => switchView('lib');
       b.append(go, own); $('tPanel').insertBefore(b, $('tCard')); }
     b.hidden = false; const tour = ['mountain', 'tree', 'warrior2', 'child']; let i = 0; TODAY.fig.setPose(tour[0]);
     TODAY.timer = setInterval(() => { if (view.hidden) return; i = (i + 1) % tour.length; TODAY.fig.setPose(tour[i], i % 2 === 1); }, 4200);
@@ -6959,7 +6961,7 @@ function renderProfile(){
 // header button
 (function(){
   const b = document.createElement('button'); b.type = 'button'; b.className = 'pbtn'; b.id = 'pBtn'; b.setAttribute('aria-label', 'Profile'); b.title = profile.name || 'Profile';
-  b.appendChild(thumb('mountain', 34)); b.addEventListener('click', () => switchView($('viewProfile').hidden ? 'profile' : 'check'));
+  b.appendChild(thumb('mountain', 34)); b.addEventListener('click', () => switchView($('viewProfile').hidden ? 'profile' : (lastView && lastView !== 'profile' ? lastView : 'today')));
   document.querySelector('.topr').appendChild(b);
 })();
 
@@ -7291,7 +7293,9 @@ const NEAR = (() => {
   return {run, slug, uscUrl, showMine, gh, tiles, openForm};
 })();
 // ---------- views ----------
+var lastView = 'today';
 function switchView(v){
+  if (v !== 'profile') lastView = v;
   for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', b.dataset.view===v);
   $('viewToday').hidden = v!=='today'; $('viewCheck').hidden = v!=='check'; $('viewPlan').hidden = v!=='plan'; $('viewLib').hidden = v!=='lib'; $('viewCoach').hidden = v!=='coach'; $('viewNear').hidden = v!=='near'; $('viewProfile').hidden = v!=='profile';
   $('pBtn').setAttribute('aria-pressed', String(v==='profile'));
@@ -7309,6 +7313,7 @@ for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', (
 // ---------- boot ----------
 renderRail(); renderHist(); showReference();
 if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !/[?&]embed=1/.test(location.search)) switchView('today'); // the day's practice first
+else switchView('check');
 if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !profile.onboarded && !(() => { try { return localStorage.getItem('sama.welcomed'); } catch { return null; } })()) showWelcome();
 else if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && profile.onboarded && !tourDone()) setTimeout(startTour, 2600); // people who joined before the tour existed see it once
 // ---------- first-time tour ----------
@@ -7320,7 +7325,7 @@ const TOUR = [
   {view:'check', sel:'#liveBtn', title:'Check your alignment', text:'Turn on your camera and Sama compares your joints with the pose as you hold it. The video never leaves your device.'},
   {view:'plan', sel:'#planStart', title:'A guided practice', text:'Choose how long, what to focus on and your level, then start. A calm voice talks you through every pose and every move between them.'},
   {view:'coach', sel:'#coachModes', title:'Your coach', text:'Plan a practice together, get feedback on your checks, review a routine, or map a road to a pose you dream of.'},
-  {view:'check', sel:'#pBtn', title:'Your profile', text:'Your progress, your figure, your cycle and calendar, and all settings. You can replay this tour from there.'},
+  {view:'today', sel:'#pBtn', title:'Your profile', text:'Your progress, your figure, your cycle and calendar, and all settings. You can replay this tour from there.'},
 ];
 const tour = {i:0, on:false};
 function tourDone(){ try { return localStorage.getItem('sama.tour') === 'done'; } catch { return true; } }
@@ -7328,7 +7333,7 @@ function startTour(){
   if (sess) return; tour.i = 0; tour.on = true; $('tour').hidden = false;
   $('tourDots').innerHTML = TOUR.map(() => '<i></i>').join(''); showTourStep();
 }
-function endTour(){ tour.on = false; $('tour').hidden = true; try { localStorage.setItem('sama.tour', 'done'); } catch {} switchView('check'); window.scrollTo({top:0, behavior:'smooth'}); }
+function endTour(){ tour.on = false; $('tour').hidden = true; try { localStorage.setItem('sama.tour', 'done'); } catch {} switchView('today'); window.scrollTo({top:0, behavior:'smooth'}); }
 function placeTour(){
   if (!tour.on) return; const st = TOUR[tour.i], el = document.querySelector(st.sel), hole = $('tourHole'), card = $('tourCard');
   if (!el || !el.getClientRects().length){ hole.style.cssText = 'left:50%;top:50%;width:0;height:0'; card.style.left = Math.max(16, (innerWidth - card.offsetWidth)/2) + 'px'; card.style.top = Math.max(16, (innerHeight - card.offsetHeight)/2) + 'px'; return; }
