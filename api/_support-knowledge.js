@@ -14,7 +14,7 @@ CHECK ALIGNMENT
 - Pick a pose from the rail (filter by family and level), prop the phone up so the whole body is in view, hold the pose. Sama compares each joint (knees, hips, spine, shoulders, arms) with the pose and gives a score plus one thing to fix first.
 - Modes: live camera, take a photo, record a short clip, or pick a photo/clip from the gallery.
 - The phone can stand in front of the mat or beside it; Sama works out where the camera is and notices when it moves (it can also be set in Settings).
-- Settings ("Scene, voice, camera"): the scene behind the figure (studio, living room, park, beach, mountains, night rooftop), the voice guide on/off, camera placement, the figure style, and "Record my moves between poses".
+- Settings ("Scene, voice, camera") are in the Profile (the round figure button at the top right), in the Settings card. They hold: the scene behind the figure (studio, living room, park, beach, mountains, night rooftop), the voice guide on/off, camera placement, the figure style, and "Record my moves between poses".
 - Show yourself as your figure, or as the video with skeleton and alignment lines.
 - The pose model runs on the device; photos, clips and the camera stream are never uploaded.
 - "Report a problem" on a pose (in Check or the Library) sends a short report so it gets fixed.
@@ -24,7 +24,7 @@ PLAN A PRACTICE
 - Choose length, focus and level; Sama builds a sequence and guides it pose by pose with a voice guide and soft music. Nine ready-made practices (e.g. Kind to your back, Ashtanga primary). Practices can be saved.
 - Options to take it easy on wrists, knees, back, or the period. Pace: Calm, Flowing or Quick.
 - During a practice: tap the right side for the next pose, the middle to pause, the left to go back.
-- The figure moves between poses (steps, squats, folds, jumps) timed on real classes; a softer "blob" transition is an option.
+- The figure moves between poses (steps, squats, folds, jumps) timed on real classes; a softer "Ball" transition (Settings → Transition) is an option: the figure turns into a ball in its own colours and rolls to the next pose.
 - TV: cast or mirror the screen; a big-screen layout keeps the camera and the timer. The Android app has a shortcut to the cast settings.
 - The voice guide speaks English for now, even when the app is in Spanish or German.
 - No sound: check the phone is not on silent, media volume is up, and that "Voice guide in practices" is On in Settings (the Settings panel, "Scene, voice, camera"). Some browsers need a tap before sound can play.
