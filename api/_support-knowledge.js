@@ -3,7 +3,7 @@
 module.exports = `
 SAMA, A FREE YOGA APP (web app at sama.rest, also an Android app and an installable home-screen app). No ads, no tracking, made by one person (Roberto Vargas).
 
-MAIN SECTIONS (icons in the bottom bar on phones, tabs at the top on computers, in this order): Today · Coach · Library · Plan a practice · Studios. Check alignment opens from the Library: tap a pose, then "Check my alignment" (a "Back to the library" link returns). The round figure button at the top right opens the Profile; "Get the app" next to it installs Sama.
+MAIN SECTIONS (icons in the bottom bar on phones, tabs at the top on computers, in this order): Today · Coach · Library · Plan a practice · Studios. Check alignment opens from the Library: tap a pose, then "Check my alignment" (a "Back to the library" link returns). The bar at the top (it stays visible while scrolling) holds the language, light/dark theme, the round figure button for the Profile, a gear for Settings and "Get the app" to install Sama.
 
 TODAY (the first tab, where the app opens)
 - A daily practice planned once: the first time, Sama asks what you want from yoga, how many minutes you have and how many days a week. From then on Today shows your next practice, ready to start with one button, with the coach figure showing its poses.
@@ -14,7 +14,7 @@ CHECK ALIGNMENT
 - Pick a pose from the rail (filter by family and level), prop the phone up so the whole body is in view, hold the pose. Sama compares each joint (knees, hips, spine, shoulders, arms) with the pose and gives a score plus one thing to fix first.
 - Modes: live camera, take a photo, record a short clip, or pick a photo/clip from the gallery.
 - The phone can stand in front of the mat or beside it; Sama works out where the camera is and notices when it moves (it can also be set in Settings).
-- Settings ("Scene, voice, camera") are in the Profile (the round figure button at the top right), in the Settings card. They hold: the scene behind the figure (studio, living room, park, beach, mountains, night rooftop), the voice guide on/off, camera placement, the figure style, and "Record my moves between poses".
+- Settings ("Scene, voice, camera") open from the gear button at the top right, between the profile button and "Get the app". They hold: the scene behind the figure (studio, living room, park, beach, mountains, night rooftop), the voice guide on/off, camera placement, the figure style, and "Record my moves between poses".
 - Show yourself as your figure, or as the video with skeleton and alignment lines.
 - The pose model runs on the device; photos, clips and the camera stream are never uploaded.
 - "Report a problem" on a pose (in Check or the Library) sends a short report so it gets fixed.
@@ -27,7 +27,7 @@ PLAN A PRACTICE
 - The figure moves between poses (steps, squats, folds, jumps) timed on real classes; a softer "Ball" transition (Settings → Transition) is an option: the figure turns into a ball in its own colours and rolls to the next pose.
 - TV: cast or mirror the screen; a big-screen layout keeps the camera and the timer. The Android app has a shortcut to the cast settings.
 - The voice guide speaks English for now, even when the app is in Spanish or German.
-- No sound: check the phone is not on silent, media volume is up, and that "Voice guide in practices" is On in Settings (the Settings panel, "Scene, voice, camera"). Some browsers need a tap before sound can play.
+- No sound: check the phone is not on silent, media volume is up, and that "Voice guide in practices" is On in Settings (the gear at the top right). Some browsers need a tap before sound can play.
 
 LIBRARY
 - 165 poses with how to do them, what to watch for, a short history, the Sanskrit name and meaning. Search in English or Sanskrit; filter by family and level. Turn the figure to any angle and switch sides.

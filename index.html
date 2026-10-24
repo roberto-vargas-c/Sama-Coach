@@ -53,12 +53,15 @@
 body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -10%, color-mix(in srgb, var(--sand) 22%, transparent), transparent 70%);background-attachment:fixed;color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
   padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:16px 40px}
 .wrap{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.top{display:contents} /* the logo scrolls away; the row of controls (language, theme, profile, settings, app) stays at the top */
+.topr{position:sticky;top:0;z-index:35;margin:0 -16px;padding:calc(8px + env(safe-area-inset-top,0px)) 16px 8px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:box-shadow .25s}
+.topr.stuck{box-shadow:0 8px 20px -14px rgba(0,0,0,.35);border-bottom:1px solid var(--line)}
+.topr .privacy{margin-right:auto}
 .brand{display:flex;align-items:baseline;gap:10px}
 .brand h1{font-family:var(--f-display);font-weight:400;font-size:30px;line-height:1;margin:0;letter-spacing:-.01em;color:var(--brand)}
 .brand h1 .mark{width:28px;height:28px;vertical-align:-5px;margin-right:8px}
 .brand p{margin:0;color:var(--muted);font-size:14px}
-.topr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.topr{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
 .privacy{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .theme{display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;box-shadow:var(--shadow)}
 .theme button{border:none;background:none;color:var(--muted);font:inherit;font-size:12.5px;font-weight:600;height:28px;min-width:28px;padding:0 9px;border-radius:999px;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -607,6 +610,7 @@ body.tv #viewCoach{display:none!important}
 .oback{color:var(--ink)}
 .gchips .seg[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 /* profile */
+.gearbtn{background:var(--surface);color:var(--ink)}.gearbtn[aria-pressed="true"]{border-color:var(--brand);color:var(--brand)}
 .dlbtn{height:34px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-weight:600;font-size:13.5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:0 13px 0 10px;box-shadow:var(--shadow)}
 .dlbtn:hover{border-color:var(--brand);color:var(--brand)}
 @media (max-width:560px){.dlbtn{width:34px;padding:0;justify-content:center}.dlbtn span{display:none}}
@@ -752,6 +756,7 @@ body.tv #viewNear, body.practice #viewNear{display:none!important}
 .pcard .hint{margin:0;font-size:13.5px;color:var(--muted)}
 .voicelang{margin:8px 0 0;font-size:13.5px;color:var(--muted);line-height:1.45}.abody .voicelang{margin:-2px 0 10px}
 .setcard .abody{padding:10px 0 0}
+.settingsview{max-width:720px;width:100%;margin:0 auto}.settingsview .setcard h2{margin:0}.settingsview .setcard .hint{margin:2px 0 0}
 .setmoved{margin:0;font-size:13px;color:var(--muted)}
 .backlib{justify-self:start;align-self:flex-start;font-size:14px;margin-bottom:-6px}
 body.practice .backlib,body.tv .backlib{display:none}
@@ -1019,7 +1024,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
       <button class="btn" id="refBtn" type="button" hidden>Show reference figure</button>
       <div class="notice" id="notice" hidden><b id="noticeHead"></b><p id="noticeText"></p></div>
       <span class="model" id="model">Pose models: loading…</span>
-      <p class="setmoved">Camera, scene and voice settings are in your profile. <button class="hlink" type="button" id="openSettings">Open settings</button></p>
+      <p class="setmoved">Camera, scene and voice settings are under the gear at the top. <button class="hlink" type="button" id="openSettings">Open settings</button></p>
     </section>
 
     <section class="panel">
@@ -1203,6 +1208,29 @@ Savasana, 3 min"></textarea>
     <ul class="nearlist" id="nearList"></ul>
     <p class="osmcredit">Studio data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></p>
   </section>
+  <section id="viewSettings" class="settingsview" hidden>
+        <div class="pcard setcard" id="avatarBox">
+          <h2>Settings</h2><p class="hint" id="avatarSum">Scene, voice, camera</p>
+          <div class="abody">
+            <div class="arow"><span>Language</span><div class="segs" data-k="lang" translate="no"><button type="button" class="seg" data-v="en">English</button><button type="button" class="seg" data-v="es">Español</button><button type="button" class="seg" data-v="de">Deutsch</button></div></div>
+            <p class="hint voicelang" hidden>The voice guide in practices speaks English for now. Everything else is in your language.</p>
+            <div class="arow"><span>Pose engine</span><div class="segs" data-k="engine"><button type="button" class="seg" data-v="auto">Auto</button><button type="button" class="seg" data-v="wasm">WebAssembly</button><button type="button" class="seg" data-v="gpu">GPU</button><button type="button" class="seg" data-v="cpu">CPU</button></div></div>
+            <div class="arow"><span>Transition</span><div class="segs" data-k="trans"><button type="button" class="seg" data-v="blob">Ball</button><button type="button" class="seg" data-v="moves">Movement</button></div></div>
+            <div class="arow"><span>Movement</span><div class="segs" data-k="pace"><button type="button" class="seg" data-v="calm">Calm</button><button type="button" class="seg" data-v="flowing">Flowing</button><button type="button" class="seg" data-v="quick">Quick</button></div></div>
+            <div class="arow"><span>Scene</span><div class="segs" data-k="sceneset"><button type="button" class="seg" data-v="plain">Plain</button><button type="button" class="seg" data-v="studio">Studio</button><button type="button" class="seg" data-v="beach">Beach</button><button type="button" class="seg" data-v="living">Living room</button><button type="button" class="seg" data-v="park">Park</button><button type="button" class="seg" data-v="mountains">Mountains</button><button type="button" class="seg" data-v="night">Night rooftop</button></div></div>
+            <div class="arow"><span>Record my moves between poses</span><div class="segs" data-k="motionset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
+            <div class="arow"><span>Voice guide in practices</span><div class="segs" data-k="voiceset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
+            <div class="arow"><span>Background music</span><div class="segs" data-k="musicset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
+            <div class="arow"><span>Camera position</span><div class="segs" data-k="camat"><button type="button" class="seg" data-v="auto">Detect</button><button type="button" class="seg" data-v="front">In front of the mat</button><button type="button" class="seg" data-v="side">Beside the mat</button></div></div>
+            <div class="arow"><span>Camera shows</span><div class="segs" data-k="camview"><button type="button" class="seg" data-v="avatar">Me as my figure</button><button type="button" class="seg" data-v="skeleton">Video + skeleton</button></div></div>
+            <div class="arow"><span>Alignment lines on the figure</span><div class="segs" data-k="overlay"><button type="button" class="seg" data-v="on">Show</button><button type="button" class="seg" data-v="off">Hide</button></div></div>
+            <div class="arow"><span>Reference while checking</span><div class="segs" data-k="inset"><button type="button" class="seg" data-v="on">Small inset</button><button type="button" class="seg" data-v="off">Hidden</button></div></div>
+            <div class="arow"><span>About Sama</span><div class="segs"><a class="seg" href="/features/" style="text-decoration:none">All features</a></div></div>
+            <div class="arow"><span>Privacy</span><div class="segs"><a class="seg" href="/privacy.html" style="text-decoration:none">What Sama stores</a></div></div>
+            <div class="arow" id="installRow" hidden><span>Sama on your home screen</span><div class="segs"><button type="button" class="seg" id="installOpen">Add the icon</button></div></div>
+          </div>
+        </div>
+  </section>
   <section id="viewProfile" class="profile" hidden>
     <div class="pgrid">
       <div class="pcol">
@@ -1269,27 +1297,6 @@ Savasana, 3 min"></textarea>
         </div>
       </div>
       <div class="pcol">
-        <details class="pcard fold setcard" id="avatarBox">
-          <summary><span><h2>Settings</h2><span class="hint" id="avatarSum">Scene, voice, camera</span></span></summary>
-          <div class="abody">
-            <div class="arow"><span>Language</span><div class="segs" data-k="lang" translate="no"><button type="button" class="seg" data-v="en">English</button><button type="button" class="seg" data-v="es">Español</button><button type="button" class="seg" data-v="de">Deutsch</button></div></div>
-            <p class="hint voicelang" hidden>The voice guide in practices speaks English for now. Everything else is in your language.</p>
-            <div class="arow"><span>Pose engine</span><div class="segs" data-k="engine"><button type="button" class="seg" data-v="auto">Auto</button><button type="button" class="seg" data-v="wasm">WebAssembly</button><button type="button" class="seg" data-v="gpu">GPU</button><button type="button" class="seg" data-v="cpu">CPU</button></div></div>
-            <div class="arow"><span>Transition</span><div class="segs" data-k="trans"><button type="button" class="seg" data-v="blob">Ball</button><button type="button" class="seg" data-v="moves">Movement</button></div></div>
-            <div class="arow"><span>Movement</span><div class="segs" data-k="pace"><button type="button" class="seg" data-v="calm">Calm</button><button type="button" class="seg" data-v="flowing">Flowing</button><button type="button" class="seg" data-v="quick">Quick</button></div></div>
-            <div class="arow"><span>Scene</span><div class="segs" data-k="sceneset"><button type="button" class="seg" data-v="plain">Plain</button><button type="button" class="seg" data-v="studio">Studio</button><button type="button" class="seg" data-v="beach">Beach</button><button type="button" class="seg" data-v="living">Living room</button><button type="button" class="seg" data-v="park">Park</button><button type="button" class="seg" data-v="mountains">Mountains</button><button type="button" class="seg" data-v="night">Night rooftop</button></div></div>
-            <div class="arow"><span>Record my moves between poses</span><div class="segs" data-k="motionset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
-            <div class="arow"><span>Voice guide in practices</span><div class="segs" data-k="voiceset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
-            <div class="arow"><span>Background music</span><div class="segs" data-k="musicset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
-            <div class="arow"><span>Camera position</span><div class="segs" data-k="camat"><button type="button" class="seg" data-v="auto">Detect</button><button type="button" class="seg" data-v="front">In front of the mat</button><button type="button" class="seg" data-v="side">Beside the mat</button></div></div>
-            <div class="arow"><span>Camera shows</span><div class="segs" data-k="camview"><button type="button" class="seg" data-v="avatar">Me as my figure</button><button type="button" class="seg" data-v="skeleton">Video + skeleton</button></div></div>
-            <div class="arow"><span>Alignment lines on the figure</span><div class="segs" data-k="overlay"><button type="button" class="seg" data-v="on">Show</button><button type="button" class="seg" data-v="off">Hide</button></div></div>
-            <div class="arow"><span>Reference while checking</span><div class="segs" data-k="inset"><button type="button" class="seg" data-v="on">Small inset</button><button type="button" class="seg" data-v="off">Hidden</button></div></div>
-            <div class="arow"><span>About Sama</span><div class="segs"><a class="seg" href="/features/" style="text-decoration:none">All features</a></div></div>
-            <div class="arow"><span>Privacy</span><div class="segs"><a class="seg" href="/privacy.html" style="text-decoration:none">What Sama stores</a></div></div>
-            <div class="arow" id="installRow" hidden><span>Sama on your home screen</span><div class="segs"><button type="button" class="seg" id="installOpen">Add the icon</button></div></div>
-          </div>
-        </details>
         <div class="pcard cyc" id="cycleCard" hidden>
           <h2>Your cycle</h2>
           <p class="hint">Sama can shape your practice around your cycle: softer on your period, stronger when your energy is up. This stays on this device only; it isn't synced or shared with the coach.</p>
@@ -6697,7 +6704,7 @@ async function planSetup(){
   await G.ask({text: had ? 'Done. Your plan follows your new answers from your next practice on.' : `Your plan is ready: a first month in four steps, from Arrive to Flow, ${a.days} days a week, about ${a.minutes} minutes each. Every day, your next practice waits for you on Today.`, pose: 'upsalute', input: false, chips: [{label: had ? 'Back to Today' : 'Let’s begin', value: 'go'}]});
   stop(); TODAY.short = false; switchView('today'); window.scrollTo({top: 0});
 }
-function openSettings(){ switchView('profile'); const box = $('avatarBox'); if (box){ box.open = true; setTimeout(() => box.scrollIntoView({behavior: 'smooth', block: 'start'}), 60); } }
+function openSettings(){ switchView('settings'); window.scrollTo({top: 0}); }
 $('openSettings').addEventListener('click', openSettings);
 $('backLib').addEventListener('click', () => switchView('lib'));
 function renderPlanCard(){
@@ -7057,8 +7064,12 @@ function renderProfile(){
 // header button
 (function(){
   const b = document.createElement('button'); b.type = 'button'; b.className = 'pbtn'; b.id = 'pBtn'; b.setAttribute('aria-label', 'Profile'); b.title = profile.name || 'Profile';
-  b.appendChild(thumb('mountain', 34)); b.addEventListener('click', () => switchView($('viewProfile').hidden ? 'profile' : (lastView && lastView !== 'profile' ? lastView : 'today')));
+  b.appendChild(thumb('mountain', 34)); b.addEventListener('click', () => { switchView($('viewProfile').hidden ? 'profile' : (lastView && lastView !== 'profile' && lastView !== 'settings' ? lastView : 'today')); window.scrollTo({top: 0}); });
   document.querySelector('.topr').appendChild(b);
+  const g = document.createElement('button'); g.type = 'button'; g.className = 'pbtn gearbtn'; g.id = 'setBtn'; g.title = 'Settings'; g.setAttribute('aria-label', 'Settings');
+  g.innerHTML = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
+  g.addEventListener('click', () => { switchView($('viewSettings').hidden ? 'settings' : (lastView && lastView !== 'settings' && lastView !== 'profile' ? lastView : 'today')); window.scrollTo({top: 0}); });
+  document.querySelector('.topr').appendChild(g);
   // get the app: installs Sama from the browser (hidden once it runs as an app, and in the Android app)
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   if (!standalone && !window.SamaNative && !/[?&]embed=1/.test(location.search) && !/(^|&)tv(&|$)/.test(location.hash.slice(1))){
@@ -7397,12 +7408,13 @@ const NEAR = (() => {
   return {run, slug, uscUrl, showMine, gh, tiles, openForm};
 })();
 // ---------- views ----------
+addEventListener('scroll', () => { const t = document.querySelector('.topr'); if (t) t.classList.toggle('stuck', scrollY > 40); }, {passive: true});
 var lastView = 'today';
 function switchView(v){
-  if (v !== 'profile') lastView = v;
+  if (v !== 'profile' && v !== 'settings') lastView = v;
   for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', b.dataset.view===v || (v==='check' && b.dataset.view==='lib')); // checking a pose is part of the library
-  $('viewToday').hidden = v!=='today'; $('viewCheck').hidden = v!=='check'; $('viewPlan').hidden = v!=='plan'; $('viewLib').hidden = v!=='lib'; $('viewCoach').hidden = v!=='coach'; $('viewNear').hidden = v!=='near'; $('viewProfile').hidden = v!=='profile';
-  $('pBtn').setAttribute('aria-pressed', String(v==='profile'));
+  $('viewToday').hidden = v!=='today'; $('viewCheck').hidden = v!=='check'; $('viewPlan').hidden = v!=='plan'; $('viewLib').hidden = v!=='lib'; $('viewCoach').hidden = v!=='coach'; $('viewNear').hidden = v!=='near'; $('viewProfile').hidden = v!=='profile'; $('viewSettings').hidden = v!=='settings';
+  $('pBtn').setAttribute('aria-pressed', String(v==='profile')); if ($('setBtn')) $('setBtn').setAttribute('aria-pressed', String(v==='settings'));
   if (v==='coach') renderCoach();
   if (v==='profile') renderProfile();
   if (v==='plan' && !plan) makePlan();
@@ -7429,7 +7441,7 @@ const TOUR = [
   {view:'check', sel:'#liveBtn', title:'Check your alignment', text:'Turn on your camera and Sama compares your joints with the pose as you hold it. The video never leaves your device.'},
   {view:'plan', sel:'#planStart', title:'A guided practice', text:'Choose how long, what to focus on and your level, then start. A calm voice talks you through every pose and every move between them.'},
   {view:'coach', sel:'#coachModes', title:'Your coach', text:'Plan a practice together, get feedback on your checks, review a routine, or map a road to a pose you dream of.'},
-  {view:'today', sel:'#pBtn', title:'Your profile', text:'Your progress, your figure, your cycle and calendar, and all settings. You can replay this tour from there.'},
+  {view:'today', sel:'#pBtn', title:'Your profile', text:'Your progress, your figure, your cycle and calendar. The gear next to it holds the settings. You can replay this tour from your profile.'},
 ];
 const tour = {i:0, on:false};
 function tourDone(){ try { return localStorage.getItem('sama.tour') === 'done'; } catch { return true; } }
