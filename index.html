@@ -6396,11 +6396,19 @@ function figureAnimator(cv){
     raf = requestAnimationFrame(frame);
     if (document.hidden || !cv.getClientRects().length) return;
     let R = cur;
-    if (anim){
+    if (anim && anim.segs){ // Movement: the real route between the two poses, as one smooth movement (as when browsing poses)
+      const u = Math.min(1, (now - anim.t0)/anim.dur), at = u*u*(3 - 2*u)*anim.dur;
+      let acc = 0, si = 0; while (si < anim.segs.length - 1 && acc + anim.segs[si].dur <= at){ acc += anim.segs[si].dur; si++; }
+      const sg = anim.segs[si]; R = lerpRef(sg.from, sg.to, Math.min(1, (at - acc)/sg.dur), sg.hop, true);
+      if (u >= 1){ anim = null; R = cur; }
+    } else if (anim){ // Ball: melt into the ball, roll over, grow into the next pose; the mat turns smoothly the whole time
       const u = Math.min(1, (now - anim.t0)/anim.dur);
       if (!anim.from) R = blobRef(anim.to, 1 - ez(u), blobRef(anim.to, 1).head.x);
-      else if (u < .45) R = blobRef(anim.from, ez(u/.45), blobRef(anim.from, 1).head.x);
-      else R = blobRef(anim.to, 1 - ez((u - .45)/.55), blobRef(anim.to, 1).head.x);
+      else {
+        R = u < .45 ? blobRef(anim.from, ez(u/.45), blobRef(anim.from, 1).head.x) : blobRef(anim.to, 1 - ez((u - .45)/.55), blobRef(anim.to, 1).head.x);
+        const A = anim.from.base || anim.from, B = anim.to, m = ez(u), oa = A.matOff || [0, 0], ob = B.matOff || [0, 0], y0 = camYawOf(A), y1 = camYawOf(B), dy = Math.atan2(Math.sin(y1 - y0), Math.cos(y1 - y0));
+        R = {...R, matOff: [oa[0] + (ob[0] - oa[0])*m, oa[1] + (ob[1] - oa[1])*m], camYaw: y0 + dy*m, spin: u - .5, spinDir: 1};
+      }
       if (u >= 1){ anim = null; R = cur; }
     }
     if (!R) return;
@@ -6413,8 +6421,13 @@ function figureAnimator(cv){
   }
   raf = requestAnimationFrame(frame);
   return {
-    setPose(id, mirrored = false){ if (!REF_SPECS[id]) id = 'mountain'; const to = refFor(id, mirrored, 0); if (reduce){ cur = to; anim = null; return; } anim = {from: cur, to, t0: performance.now(), dur: cur ? 1150 : 900}; cur = to; },
+    setPose(id, mirrored = false){ if (!REF_SPECS[id]) id = 'mountain'; const to = refFor(id, mirrored, 0); if (reduce){ cur = to; anim = null; return; }
+      if (transStyle === 'moves' && cur && cur.poseId && !anim){ // the figure really moves there (follows the Transition setting)
+        try { const segs = routeSegments(cur, transitionPath(cur.poseId, id, !!cur.mirrored, mirrored), to, id, mirrored, false), dur = segs.reduce((a, sg) => a + sg.dur, 0);
+          if (segs.length && dur > 0){ anim = {segs, t0: performance.now(), dur}; cur = segs[segs.length - 1].to; return; } } catch (e){ console.warn('figure route', e); } }
+      anim = {from: cur, to, t0: performance.now(), dur: cur ? Math.round(1500*(PACE[pace] || 1)) : 900}; cur = to; },
     get pose(){ return cur ? cur.poseId : null; },
+    get busy(){ return !!anim; },
     stop(){ cancelAnimationFrame(raf); },
   };
 }
@@ -6605,7 +6618,7 @@ function renderToday(){
   $('tShort').hidden = S.short || (P.total || planSum(P)) <= 11*60 || !!doneToday.length;
   // the figure shows the day's poses, one after the other, with their names
   let i = 0; const show = () => { const id = pick[i % pick.length], ps = POSES.find(q => q.id === id); TODAY.fig.setPose(id, i % 2 === 1 && META[id] && META[id].sided); $('tCap').textContent = ps ? ps.name : ''; i++; };
-  show(); TODAY.timer = setInterval(() => { if (!view.hidden) show(); }, 3800);
+  show(); TODAY.timer = setInterval(() => { if (!view.hidden && !TODAY.fig.busy) show(); }, 3800);
 }
 $('tStart').addEventListener('click', () => { if (!TODAY.P) return; plan = TODAY.P; startSession(TODAY.P); });
 $('tPreview').addEventListener('click', () => { if (TODAY.P) openInPlanner(TODAY.P); });
