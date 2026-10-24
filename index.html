@@ -147,6 +147,13 @@ body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -
 .sess{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .sbar{height:4px;background:var(--line);border-radius:4px;overflow:hidden}
 .sbar span{display:block;height:100%;width:0;background:var(--accent);transition:width .2s linear}
+#sessScrub{position:relative;overflow:visible;cursor:pointer;touch-action:none;height:6px;margin:8px 0;background-clip:content-box}
+#sessScrub::before{content:"";position:absolute;left:0;right:0;top:-12px;bottom:-12px} /* a finger-sized grip around the thin bar */
+#sessScrub span{border-radius:4px}
+#sessScrub.drag span{transition:none}
+#sessScrub::after{content:"";position:absolute;top:50%;left:var(--knob,0%);width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.3);opacity:0;transition:opacity .2s}
+#sessScrub:hover::after,#sessScrub.drag::after,#sessScrub:focus-visible::after{opacity:1}
+.sbartip{position:absolute;top:16px;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-style:normal;font-size:13px;font-weight:600;padding:5px 10px;border-radius:10px;white-space:nowrap;pointer-events:none;z-index:5}
 .srow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .srow b,.shead b{display:block;font-size:17px}
 /* the pose name on its own line, the timer always right below it (a long name can't push it around) */
@@ -301,15 +308,16 @@ body:not(.tv) .tvbtns{display:none}
 .pcard .pm{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
 .pcard .dots{letter-spacing:-1px;color:var(--accent)}
 .pcard p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.pdlg{border:none;border-radius:22px;background:var(--surface);color:var(--ink);padding:0;width:min(94vw,760px);max-height:92vh;box-shadow:0 30px 80px -20px rgba(0,0,0,.45)}
+.pdlg{border:none;border-radius:22px;background:var(--surface);color:var(--ink);padding:0;width:min(96vw,1040px);max-height:94vh;box-shadow:0 30px 80px -20px rgba(0,0,0,.45)}
 .pdlg::backdrop{background:rgba(20,14,10,.55)}
 .pdhead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:18px 20px 0}
 .pdhead h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.1}.pdhead .sk{color:var(--muted);font-style:italic;font-size:14px}
 .pdhead .x{border:none;background:var(--bg);color:var(--ink);width:36px;height:36px;border-radius:50%;font-size:22px;cursor:pointer;flex:0 0 auto}
 .pdbody{display:grid;grid-template-columns:1fr;gap:16px;padding:14px 20px 20px}
-@media (min-width:640px){.pdbody{grid-template-columns:260px minmax(0,1fr)}}
+@media (min-width:640px){.pdbody{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start}.pdfig{position:sticky;top:0}}
 .pdfig canvas{width:100%;height:auto;border-radius:16px;display:block}.pdfb{display:flex;gap:6px;margin-top:8px}
 .pdtext{display:flex;flex-direction:column;gap:8px;font-size:14.5px;line-height:1.5}
+@media (max-width:640px){.pdlg{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border-radius:0}.pdbody{padding:10px 0 24px;gap:12px}.pdbody .pdtext,.pdfb{padding:0 18px}.pdfig canvas{border-radius:0}}
 .pdtext h4{margin:8px 0 0;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .pdtext ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}.pdtext p{margin:0}
 .pdmeta{display:flex;flex-wrap:wrap;gap:6px}.pdmeta span{border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12.5px;color:var(--muted)}.pdmeta .lv{color:var(--accent);border-color:var(--accent-soft);background:var(--accent-soft)}
@@ -595,6 +603,9 @@ body.tv #viewCoach{display:none!important}
 .oprog span{display:block;height:100%;width:0;background:var(--accent);transition:width .4s ease}
 .oinner .guide{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:16px}
 .olater{align-self:center;color:var(--muted);border-color:transparent;background:none}
+.onav{display:flex;justify-content:space-between;align-items:center;gap:10px}.onav .olater{margin-left:auto}
+.oback{color:var(--ink)}
+.gchips .seg[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 /* profile */
 .dlbtn{height:34px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-weight:600;font-size:13.5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:0 13px 0 10px;box-shadow:var(--shadow)}
 .dlbtn:hover{border-color:var(--brand);color:var(--brand)}
@@ -742,6 +753,8 @@ body.tv #viewNear, body.practice #viewNear{display:none!important}
 .voicelang{margin:8px 0 0;font-size:13.5px;color:var(--muted);line-height:1.45}.abody .voicelang{margin:-2px 0 10px}
 .setcard .abody{padding:10px 0 0}
 .setmoved{margin:0;font-size:13px;color:var(--muted)}
+.backlib{justify-self:start;align-self:flex-start;font-size:14px;margin-bottom:-6px}
+body.practice .backlib,body.tv .backlib{display:none}
 .pcard textarea{font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);width:100%;resize:vertical;line-height:1.45}
 .pcard textarea:focus{outline:none;border-color:var(--accent)}
 .pcard .label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -892,7 +905,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
   <div class="oinner">
     <div class="oprog"><span id="oBar"></span></div>
     <div id="oGuide"></div>
-    <button class="btn small olater" type="button" id="oSkip">Skip for now</button>
+    <div class="onav"><button class="btn small oback" type="button" id="oBack" hidden>‹ Back</button><button class="btn small olater" type="button" id="oSkip">Skip for now</button></div>
   </div>
 </div>
 <div class="tour" id="tour" hidden><div class="tourHole" id="tourHole"></div><div class="tourCard" id="tourCard" role="dialog" aria-modal="false" aria-labelledby="tourTitle"><span class="tstep" id="tourStep"></span><h3 id="tourTitle"></h3><p id="tourText"></p><div class="trow"><button class="tskip" id="tourSkip" type="button">Skip tour</button><div class="tourDots" id="tourDots" aria-hidden="true"></div><span style="display:flex;gap:8px"><button class="btn" id="tourBack" type="button">Back</button><button class="btn primary" id="tourNext" type="button">Next</button></span></div></div></div>
@@ -920,7 +933,6 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
     <button class="tab" type="button" role="tab" data-view="today" aria-label="Today" title="Today" aria-selected="true"><svg class="ti" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></svg><span class="tl">Today</span><span class="ts">Today</span></button>
     <button class="tab" type="button" role="tab" data-view="coach" aria-label="Coach" title="Coach" aria-selected="false"><svg class="ti" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.1A8 8 0 1 1 20 12z"/><path d="M9 11h.01M12 11h.01M15 11h.01"/></svg><span class="tl">Coach</span><span class="ts">Coach</span></button>
     <button class="tab" type="button" role="tab" data-view="lib" aria-label="Library" title="Library" aria-selected="false"><svg class="ti" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M9 8h7"/></svg><span class="tl">Library</span><span class="ts">Library</span></button>
-    <button class="tab" type="button" role="tab" data-view="check" aria-label="Check alignment" title="Check alignment" aria-selected="false"><svg class="ti" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.5" r="2"/><path d="M12 7v7M7 9.5l5 1.5 5-1.5M9 21l3-7 3 7"/><path d="M3 8V5a2 2 0 0 1 2-2h2M21 8V5a2 2 0 0 0-2-2h-2M3 16v3a2 2 0 0 0 2 2h2M21 16v3a2 2 0 0 1-2 2h-2"/></svg><span class="tl">Check alignment</span><span class="ts">Check</span></button>
     <button class="tab" type="button" role="tab" data-view="plan" aria-label="Plan a practice" title="Plan a practice" aria-selected="false"><svg class="ti" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/></svg><span class="tl">Plan a practice</span><span class="ts">Plan</span></button>
     <button class="tab" type="button" role="tab" data-view="near" aria-label="Studios" title="Studios" aria-selected="false"><svg class="ti" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span class="tl">Studios</span><span class="ts">Studios</span></button>
   </div>
@@ -942,11 +954,12 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
           <div class="tweek" id="tWeek"></div>
           <div class="tjour"><span id="tJourTxt"></span><div class="tjbar"><span id="tJBar"></span></div><div class="tjsteps" id="tJSteps"></div></div>
         </div>
-        <p class="tmorehint">Everything else is still here: your coach, the library, checking a single pose, planning your own practice and studios near you.</p>
+        <p class="tmorehint">Everything else is still here: your coach, the library (open a pose to check your alignment), planning your own practice and studios near you.</p>
       </div>
     </div>
   </section>
   <div id="viewCheck" class="view-wrap" hidden>
+  <button class="hlink backlib" type="button" id="backLib">‹ Back to the library</button>
   <div class="searchrow"><label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="search" placeholder="Search poses: name, Sanskrit, family…" autocomplete="off" aria-label="Search poses"></label>
   <div class="cats" id="cats" role="tablist" aria-label="Pose families"></div>
   <div class="levels" id="levels" aria-label="Difficulty"></div></div>
@@ -968,7 +981,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
   <main class="grid">
     <section class="stagecol">
       <div class="sess" id="sess" hidden>
-        <div class="sbar"><span id="sessBar"></span></div>
+        <div class="sbar" id="sessScrub" role="slider" aria-label="Go to a pose" tabindex="0"><span id="sessBar"></span><i class="sbartip" id="sessTip" hidden></i></div>
         <div class="shead"><div class="sname"><span class="sstep" id="sessStep"></span><b id="sessPose"></b></div><span class="stime" id="sessTime"></span><span class="sbreath" id="sessBreath" hidden aria-live="off"><i></i><span></span></span></div>
         <div class="srow"><span class="snext" id="sessNext"></span>
           <div class="sbtns"><button type="button" id="sessPrev" aria-label="Previous pose">‹</button><button type="button" id="sessPause">Pause</button><button type="button" id="sessNextBtn" aria-label="Next pose">›</button><button type="button" id="sessCam" aria-pressed="false" aria-label="Live camera" title="Live camera: the figure follows you"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button><button type="button" id="sessVoice" aria-pressed="true" aria-label="Voice guide" title="Voice guide"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="vwave" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button><button type="button" id="sessMusic" aria-pressed="true" aria-label="Background music" title="Background music"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path class="vslash" d="M3 3l18 18"/></svg></button><button type="button" id="sessTv" aria-label="Show on TV" title="Show on TV"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button><button type="button" id="sessEnd">End</button></div></div>
@@ -1314,7 +1327,7 @@ Savasana, 3 min"></textarea>
   <dialog class="pdlg" id="poseDlg">
     <div class="pdhead"><div><h2 id="pdName"></h2><div class="sk" id="pdSk"></div></div><button class="x" id="pdClose" type="button" aria-label="Close">×</button></div>
     <div class="pdbody">
-      <div class="pdfig"><canvas id="pdCv" width="520" height="520"></canvas><div class="pdfb"><button type="button" class="seg" id="pdTurn">Turn</button><button type="button" class="seg" id="pdSide" hidden>Other side</button></div></div>
+      <div class="pdfig"><canvas id="pdCv" width="1040" height="1040"></canvas><div class="pdfb"><button type="button" class="seg" id="pdTurn">Turn</button><button type="button" class="seg" id="pdSide" hidden>Other side</button></div></div>
       <div class="pdtext">
         <div class="pdmeta" id="pdMeta"></div>
         <p id="pdAbout"></p>
@@ -5573,7 +5586,7 @@ function renderSess(){
   $('sessTime').textContent = sess.phase==='intro' ? 'Arriving' : sess.phase==='prep' ? `Get ready ${Math.ceil(sess.left)}` : fmtTime(Math.max(0, Math.ceil(sess.left)));
   $('sessNext').textContent = nx ? `Next: ${POSES.find(q=>q.id===nx.id).name}${nx.side ? ' · '+nx.side : ''}` : 'Last pose';
   const frac = sess.phase==='prep' || sess.phase==='intro' ? 0 : 1 - sess.left / x.secs;
-  $('sessBar').style.width = `${Math.max(0, Math.min(100, (sess.i + frac)/n*100))}%`;
+  { const pc = Math.max(0, Math.min(100, (sess.i + frac)/n*100)); if (!$('sessScrub').classList.contains('drag')){ $('sessBar').style.width = `${pc}%`; $('sessScrub').style.setProperty('--knob', pc + '%'); } }
   $('sessPause').textContent = sess.paused ? 'Resume' : 'Pause';
   tvSend({t:'state', i:sess.i, phase:sess.phase, left:Math.round(sess.left*10)/10, paused:sess.paused}); renderTv();
 }
@@ -5583,6 +5596,20 @@ $('sessVoice').addEventListener('click', () => setVoice(!voiceOn));
 $('sessMusic').setAttribute('aria-pressed', String(musicOn));
 $('sessMusic').addEventListener('click', () => setMusic(!musicOn));
 $('sessNextBtn').addEventListener('click', () => nextItem(1));
+// scrub through the practice: tap or drag the bar, let go on the pose to go to (its name shows while dragging)
+(() => {
+  const bar = $('sessScrub'), tip = $('sessTip'); let dragging = false, target = -1;
+  const at = e => { const r = bar.getBoundingClientRect(), f = Math.max(0, Math.min(.9999, (e.clientX - r.left)/r.width)); return {f, i: Math.floor(f*sess.P.items.length)}; };
+  const preview = e => { if (!sess) return; const {f, i} = at(e), x = sess.P.items[i], ps = POSES.find(q => q.id === x.id); target = i;
+    bar.style.setProperty('--knob', f*100 + '%'); $('sessBar').style.width = f*100 + '%';
+    tip.hidden = false; tip.style.left = Math.min(92, Math.max(8, f*100)) + '%'; tip.textContent = `${i + 1}. ${ps ? ps.name : x.id}${x.side ? ' · ' + x.side : ''}`; };
+  const go = i => { if (!sess || sess.remote || i < 0 || i >= sess.P.items.length) return; if (i !== sess.i){ voiceStop(); sess.i = i; enterItem(); } else renderSess(); };
+  bar.addEventListener('pointerdown', e => { if (!sess || sess.remote) return; dragging = true; bar.classList.add('drag'); bar.setPointerCapture(e.pointerId); preview(e); e.preventDefault(); });
+  bar.addEventListener('pointermove', e => { if (dragging) preview(e); });
+  const end = () => { if (!dragging) return; dragging = false; bar.classList.remove('drag'); tip.hidden = true; go(target); };
+  bar.addEventListener('pointerup', end); bar.addEventListener('pointercancel', () => { dragging = false; bar.classList.remove('drag'); tip.hidden = true; renderSess(); });
+  bar.addEventListener('keydown', e => { if (!sess) return; if (e.key === 'ArrowRight'){ go(sess.i + 1); e.preventDefault(); } else if (e.key === 'ArrowLeft'){ go(sess.i - 1); e.preventDefault(); } });
+})();
 // practice tap zones, with a short sign of what happened (the pause sign stays while paused)
 let sfbT = 0;
 function sessFeedback(kind){
@@ -6457,7 +6484,7 @@ function makeGuide(host){
     tell(t, pose){ bubble.classList.remove('think'); text.textContent = t; if (pose) fig.setPose(pose); },
     think(t = 'Thinking'){ bubble.classList.add('think'); text.textContent = t; },
     // ask returns a promise: a string (chip label, chip value or typed text), an array for multi, or null when cancelled
-    ask({text: t, pose, chips: list = [], multi = false, input: withInput = true, placeholder = 'Type your answer…', send: sendLabel = 'Send', value = ''} = {}){
+    ask({text: t, pose, chips: list = [], multi = false, input: withInput = true, placeholder = 'Type your answer…', send: sendLabel = 'Send', value = '', selected = null} = {}){
       G.cancel(); G.tell(t, pose);
       return new Promise(resolve => {
         pending = resolve; chips.textContent = '';
@@ -6474,6 +6501,9 @@ function makeGuide(host){
           else b.addEventListener('click', () => settle(o.value));
           chips.appendChild(b);
         }
+        if (selected != null){ // an answer given before (when going back): shown chosen
+          if (multi && Array.isArray(selected)){ for (const v of selected) picked.add(String(v)); paint(); }
+          else for (const x of chips.children) if (x.dataset.v === String(selected)) x.setAttribute('aria-pressed', 'true'); }
         if (multi){ doneBtn = document.createElement('button'); doneBtn.type = 'button'; doneBtn.className = 'seg'; doneBtn.style.fontWeight = '700'; doneBtn.textContent = sendLabel === 'Send' ? 'Continue' : sendLabel; doneBtn.addEventListener('click', () => settle([...picked].filter(v => v !== String(noneValue)))); chips.appendChild(doneBtn); }
         form.hidden = !withInput; input.placeholder = placeholder; input.value = value; send.textContent = sendLabel;
         if (withInput && matchMedia('(min-width: 700px)').matches) setTimeout(() => input.focus(), 50);
@@ -6637,30 +6667,39 @@ $('tStart').addEventListener('click', () => { if (!TODAY.P) return; plan = TODAY
 $('tPreview').addEventListener('click', () => { if (TODAY.P) openInPlanner(TODAY.P); });
 $('tShort').addEventListener('click', () => { TODAY.short = true; renderToday(); });
 $('tAdjust').addEventListener('click', () => planSetup());
-// the questions that make the plan: in the onboarding, or on their own from Today or the profile
-async function askPlan(G, prog){
-  const pr = PROG.get() || {};
-  let a = await G.ask({text: 'What would you like yoga to bring you?', pose: 'easy', input: false, chips: Object.entries(INTENTS).map(([v, o]) => ({label: o.label, value: v}))}); if (a == null) return null;
-  const intent = a; prog && prog();
-  a = await G.ask({text: 'How much time do you have on a practice day?', pose: 'tree', input: false, chips: [{label: '10 minutes', value: 10}, {label: '15 minutes', value: 15}, {label: '20 minutes', value: 20}, {label: '30 minutes', value: 30}]}); if (a == null) return null;
-  const minutes = +a; prog && prog();
-  a = await G.ask({text: 'How many days a week would you like to practise?', pose: 'dog', input: false, chips: [{label: 'Twice a week', value: 2}, {label: 'Three times', value: 3}, {label: 'Four times', value: 4}, {label: 'Most days', value: 5}]}); if (a == null) return null;
-  prog && prog();
-  return {intent, minutes, days: +a, kept: pr.done ? pr.done.length : 0};
+// the questions that make the plan: in the onboarding, or on their own from Today or the profile. Steps with a Back button:
+// going back shows the answer given before, which can be kept or changed.
+const PLAN_STEPS = [
+  {ask: a => ({text: 'What would you like yoga to bring you?', pose: 'easy', input: false, selected: a.intent, chips: Object.entries(INTENTS).map(([v, o]) => ({label: o.label, value: v}))}), set: (a, v) => { a.intent = v; }},
+  {ask: a => ({text: 'How much time do you have on a practice day?', pose: 'tree', input: false, selected: a.minutes, chips: [{label: '10 minutes', value: 10}, {label: '15 minutes', value: 15}, {label: '20 minutes', value: 20}, {label: '30 minutes', value: 30}]}), set: (a, v) => { a.minutes = +v; }},
+  {ask: a => ({text: 'How many days a week would you like to practise?', pose: 'dog', input: false, selected: a.days, chips: [{label: 'Twice a week', value: 2}, {label: 'Three times', value: 3}, {label: 'Four times', value: 4}, {label: 'Most days', value: 5}]}), set: (a, v) => { a.days = +v; }},
+];
+async function runSteps(G, steps, answers, prog){
+  let i = 0, back = false; const btn = $('oBack');
+  btn.onclick = () => { back = true; G.cancel(); };
+  while (i < steps.length){
+    btn.hidden = i === 0; prog && prog(i, steps.length); back = false;
+    const v = await G.ask(steps[i].ask(answers));
+    if (v == null){ if (back){ i = Math.max(0, i - 1); continue; } btn.hidden = true; return false; }
+    steps[i].set(answers, v); i++;
+  }
+  btn.hidden = true; prog && prog(steps.length, steps.length); return true;
 }
 async function planSetup(){
   const box = $('onboard'); box.hidden = false; document.body.style.overflow = 'hidden';
   if (onboardGuide) onboardGuide.destroy(); onboardGuide = makeGuide($('oGuide'));
-  const G = onboardGuide; let n = 0; const total = 4, prog = () => { n++; $('oBar').style.width = `${n/total*100}%`; }; $('oBar').style.width = '0%';
-  const stop = () => { box.hidden = true; document.body.style.overflow = ''; G.destroy(); onboardGuide = null; };
+  const G = onboardGuide, prog = (n, t) => { $('oBar').style.width = `${n/t*100}%`; }; $('oBar').style.width = '0%';
+  const stop = () => { box.hidden = true; document.body.style.overflow = ''; $('oBack').hidden = true; G.destroy(); onboardGuide = null; };
   $('oSkip').onclick = () => { G.cancel(); stop(); };
-  const had = !!PROG.get(), a = await askPlan(G, prog); if (!a) return;
-  PROG.create(a); prog();
+  const pr = PROG.get(), had = !!pr, a = pr ? {intent: pr.intent, minutes: pr.minutes, days: pr.days} : {days: profile.days || null};
+  if (!await runSteps(G, PLAN_STEPS, a, prog)) return;
+  PROG.create(a);
   await G.ask({text: had ? 'Done. Your plan follows your new answers from your next practice on.' : `Your plan is ready: a first month in four steps, from Arrive to Flow, ${a.days} days a week, about ${a.minutes} minutes each. Every day, your next practice waits for you on Today.`, pose: 'upsalute', input: false, chips: [{label: had ? 'Back to Today' : 'Let’s begin', value: 'go'}]});
   stop(); TODAY.short = false; switchView('today'); window.scrollTo({top: 0});
 }
 function openSettings(){ switchView('profile'); const box = $('avatarBox'); if (box){ box.open = true; setTimeout(() => box.scrollIntoView({behavior: 'smooth', block: 'start'}), 60); } }
 $('openSettings').addEventListener('click', openSettings);
+$('backLib').addEventListener('click', () => switchView('lib'));
 function renderPlanCard(){
   const pr = PROG.get(), t = $('pfPlanText'); if (!t) return;
   $('pfPlanRestart').hidden = !pr || !pr.done.length; $('pfPlanRestart').textContent = 'Start again from week 1'; $('pfPlanRestart').dataset.armed = '';
@@ -6680,41 +6719,29 @@ let onboardGuide = null;
 async function startOnboarding(){
   const box = $('onboard'); box.hidden = false; document.body.style.overflow = 'hidden';
   if (onboardGuide) onboardGuide.destroy(); onboardGuide = makeGuide($('oGuide'));
-  const G = onboardGuide, total = 8, prog = n => { $('oBar').style.width = `${n/total*100}%`; };
-  const stop = () => { box.hidden = true; document.body.style.overflow = ''; G.destroy(); onboardGuide = null; };
+  const G = onboardGuide, prog = (n, t) => { $('oBar').style.width = `${n/t*100}%`; };
+  const stop = () => { box.hidden = true; document.body.style.overflow = ''; $('oBack').hidden = true; G.destroy(); onboardGuide = null; };
   $('oSkip').onclick = () => { G.cancel(); saveProfile({onboarded:true}); stop(); };
-  const answers = {};
-  prog(0);
-  let a = await G.ask({text: profile.name ? `Welcome back. Is it still ${profile.name}?` : "Hi, I'm Sama. I'll be your guide here. What should I call you?", pose:'mountain', chips: profile.name ? [profile.name] : [], placeholder:'Your name'}); if (a == null) return;
-  answers.name = String(a).slice(0, 40); prog(1);
-  // a quick start for the figure: women get long hair and a slim build, men short hair and a regular build; or they choose later
-  a = await G.ask({text:`Nice to meet you, ${answers.name}. So I can look a bit like you: are you a woman or a man?`, pose:'mountain', input:false, chips:[{label:'Woman', value:'woman'}, {label:'Man', value:'man'}, {label:'I’ll choose myself', value:'open'}]}); if (a == null) return;
-  answers.gender = a; prog(2);
-  if (a === 'woman'){
-    const c = await G.ask({text:'Would you like your practices to follow your cycle? Softer on your period, stronger when your energy is up. This stays on your device.', pose:'easy', input:false, chips:[{label:'I’m on my period now', value:0}, {label:'Yes, it started 1–2 weeks ago', value:10}, {label:'Yes, it started 3–4 weeks ago', value:24}, {label:'Not now', value:-1}]}); if (c == null) return;
-    if (+c >= 0){ periodStart(dKey(dAdd(new Date(), -(+c)))); saveCycle({adapt:true}); G.tell(+c === 0 ? 'Thanks for telling me. We’ll keep it gentle for now.' : 'Got it. You can set the exact date in your profile.', +c === 0 ? 'child' : 'mountain'); await new Promise(r => setTimeout(r, 1500)); }
-    else saveCycle({adapt:false});
-  }
-  if (a === 'woman'){ saveProfile({gender:'woman'}); }
-  if (a !== 'open'){ Object.assign(avatar, a === 'woman' ? {hair:'long', build:'slim'} : {hair:'short', build:'regular'}); saveAvatar(); try { window.__syncLook && window.__syncLook(); } catch {} retheme(); }
-  a = await G.ask({text:'How long have you been practising yoga?', pose:'tree', input:false, chips:[{label:'I’m new to it', value:1}, {label:'A few months', value:1}, {label:'A year or two', value:2}, {label:'Many years', value:3}]}); if (a == null) return;
-  answers.level = +a; prog(3);
-  a = await G.ask({text:'Is there anything I should be gentle with? Pick all that apply.', pose:'child', input:false, multi:true, chips:[...BODY_OPTS.map(([v, l]) => ({label:l, value:v})), {label:'Nothing in particular', value:'none', none:true}]}); if (a == null) return;
-  answers.body = a; prog(4);
-  a = await G.ask({text:'Is there a pose you dream of? I can build a road toward it.', pose:'warrior2', input:false, chips:[...Object.entries(GOALS).map(([k, g]) => ({label:g.label, value:k})), {label:'Not yet', value:''}]}); if (a == null) return;
-  answers.goal = a || null; if (answers.goal) { G.tell(`${GOALS[answers.goal].label}. Lovely. We’ll get there step by step.`, answers.goal); await new Promise(r => setTimeout(r, 1600)); } prog(5);
-  saveProfile({level: answers.level, body: answers.body, goal: answers.goal}); // the plan reads them
-  { const pa = await askPlan(G); if (!pa) return; answers.days = pa.days; PROG.create(pa); } prog(6);
-  a = await G.ask({text:'Where do you like to practise? I’ll set the scene to match.', pose:'easy', input:false, chips:[{label:'Living room', value:'living'}, {label:'Studio', value:'studio'}, {label:'Beach', value:'beach'}, {label:'Park', value:'park'}, {label:'Mountains', value:'mountains'}, {label:'Rooftop at night', value:'night'}, {label:'Keep it plain', value:'plain'}]}); if (a == null) return;
-  scene = SCENES[a] ? a : 'plain'; try { localStorage.setItem('sama.scene', scene); } catch {} answers.place = scene;
-  if (scene !== 'plain'){ G.tell(`${SCENES[scene]}. I like it here.`, 'mountain'); await new Promise(r => setTimeout(r, 1500)); } prog(7);
-  a = await G.ask({text:'One more thing: shall I look like you? You can give me your skin, hair, clothes and patterns.', pose:'upsalute', input:false, chips:[{label:'Yes, dress me up', value:'avatar'}, {label:'Maybe later', value:'flat'}]}); if (a == null) return;
-  prog(8);
-  saveProfile({...answers, look: a, onboarded:true});
-  const next = await G.ask({text:`All set, ${answers.name}. Your first practice is ready on Today.${a === 'avatar' ? ' My wardrobe is in your profile, under “Your figure”.' : ''}`, pose:'mountain', input:false, chips:a === 'avatar' ? [{label:'See today’s practice', value:'today'}, {label:'Dress the figure', value:'dress'}] : [{label:'See today’s practice', value:'today'}, {label:'Check my alignment', value:'check'}]});
+  const ans = {name: profile.name || '', level: null, body: null}; prog(0, 1);
+  // a short set: who you are, how much yoga, what to be gentle with, then the plan. The rest (cycle, dream pose, scene, wardrobe)
+  // waits in the profile, and the tips point to it later.
+  const steps = [
+    {ask: a => ({text: profile.name ? `Welcome back. Is it still ${profile.name}?` : "Hi, I'm Sama. I'll be your guide here. What should I call you?", pose: 'mountain', chips: profile.name ? [profile.name] : [], placeholder: 'Your name', value: a.name && a.name !== profile.name ? a.name : ''}), set: (a, v) => { a.name = String(v).slice(0, 40); }},
+    // a quick start for the figure: women get long hair and a slim build, men short hair and a regular build; or they choose later
+    {ask: a => ({text: `Nice to meet you, ${a.name}. So I can look a bit like you: are you a woman or a man?`, pose: 'mountain', input: false, selected: a.gender, chips: [{label: 'Woman', value: 'woman'}, {label: 'Man', value: 'man'}, {label: 'I’ll choose myself', value: 'open'}]}), set: (a, v) => { a.gender = v; }},
+    {ask: a => ({text: 'How much yoga have you done?', pose: 'tree', input: false, selected: a.levelPick, chips: [{label: 'I’m new to it', value: 'new'}, {label: 'A few months', value: 'months'}, {label: 'A year or two', value: 'years'}, {label: 'Many years', value: 'many'}]}), set: (a, v) => { a.levelPick = v; a.level = {new: 1, months: 1, years: 2, many: 3}[v] || 1; }},
+    {ask: a => ({text: 'Is there anything I should be gentle with? Pick all that apply.', pose: 'child', input: false, multi: true, selected: a.body, chips: [...BODY_OPTS.map(([v, l]) => ({label: l, value: v})), {label: 'Nothing in particular', value: 'none', none: true}]}), set: (a, v) => { a.body = v; }},
+    ...PLAN_STEPS,
+  ];
+  if (!await runSteps(G, steps, ans, prog)) return;
+  const answers = {name: ans.name, level: ans.level, body: ans.body || [], days: ans.days};
+  if (ans.gender === 'woman') answers.gender = 'woman';
+  if (ans.gender && ans.gender !== 'open'){ Object.assign(avatar, ans.gender === 'woman' ? {hair:'long', build:'slim'} : {hair:'short', build:'regular'}); saveAvatar(); try { window.__syncLook && window.__syncLook(); } catch {} retheme(); }
+  saveProfile({...answers, onboarded:true});
+  PROG.create({intent: ans.intent, minutes: ans.minutes, days: ans.days});
+  const next = await G.ask({text:`All set, ${answers.name}. Your first practice is ready on Today. Your figure’s wardrobe, your cycle and a dream pose are waiting in your profile whenever you like.`, pose:'upsalute', input:false, chips:[{label:'See today’s practice', value:'today'}, {label:'Dress the figure', value:'dress'}]});
   stop();
   if (next === 'dress'){ switchView('profile'); $('lookCard').open = true; setTimeout(() => $('lookCard').scrollIntoView({behavior:'smooth', block:'start'}), 100); }
-  else if (next === 'check') switchView('check');
   else switchView('today');
   if (!tourDone()) setTimeout(startTour, next === 'dress' ? 1200 : 900); // then a short walk through the app
 }
@@ -7373,7 +7400,7 @@ const NEAR = (() => {
 var lastView = 'today';
 function switchView(v){
   if (v !== 'profile') lastView = v;
-  for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', b.dataset.view===v);
+  for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', b.dataset.view===v || (v==='check' && b.dataset.view==='lib')); // checking a pose is part of the library
   $('viewToday').hidden = v!=='today'; $('viewCheck').hidden = v!=='check'; $('viewPlan').hidden = v!=='plan'; $('viewLib').hidden = v!=='lib'; $('viewCoach').hidden = v!=='coach'; $('viewNear').hidden = v!=='near'; $('viewProfile').hidden = v!=='profile';
   $('pBtn').setAttribute('aria-pressed', String(v==='profile'));
   if (v==='coach') renderCoach();
@@ -7396,7 +7423,7 @@ else if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && profile.onboarded && !t
 // ---------- first-time tour ----------
 const TOUR = [
   {view:'today', sel:'#tStage', title:'Your practice for today', text:'Every day your next practice is ready here. Press start and Sama guides you through it, pose by pose.'},
-  {view:'today', sel:'.tabs', title:'Everything else', text:'Talk with your coach, browse the library, check a single pose, plan your own practice, or find studios near you. Switch any time.'},
+  {view:'today', sel:'.tabs', title:'Everything else', text:'Talk with your coach, browse the library (open any pose to check your alignment with the camera), plan your own practice, or find studios near you.'},
   {view:'check', sel:'#rail', title:'Pick a pose', text:'Tap any pose to see how it’s done. The families and levels above narrow the list.'},
   {view:'check', sel:'.stage', title:'Your guide on the mat', text:'Sama shows each pose on a mat. Turn the figure to see it from the front or the side, or switch to the other side.'},
   {view:'check', sel:'#liveBtn', title:'Check your alignment', text:'Turn on your camera and Sama compares your joints with the pose as you hold it. The video never leaves your device.'},
