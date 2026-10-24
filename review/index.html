@@ -247,7 +247,10 @@ function loadModel(){ if (tfReady) return tfReady;
   const script = src => new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = src; sc.onload = res; sc.onerror = () => rej(new Error('script ' + src)); document.head.append(sc); });
   tfReady = (window.tf ? Promise.resolve() : script(WEB ? '/vendor/tf.min.js' : 'tf.min.js').catch(() => script('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js')))
     .then(async () => { for (const be of ['webgl', 'cpu']){ try { if (await tf.setBackend(be)){ await tf.ready(); break; } } catch {} } })
-    .then(() => tf.loadGraphModel(new URL(WEB ? '/movenet-lightning.json' : 'movenet-lightning.json', location.href).href)).then(m => { model = m; return m; });
+    .then(async () => { // the weights come from the public repository (as in the app), the site's own copy last
+      const url = new URL(WEB ? '/movenet-lightning.json' : 'movenet-lightning.json', location.href).href, REV = '9096879e42a77150819cbec1534d958f8e440dbf';
+      const bases = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || !WEB ? [''] : [`https://cdn.jsdelivr.net/gh/roberto-vargas-c/Sama-Coach@${REV}/`, `https://raw.githubusercontent.com/roberto-vargas-c/Sama-Coach/${REV}/`, ''];
+      let err; for (const b of bases){ try { return await tf.loadGraphModel(url, b ? {weightPathPrefix: b} : {}); } catch (e){ err = e; } } throw err; }).then(m => { model = m; return m; });
   tfReady.catch(() => { tfReady = null; }); return tfReady; }
 async function detect(img){ // MoveNet Lightning: 17 joints as [x, y, score] in the photo's own pixels
   await loadModel(); const W = img.naturalWidth, H = img.naturalHeight, side = Math.max(W, H), N = 192, c = document.createElement('canvas'); c.width = c.height = N;

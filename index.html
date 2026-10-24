@@ -3712,6 +3712,19 @@ const refFor = (id, mirrored = false, angle = refAngle) => {
 
 
 // ---------- pose models ----------
+// The models' descriptions ship with the site; their weights (10 MB) come from the public repository, pinned to the commit of
+// their last change (MODEL_REV, kept up to date by tools/voice-rev.sh): jsDelivr first, GitHub's raw files next, the site last.
+const MODEL_REV = '9096879e42a77150819cbec1534d958f8e440dbf';
+const MODEL_BASES = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? [''] : [
+  `https://cdn.jsdelivr.net/gh/roberto-vargas-c/Sama-Coach@${MODEL_REV}/`, `https://raw.githubusercontent.com/roberto-vargas-c/Sama-Coach/${MODEL_REV}/`, ''];
+async function loadPoseModel(json, onProgress){
+  let err = null;
+  for (const base of MODEL_BASES){
+    try { return await tf.loadGraphModel(json, base ? {onProgress, weightPathPrefix: base} : {onProgress}); }
+    catch (e){ err = e; console.warn('pose model from', base || 'the site', e); }
+  }
+  throw err;
+}
 // MoveNet Lightning finds the person; BlazePose then reads 33 landmarks (incl. heels, toes, thumbs, index and pinky) plus 3D coordinates.
 function loadModel(){
   if (modelPromise) return modelPromise;
@@ -3720,8 +3733,8 @@ function loadModel(){
     await pickBackend();
     let a = 0, b = 0; const show = () => { $('model').textContent = `Pose models: loading ${Math.round((a*4.7+b*6.3)/11*100)}%`; };
     [mnModel, bpModel] = await Promise.all([
-      tf.loadGraphModel('movenet-lightning.json', {onProgress: p => { a = p; show(); }}),
-      tf.loadGraphModel('blazepose-full.json', {onProgress: p => { b = p; show(); }})]);
+      loadPoseModel('movenet-lightning.json', p => { a = p; show(); }),
+      loadPoseModel('blazepose-full.json', p => { b = p; show(); })]);
     mnSize = mnModel.inputs[0].shape[1] || 192;
     tf.tidy(() => { mnModel.execute(tf.zeros([1,mnSize,mnSize,3],'int32')); bpModel.execute(tf.zeros([1,256,256,3]), ['Identity_2:0']); });
     $('model').textContent = `Pose models ready · MoveNet + BlazePose (body, hands, feet) · ${tf.getBackend()}`;
