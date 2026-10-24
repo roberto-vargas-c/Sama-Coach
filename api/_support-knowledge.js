@@ -3,7 +3,12 @@
 module.exports = `
 SAMA, A FREE YOGA APP (web app at sama.rest, also an Android app and an installable home-screen app). No ads, no tracking, made by one person (Roberto Vargas).
 
-MAIN TABS (top of the screen): Check alignment · Plan a practice · Library · Coach · Studios. The round figure button at the top right opens the Profile. Language (EN/ES/DE) and light/dark/auto theme sit in the top bar.
+MAIN TABS (top of the screen): Today · Check alignment · Plan a practice · Library · Coach · Studios.
+
+TODAY (the first tab, where the app opens)
+- A daily practice planned once: the first time, Sama asks what you want from yoga, how many minutes you have and how many days a week. From then on Today shows your next practice, ready to start with one button, with the coach figure showing its poses.
+- A first month for beginners in four steps (Arrive, Ground, Build, Flow), then "Keep going". Finishing a practice moves you to the next one; the week dots show the days you practised. Missing days is fine: it simply carries on.
+- "Short on time? Make it 10 minutes" gives a shorter version. "See the poses" opens it in the planner. "Adjust my plan" (also in Profile → Your plan) changes the answers; "Start again from week 1" restarts the journey. On period days (if cycle tracking is on) the practice is gentle. The round figure button at the top right opens the Profile. Language (EN/ES/DE) and light/dark/auto theme sit in the top bar.
 
 CHECK ALIGNMENT
 - Pick a pose from the rail (filter by family and level), prop the phone up so the whole body is in view, hold the pose. Sama compares each joint (knees, hips, spine, shoulders, arms) with the pose and gives a score plus one thing to fix first.

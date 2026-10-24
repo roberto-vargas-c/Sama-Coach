@@ -1,0 +1,5 @@
+# not part of the website: the Android app is built by GitHub Actions
+android/
+tools/
+# the voice recordings are served from the public repository (see VOICE_REV in index.html); only their lists ship here
+voice/*.mp3

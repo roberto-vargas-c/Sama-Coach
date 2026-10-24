@@ -150,5 +150,6 @@
       "destination": "https://ko-fi.com/roberto_vargas",
       "permanent": false
     }
-  ]
+  ],
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude)android' ':(exclude)tools' ':(exclude)voice/*.mp3' ':(exclude)README.md' ':(exclude)firestore.rules' ':(exclude).github'"
 }

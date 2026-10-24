@@ -601,7 +601,48 @@ body.tv #viewCoach{display:none!important}
 .pbtn[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
 .pgrid{display:grid;grid-template-columns:1fr;gap:16px}
 .tab{white-space:nowrap}
-@media (max-width:560px){.tabs{gap:2px}.tab{flex:1 1 auto;white-space:normal;padding:8px 7px;font-size:13px;line-height:1.15}}
+.tab .ts{display:none}
+@media (max-width:560px){.tabs{gap:2px}.tab{flex:1 1 auto;white-space:normal;padding:8px 6px;font-size:13px;line-height:1.15}.tab .tl{display:none}.tab .ts{display:inline}}
+/* Today: the coach and the day's practice, full screen */
+.today{display:block}
+.tstage{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(330px,1fr);gap:24px;align-items:stretch;min-height:calc(100svh - 190px)}
+.tfigwrap{position:relative;border-radius:28px;background:var(--figbg);box-shadow:var(--shadow);overflow:hidden;align-self:center;width:100%;max-width:calc(100svh - 190px);aspect-ratio:1;justify-self:center}
+.tfigwrap canvas{width:100%;height:100%;display:block}
+.tcap{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;transition:opacity .4s}
+.tcap:empty{opacity:0}
+.tpanel{display:flex;flex-direction:column;gap:14px;justify-content:center;min-width:0}
+.teyebrow{margin:0;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--brand)}
+.tbubble{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:22px;border-top-left-radius:6px;padding:14px 18px;box-shadow:var(--shadow)}
+.tbubble .gname{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.tbubble p{margin:0;font-size:17px;line-height:1.5;color:var(--ink)}
+.tcard{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:18px 18px 14px;display:grid;gap:10px}
+.tcard h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(26px,3.4vw,34px);line-height:1.1;color:var(--ink)}
+.tmeta{margin:0;color:var(--muted);font-size:15px}
+.tposes{display:flex;gap:4px;align-items:flex-end;overflow:hidden;height:52px}
+.tposes canvas{flex:none}
+.tbtns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tgo{min-height:56px;font-size:17px;padding:0 26px;display:inline-flex;align-items:center;gap:8px;flex:1 1 220px;justify-content:center}
+.tlinks{display:flex;flex-wrap:wrap;gap:4px 16px}
+.hlink{background:none;border:none;color:var(--muted);font:inherit;font-size:14px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px 0}
+.hlink:hover{color:var(--ink)}
+.tweekbox{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px 18px;display:grid;gap:10px}
+.tweekhead{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--muted)}
+.tweekhead b{color:var(--ink)}
+.tweek{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.tday{display:grid;justify-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.tday i{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-style:normal}
+.tday.done i{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.tday.now i{border-color:var(--ink);border-width:2px}
+.tday.now{color:var(--ink);font-weight:700}
+.tjour{display:grid;gap:6px;font-size:13.5px;color:var(--muted)}
+.tjbar{height:6px;border-radius:6px;background:var(--line);overflow:hidden}
+.tjbar span{display:block;height:100%;background:var(--brand);border-radius:6px;transition:width .6s}
+.tjsteps{display:grid;grid-template-columns:repeat(4,1fr);font-size:12px}
+.tjsteps span.on{color:var(--ink);font-weight:700}
+.tmorehint{margin:0;font-size:13px;color:var(--muted)}
+.today.setup .tcard,.today.setup .tweekbox{display:none}
+@media (max-width:860px){.tstage{grid-template-columns:1fr;min-height:0;gap:14px}.tfigwrap{max-width:min(100%, 58svh)}}
+@media (max-width:560px){.tbubble p{font-size:16px}.tcard{padding:16px 14px 12px}.tday i{width:26px;height:26px}}
 .near{display:flex;flex-direction:column;gap:12px;max-width:820px}
 .near .pcard{cursor:default}
 .nearctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -856,12 +897,35 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
   </header>
 
   <div class="tabs" role="tablist" aria-label="Sections">
-    <button class="tab" type="button" role="tab" data-view="check" aria-selected="true">Check alignment</button>
-    <button class="tab" type="button" role="tab" data-view="plan" aria-selected="false">Plan a practice</button>
+    <button class="tab" type="button" role="tab" data-view="today" aria-selected="false">Today</button>
+    <button class="tab" type="button" role="tab" data-view="check" aria-selected="true"><span class="tl">Check alignment</span><span class="ts">Check</span></button>
+    <button class="tab" type="button" role="tab" data-view="plan" aria-selected="false"><span class="tl">Plan a practice</span><span class="ts">Plan</span></button>
     <button class="tab" type="button" role="tab" data-view="lib" aria-selected="false">Library</button>
     <button class="tab" type="button" role="tab" data-view="coach" aria-selected="false">Coach</button>
     <button class="tab" type="button" role="tab" data-view="near" aria-selected="false">Studios</button>
   </div>
+  <section id="viewToday" class="today" hidden>
+    <div class="tstage" id="tStage">
+      <div class="tfigwrap"><canvas id="tFig" width="900" height="900" aria-hidden="true"></canvas><span class="tcap" id="tCap"></span></div>
+      <div class="tpanel" id="tPanel">
+        <p class="teyebrow" id="tEyebrow"></p>
+        <div class="tbubble"><span class="gname">Sama</span><p id="tSay"></p></div>
+        <div class="tcard" id="tCard">
+          <h2 id="tTitle"></h2>
+          <p class="tmeta" id="tMeta"></p>
+          <div class="tposes" id="tPoses" aria-hidden="true"></div>
+          <div class="tbtns"><button class="btn primary tgo" id="tStart" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg> <span id="tStartTxt">Start today’s practice</span></button><button class="btn" id="tPreview" type="button">See the poses</button></div>
+          <div class="tlinks"><button class="hlink" id="tShort" type="button">Short on time? Make it 10 minutes</button><button class="hlink" id="tAdjust" type="button">Adjust my plan</button></div>
+        </div>
+        <div class="tweekbox" id="tWeekBox">
+          <div class="tweekhead"><b>This week</b><span id="tWeekTxt"></span></div>
+          <div class="tweek" id="tWeek"></div>
+          <div class="tjour"><span id="tJourTxt"></span><div class="tjbar"><span id="tJBar"></span></div><div class="tjsteps" id="tJSteps"></div></div>
+        </div>
+        <p class="tmorehint">Everything else is still here: check a single pose, plan your own practice, the library, your coach and studios near you.</p>
+      </div>
+    </div>
+  </section>
   <div id="viewCheck" class="view-wrap">
   <div class="searchrow"><label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="search" placeholder="Search poses: name, Sanskrit, family…" autocomplete="off" aria-label="Search poses"></label>
   <div class="cats" id="cats" role="tablist" aria-label="Pose families"></div>
@@ -1164,6 +1228,11 @@ Savasana, 3 min"></textarea>
           <h2>Support Sama</h2>
           <p class="hint">Sama is free, without ads, and made by one person. If it helps your practice, you can support it with a small donation.</p>
           <div class="crow"><button class="btn kofi" id="coffeeBtn" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 5.5c0-1 1-1 1-2M12 5.5c0-1 1-1 1-2"/></svg> Support Sama on Ko-fi</button></div>
+        </div>
+        <div class="pcard" id="planCard">
+          <h2>Your plan</h2>
+          <p class="hint" id="pfPlanText"></p>
+          <div class="crow"><button class="btn small primary" id="pfPlanAdjust" type="button">Adjust my plan</button><button class="btn small" id="pfPlanRestart" type="button">Start again from week 1</button></div>
         </div>
         <div class="pcard" id="helpCard">
           <h2>Help</h2>
@@ -5090,7 +5159,22 @@ function beep(f = 660, d = .15){ try { audio = audio || new (window.AudioContext
   o.type = 'sine'; o.frequency.value = f*.75; g.gain.setValueAtTime(.0001, audio.currentTime); g.gain.exponentialRampToValueAtTime(.05, audio.currentTime+.03); g.gain.exponentialRampToValueAtTime(.0001, audio.currentTime+d+.25);
   o.connect(g).connect(audio.destination); o.start(); o.stop(audio.currentTime+d+.3); } catch {} }
 // ---------- the recorded voice guide: the opening, one script per pose, the other side, closing words ----------
-const VOICE_DIR = 'voice/';
+const VOICE_DIR = 'voice/'; // the lists (index, durations, sentence cuts) are served with the site
+// The recordings themselves are not uploaded with every deploy: they come from the public repository, pinned to the commit of
+// their last change (VOICE_REV, kept up to date by tools/voice-rev.sh). jsDelivr first, GitHub's raw files if it fails, then
+// the site itself (local development, or a copy that still carries them).
+const VOICE_REV = '0cc23ad8b70d1784a914c51e16e33e0f1a433929';
+const VOICE_BASES = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? ['voice/'] : [
+  `https://cdn.jsdelivr.net/gh/roberto-vargas-c/Sama-Coach@${VOICE_REV}/voice/`,
+  `https://raw.githubusercontent.com/roberto-vargas-c/Sama-Coach/${VOICE_REV}/voice/`, 'voice/'];
+let voiceBase = 0; // the first source that answers is kept for the rest of the visit
+const voiceUrl = id => VOICE_BASES[voiceBase] + id + '.mp3';
+async function voiceFetch(id){
+  for (let b = voiceBase; b < VOICE_BASES.length; b++){
+    try { const r = await fetch(VOICE_BASES[b] + id + '.mp3'); if (r.ok){ voiceBase = b; return new Blob([await r.blob()], {type: 'audio/mpeg'}); } } catch {}
+  }
+  return null;
+}
 const BREATH_CLIPS = ['clip_breath_pair', 'clip_breath_long', 'clip_breath_inhale', 'clip_breath_exhale', 'clip_breath_keep', 'clip_breath_soften', 'clip_breath_belly', 'clip_breath_count'];
 const VOICE_AGAIN = new Set(["cat", "chair", "chairtwist", "chaturanga", "cow", "cowface", "crescentmoon", "deer", "dog", "eagle", "figurefour", "firelog", "forwardfold", "garland", "gate", "goddess", "halflift", "halfmoon", "halfsplits", "headtoknee", "highlunge", "humblewarrior", "kneetonose", "lizard", "lowlunge", "lungetwist", "mountain", "pigeon", "plank", "pyramid", "reclinedbigtoeside", "reclinedpigeon", "reversewarrior", "revtriangle", "savasana", "sideangle", "sidebend", "skandasana", "sleepingpigeon", "standingsplit", "star", "supinetwist", "threadneedle", "threeleggeddog", "toestand", "triangle", "updog", "upsalute", "warrior1", "warrior2", "warrior3", "widefold", "widefoldtwist"]); // poses that come back within a practice have a short 'back to …' line
 let voiceOn = true; try { voiceOn = localStorage.getItem('sama.voice') !== 'off'; } catch {}
@@ -5100,15 +5184,15 @@ const voice = {queue: [], playing: false, done: null, said: new Set()};
 const VCACHE = new Map();
 function voicePrefetch(ids){
   for (const id of ids){ if (!id || VCACHE.has(id) || (VOICE_HAVE.size && !VOICE_HAVE.has(id))) continue;
-    VCACHE.set(id, fetch(VOICE_DIR + id + '.mp3').then(r => r.ok ? r.blob() : null).then(b => { if (b) VCACHE.set(id, URL.createObjectURL(b)); else VCACHE.delete(id); }).catch(() => VCACHE.delete(id))); }
+    VCACHE.set(id, voiceFetch(id).then(b => { if (b) VCACHE.set(id, URL.createObjectURL(b)); else VCACHE.delete(id); }).catch(() => VCACHE.delete(id))); }
 }
-const voiceSrc = id => { const c = VCACHE.get(id); return typeof c === 'string' ? c : VOICE_DIR + id + '.mp3'; };
+const voiceSrc = id => { const c = VCACHE.get(id); return typeof c === 'string' ? c : voiceUrl(id); };
 function voicePlay(ids, done){ // play clips in order; done() runs when the last one ends (or fails)
   voice.queue = VOICE_HAVE.size ? ids.filter(id => VOICE_HAVE.has(id)) : ids.slice(); voice.done = done || null; voicePrefetch(voice.queue.slice(1)); voiceNext(); // skip clips not recorded yet
 }
 function voiceNext(){
   if (!voice.queue.length){ voice.playing = false; musicDuck(); const d = voice.done; voice.done = null; if (d) d(); return; }
-  const id = voice.queue.shift(), tok = voice.tok = (voice.tok || 0) + 1; voice.playing = true; musicDuck();
+  const id = voice.queue.shift(), tok = voice.tok = (voice.tok || 0) + 1; voice.playing = true; voice.cur = id; musicDuck();
   voiceEl.muted = false; voiceEl.src = voiceSrc(id);
   const p = voiceEl.play(); if (p && p.catch) p.catch(() => voiceAdvance(tok));
   clearInterval(voice.cutTimer); const t = voice.trim && voice.trim.id === id ? voice.trim : null; voice.trim = null;
@@ -5123,9 +5207,12 @@ function voiceNext(){
 }
 function voiceAdvance(tok){ if (tok === voice.tok){ voice.tok++; voiceNext(); } } // each clip moves the queue on once, whether it ends or fails
 voiceEl.addEventListener('ended', () => { voice.lastEnd = performance.now(); voiceAdvance(voice.tok); });
-voiceEl.addEventListener('error', () => voiceAdvance(voice.tok));
+voiceEl.addEventListener('error', () => { // a recording that did not load from this source: the same clip from the next one
+  const src = voiceEl.currentSrc || voiceEl.src || '';
+  if (voice.playing && voice.cur && !src.startsWith('blob:') && voiceBase < VOICE_BASES.length - 1){ voiceBase++; voiceEl.src = voiceUrl(voice.cur); const p = voiceEl.play(); if (p && p.catch) p.catch(() => {}); return; }
+  voiceAdvance(voice.tok); });
 function voiceStop(){ voice.queue = []; voice.done = null; voice.playing = false; voice.tok = (voice.tok || 0) + 1; try { voiceEl.pause(); } catch {} }
-function voiceUnlock(){ try { voiceEl.src = VOICE_DIR + 'clip_otherside.mp3'; voiceEl.muted = true; const p = voiceEl.play(); if (p && p.then) p.then(() => { if (!voice.playing) voiceEl.pause(); voiceEl.muted = false; }).catch(() => { voiceEl.muted = false; }); else voiceEl.muted = false; } catch {} }
+function voiceUnlock(){ try { voiceEl.src = voiceSrc('clip_otherside'); voiceEl.muted = true; const p = voiceEl.play(); if (p && p.then) p.then(() => { if (!voice.playing) voiceEl.pause(); voiceEl.muted = false; }).catch(() => { voiceEl.muted = false; }); else voiceEl.muted = false; } catch {} }
 // ---------- background music: a soft ambient pad generated on the device, ducked under the voice ----------
 let musicOn = true; try { musicOn = localStorage.getItem('sama.music') !== 'off'; } catch {}
 const music = {ctx: null, master: null, filter: null, voices: [], timer: null, chord: 0, level: .11};
@@ -5415,6 +5502,8 @@ function nextItem(d){
 }
 function endSession(done){
   if (!sess) return; motionEnd(); clearInterval(sess.timer);
+  const progK = !sess.remote && sess.P && sess.P.programK != null ? sess.P.programK : null;
+  if (done && progK != null){ PROG.complete(progK); TODAY.short = false; setTimeout(() => switchView('today'), 50); }
   voiceStop(); if (done && voiceOn && !sess.remote) voicePlay(['clip_end'], () => musicStop()); else musicStop();
   if ($('sessBreath')) $('sessBreath').hidden = true;
   if (done && !sess.remote) setTimeout(() => SUPPORT.practiceDone(), 2600); // after the closing words
@@ -6350,8 +6439,170 @@ function hideWelcome(then){
   setTimeout(() => { w.hidden = true; w.classList.remove('leaving'); clearInterval(w._tour); document.body.style.overflow = ''; then && then(); }, 420);
 }
 $('wStart').addEventListener('click', () => hideWelcome(startOnboarding));
-$('wSkip').addEventListener('click', () => hideWelcome(() => { if (!profile.onboarded) saveProfile({onboarded:true}); if (!tourDone()) setTimeout(startTour, 300); }));
+$('wSkip').addEventListener('click', () => hideWelcome(() => { if (!profile.onboarded) saveProfile({onboarded:true}); switchView('today'); if (!tourDone()) setTimeout(startTour, 300); }));
 for (const b of document.querySelectorAll('#wAuth [data-auth]')) b.addEventListener('click', () => authSignIn(b.dataset.auth));
+
+// ---------- Today: a beginner's daily practice, planned once and simply continued ----------
+// The person answers a few questions once (what they want from yoga, how long, how many days); from then on Today opens with
+// the next practice of their journey, ready to start. Each practice is rebuilt from the same seed, so it is the same every time
+// it is opened until it is done. Finishing it moves the journey on. Nothing else in the app changes: every tab is still there.
+const JOURNEY = [
+  {name:'Arrive', s:[
+    {focus:'balanced', title:'First steps', learn:'Today is about the basics: standing tall, moving slowly, and breathing in and out through the nose.'},
+    {focus:'evening', title:'Gentle stretch', learn:'Move slowly and stop well before anything hurts. Yoga is never a competition.'},
+    {focus:'morning', title:'Wake up the spine', learn:'Notice how your spine moves with your breath: grow long as you breathe in, soften as you breathe out.'}]},
+  {name:'Ground', s:[
+    {focus:'hips', title:'Open hips', learn:'Hips get stiff from sitting. Long, easy holds help them let go.'},
+    {focus:'balance', title:'Find your feet', learn:'Balance starts in the feet: spread your toes and rest your eyes on one still point.'},
+    {focus:'balanced', title:'Putting it together', learn:'You already know most of these poses. Notice how much easier they feel now.'}]},
+  {name:'Build', s:[
+    {focus:'strength', title:'Strong legs, steady core', learn:'Strength in yoga comes from holding still with good form, not from pushing hard.'},
+    {focus:'flexibility', title:'Long and loose', learn:'Breathe out to go a little deeper, breathe in to stay.'},
+    {focus:'balance', title:'Balance with breath', learn:'If you wobble, smile and start again. Wobbling is how balance learns.'}]},
+  {name:'Flow', s:[
+    {focus:'vinyasa', title:'Your first flow', learn:'One breath, one movement. Go at your own pace; you can always rest in Child’s pose.'},
+    {focus:'hips', title:'Hips and rest', learn:'After a week of work, a softer day helps the body take it all in.'},
+    {focus:'morning', title:'Energy', learn:'You know the basics now. Enjoy how the poses start to link together.'}]},
+];
+const KEEP_GOING = ['balanced','strength','hips','flexibility','balance','vinyasa','evening','morning'];
+const INTENTS = {
+  calm:{label:'Calm and better sleep', focus:'evening', title:'Calm evening', learn:'Long breaths out tell the body it is safe to slow down.'},
+  flex:{label:'Less stiffness', focus:'flexibility', title:'Loosen up', learn:'Breathe into the places that feel tight, and give them time.'},
+  strong:{label:'More strength', focus:'strength', title:'Steady strength', learn:'Hold the shape, keep breathing, and let the muscles do quiet work.'},
+  back:{label:'A happier back', focus:'evening', easy:'back', title:'Kind to your back', learn:'A long spine and soft knees protect the lower back in every pose.'},
+  balance:{label:'Better balance', focus:'balance', title:'Steady balance', learn:'Press the floor away and grow tall: balance is easier from a long spine.'},
+  start:{label:'Simply to start moving', focus:'balanced', title:'Move a little', learn:'A little every few days does more than a lot once in a while.'},
+};
+const dayKey = t => { const d = new Date(t); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
+const PROG = {
+  get(){ const p = profile.program; return p && p.v === 1 ? p : null; },
+  save(p){ saveProfile({program: p}); },
+  create(a){ // a: {intent, minutes, days}
+    const old = PROG.get();
+    PROG.save({v: 1, start: old ? old.start : Date.now(), seed: old ? old.seed : Date.now() % 100000, intent: a.intent || 'start', minutes: +a.minutes || 15, days: Math.max(2, Math.min(5, +a.days || profile.days || 3)), done: old ? old.done : []});
+    if (a.days) saveProfile({days: +a.days});
+  },
+  restart(){ const p = PROG.get(); if (p) PROG.save({...p, start: Date.now(), seed: Date.now() % 100000, done: []}); },
+  // the k-th practice of the journey (counting from 0), as plan options and the words that go with it
+  session(k, short){
+    const pr = PROG.get(), d = pr.days, w = Math.floor(k/d), pos = k % d, it = INTENTS[pr.intent] || INTENTS.start;
+    let wk, t;
+    if (w < JOURNEY.length){ wk = JOURNEY[w]; const list = wk.s.slice(0, Math.min(3, d)); // a 4th or 5th day a week practises toward what they asked for
+      while (list.length < d) list.push(w === 0 ? JOURNEY[0].s[list.length % 3] : {focus: it.focus, title: it.title, learn: it.learn});
+      if (d === 2 && w > 0) list[1] = {focus: it.focus, title: it.title, learn: it.learn}; // two days a week: one of them for their wish
+      t = list[pos]; }
+    else { wk = {name: 'Keep going'}; const f = KEEP_GOING[k % KEEP_GOING.length]; t = k % 3 === 2 ? {focus: it.focus, title: it.title, learn: it.learn} : {focus: f, title: FOCUS[f].label, learn: 'A practice from everything you have learnt so far.'}; }
+    let focus = t.focus, title = t.title, learn = t.learn, gentle = false;
+    const easy = [...(profile.body || []).filter(b => ['wrists', 'knees', 'back'].includes(b))]; if (it.easy && !easy.includes(it.easy)) easy.push(it.easy);
+    try { const c = cycleToday(), ph = c && CYCLE_PHASES[c.phase]; if (ph && ph.easy){ focus = ph.focus; easy.push('period'); gentle = true; title = 'A gentle day'; learn = 'On your period we keep it soft: no inversions, deep twists or strong core work.'; } } catch {}
+    const lvl = Math.max(1, Math.min(3, profile.level || 1)), minutes = short ? 10 : w === 0 ? Math.max(10, pr.minutes - 5) : pr.minutes;
+    const opts = {minutes, level: lvl, focus, easy, goal: w >= 2 && profile.goal ? profile.goal : null, seed: (pr.seed + k*7919) % 100000};
+    return {k, w, pos, week: wk.name, title, learn, opts, gentle, short: !!short};
+  },
+  plan(k, short){ const S = PROG.session(k, short); const P = buildPlan(S.opts); P.label = S.title; P.programK = k; P.programS = S; return {S, P}; },
+  complete(k){ const p = PROG.get(); if (!p || p.done.some(x => x.k === k)) return; PROG.save({...p, done: [...p.done, {k, at: Date.now()}]}); },
+};
+const TODAY = {fig: null, timer: 0, k: null, short: false, P: null};
+function hello(){ const h = new Date().getHours(); return h < 5 ? 'Good evening' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; }
+function sayLines(lines){ const p = $('tSay'); p.textContent = ''; lines.filter(Boolean).forEach((l, i) => { if (i) p.append(' '); const sp = document.createElement('span'); sp.textContent = l; p.append(sp); }); }
+function renderToday(){
+  const view = $('viewToday'); if (!view) return;
+  if (!TODAY.fig){ TODAY.fig = figureAnimator($('tFig')); }
+  const pr = PROG.get(), name = profile.name;
+  view.classList.toggle('setup', !pr);
+  clearInterval(TODAY.timer); $('tCap').textContent = '';
+  if (!pr){ // no plan yet: the coach offers to make one
+    $('tEyebrow').textContent = 'Your daily practice';
+    sayLines([name ? `Hi ${name}!` : 'Hi!', 'Shall I plan your practice for you? Three quick questions, and every day your next practice will be ready right here.']);
+    let b = $('tSetupBtns'); if (!b){ b = document.createElement('div'); b.className = 'tbtns'; b.id = 'tSetupBtns';
+      const go = document.createElement('button'); go.type = 'button'; go.className = 'btn primary tgo'; go.textContent = 'Plan my practice'; go.onclick = () => planSetup();
+      const own = document.createElement('button'); own.type = 'button'; own.className = 'btn'; own.textContent = 'I’ll explore on my own'; own.onclick = () => switchView('check');
+      b.append(go, own); $('tPanel').insertBefore(b, $('tCard')); }
+    b.hidden = false; const tour = ['mountain', 'tree', 'warrior2', 'child']; let i = 0; TODAY.fig.setPose(tour[0]);
+    TODAY.timer = setInterval(() => { if (view.hidden) return; i = (i + 1) % tour.length; TODAY.fig.setPose(tour[i], i % 2 === 1); }, 4200);
+    return;
+  }
+  if ($('tSetupBtns')) $('tSetupBtns').hidden = true;
+  const now = Date.now(), today = dayKey(now), doneToday = pr.done.filter(x => dayKey(x.at) === today), last = pr.done[pr.done.length - 1];
+  const k = pr.done.length; let built; try { built = PROG.plan(k, TODAY.short && TODAY.k === k); } catch (e){ console.warn('today', e); built = PROG.plan(k, false); }
+  const {S, P} = built; TODAY.k = k; TODAY.P = P;
+  // the week: Monday to Sunday, a dot for each day practised
+  const mon = new Date(); mon.setHours(0, 0, 0, 0); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
+  const wk = $('tWeek'); wk.textContent = ''; let inWeek = 0;
+  for (let i = 0; i < 7; i++){ const d = new Date(mon); d.setDate(mon.getDate() + i); const key = dayKey(d), did = pr.done.some(x => dayKey(x.at) === key); if (did) inWeek++;
+    const el = document.createElement('div'); el.className = 'tday' + (did ? ' done' : '') + (key === today ? ' now' : '');
+    const dot = document.createElement('i'); dot.textContent = did ? '✓' : ''; const lab = document.createElement('span'); lab.textContent = d.toLocaleDateString(LOC(), {weekday: 'narrow'}); lab.setAttribute('translate', 'no');
+    el.append(dot, lab); wk.append(el); }
+  $('tWeekTxt').textContent = `${Math.min(inWeek, pr.days)} of ${pr.days} practices`;
+  const weeks = JOURNEY.length, inJourney = S.w < weeks;
+  $('tJourTxt').textContent = inJourney ? `Week ${S.w + 1} of ${weeks}: ${S.week}` : `Your first month is done. Keep going!`;
+  $('tJBar').style.width = `${Math.min(100, k/(weeks*pr.days)*100)}%`;
+  const steps = $('tJSteps'); steps.textContent = ''; JOURNEY.forEach((j, i) => { const sp = document.createElement('span'); sp.textContent = j.name; if (i === S.w) sp.className = 'on'; steps.append(sp); });
+  // the practice
+  $('tEyebrow').textContent = doneToday.length ? (inJourney ? `Done for today ✓ · Next: day ${k + 1}` : 'Done for today ✓') : inJourney ? `Day ${k + 1} · Week ${S.w + 1} · ${S.week}` : `Day ${k + 1} · Keep going`;
+  $('tTitle').textContent = S.title;
+  const ids = [...new Set(P.items.map(x => x.id))];
+  $('tMeta').textContent = [fmtMin(P.total || planSum(P)), `${ids.length} poses`, ['', 'Gentle', 'Steady', 'Strong'][S.opts.level], S.short ? 'Short version' : ''].filter(Boolean).join(' · ');
+  const strip = $('tPoses'); strip.textContent = ''; const pick = ids.length <= 8 ? ids : [0, .14, .28, .42, .57, .71, .85, .999].map(f => ids[Math.floor(f*ids.length)]); for (const id of pick) strip.append(thumb(id, 52));
+  // what the coach says
+  const lines = [];
+  if (doneToday.length){
+    lines.push(name ? `Lovely work today, ${name}.` : 'Lovely work today.', 'Rest now, and let it settle.', `Your next practice is ${S.title}.`);
+    $('tStartTxt').textContent = 'Do the next one now'; $('tStart').classList.remove('primary');
+  } else {
+    $('tStart').classList.add('primary'); $('tStartTxt').textContent = k === 0 ? 'Start my first practice' : 'Start today’s practice';
+    if (k === 0) lines.push(name ? `Welcome to your first practice, ${name}.` : 'Welcome to your first practice.');
+    else if (last && now - last.at > 5*864e5) lines.push(name ? `Welcome back, ${name}.` : 'Welcome back.', 'No catching up needed: we simply carry on.');
+    else lines.push(name ? `${hello()}, ${name}.` : `${hello()}.`);
+    if (inWeek >= pr.days) lines.push(`You have done your ${pr.days} practices this week. Rest is part of yoga too, but if you feel like moving, here is the next one.`);
+    if (S.gentle) lines.push('Your cycle says it is a day to be gentle, so today’s practice is soft.');
+    lines.push(S.learn);
+  }
+  sayLines(lines);
+  $('tShort').hidden = S.short || (P.total || planSum(P)) <= 11*60 || !!doneToday.length;
+  // the figure shows the day's poses, one after the other, with their names
+  let i = 0; const show = () => { const id = pick[i % pick.length], ps = POSES.find(q => q.id === id); TODAY.fig.setPose(id, i % 2 === 1 && META[id] && META[id].sided); $('tCap').textContent = ps ? ps.name : ''; i++; };
+  show(); TODAY.timer = setInterval(() => { if (!view.hidden) show(); }, 3800);
+}
+$('tStart').addEventListener('click', () => { if (!TODAY.P) return; plan = TODAY.P; startSession(TODAY.P); });
+$('tPreview').addEventListener('click', () => { if (TODAY.P) openInPlanner(TODAY.P); });
+$('tShort').addEventListener('click', () => { TODAY.short = true; renderToday(); });
+$('tAdjust').addEventListener('click', () => planSetup());
+// the questions that make the plan: in the onboarding, or on their own from Today or the profile
+async function askPlan(G, prog){
+  const pr = PROG.get() || {};
+  let a = await G.ask({text: 'What would you like yoga to bring you?', pose: 'easy', input: false, chips: Object.entries(INTENTS).map(([v, o]) => ({label: o.label, value: v}))}); if (a == null) return null;
+  const intent = a; prog && prog();
+  a = await G.ask({text: 'How much time do you have on a practice day?', pose: 'tree', input: false, chips: [{label: '10 minutes', value: 10}, {label: '15 minutes', value: 15}, {label: '20 minutes', value: 20}, {label: '30 minutes', value: 30}]}); if (a == null) return null;
+  const minutes = +a; prog && prog();
+  a = await G.ask({text: 'How many days a week would you like to practise?', pose: 'dog', input: false, chips: [{label: 'Twice a week', value: 2}, {label: 'Three times', value: 3}, {label: 'Four times', value: 4}, {label: 'Most days', value: 5}]}); if (a == null) return null;
+  prog && prog();
+  return {intent, minutes, days: +a, kept: pr.done ? pr.done.length : 0};
+}
+async function planSetup(){
+  const box = $('onboard'); box.hidden = false; document.body.style.overflow = 'hidden';
+  if (onboardGuide) onboardGuide.destroy(); onboardGuide = makeGuide($('oGuide'));
+  const G = onboardGuide; let n = 0; const total = 4, prog = () => { n++; $('oBar').style.width = `${n/total*100}%`; }; $('oBar').style.width = '0%';
+  const stop = () => { box.hidden = true; document.body.style.overflow = ''; G.destroy(); onboardGuide = null; };
+  $('oSkip').onclick = () => { G.cancel(); stop(); };
+  const had = !!PROG.get(), a = await askPlan(G, prog); if (!a) return;
+  PROG.create(a); prog();
+  await G.ask({text: had ? 'Done. Your plan follows your new answers from your next practice on.' : `Your plan is ready: a first month in four steps, from Arrive to Flow, ${a.days} days a week, about ${a.minutes} minutes each. Every day, your next practice waits for you on Today.`, pose: 'upsalute', input: false, chips: [{label: had ? 'Back to Today' : 'Let’s begin', value: 'go'}]});
+  stop(); TODAY.short = false; switchView('today'); window.scrollTo({top: 0});
+}
+function renderPlanCard(){
+  const pr = PROG.get(), t = $('pfPlanText'); if (!t) return;
+  $('pfPlanRestart').hidden = !pr || !pr.done.length; $('pfPlanRestart').textContent = 'Start again from week 1'; $('pfPlanRestart').dataset.armed = '';
+  if (!pr){ t.textContent = 'No plan yet. Answer three questions and your practice is ready every day on Today.'; $('pfPlanAdjust').textContent = 'Plan my practice'; return; }
+  $('pfPlanAdjust').textContent = 'Adjust my plan';
+  const S = PROG.session(pr.done.length);
+  t.textContent = `${(INTENTS[pr.intent] || INTENTS.start).label} · ${pr.days} days a week · about ${pr.minutes} minutes. ${pr.done.length === 1 ? '1 practice done' : pr.done.length + ' practices done'}. Next: ${S.title}.`;
+}
+$('pfPlanAdjust').addEventListener('click', () => planSetup());
+$('pfPlanRestart').addEventListener('click', () => { const b = $('pfPlanRestart');
+  if (!b.dataset.armed){ b.dataset.armed = '1'; b.textContent = 'Sure? Tap again'; return; }
+  PROG.restart(); renderPlanCard(); });
+window.__samaToday = {PROG, renderToday, planSetup};
 
 // ---------- onboarding: the guide asks a few things once ----------
 let onboardGuide = null;
@@ -6381,21 +6632,20 @@ async function startOnboarding(){
   answers.body = a; prog(4);
   a = await G.ask({text:'Is there a pose you dream of? I can build a road toward it.', pose:'warrior2', input:false, chips:[...Object.entries(GOALS).map(([k, g]) => ({label:g.label, value:k})), {label:'Not yet', value:''}]}); if (a == null) return;
   answers.goal = a || null; if (answers.goal) { G.tell(`${GOALS[answers.goal].label}. Lovely. We’ll get there step by step.`, answers.goal); await new Promise(r => setTimeout(r, 1600)); } prog(5);
-  a = await G.ask({text:'How often would you like to practise?', pose:'dog', input:false, chips:[{label:'Twice a week', value:2}, {label:'Three times', value:3}, {label:'Four times', value:4}, {label:'Most days', value:5}]}); if (a == null) return;
-  answers.days = +a; prog(6);
+  saveProfile({level: answers.level, body: answers.body, goal: answers.goal}); // the plan reads them
+  { const pa = await askPlan(G); if (!pa) return; answers.days = pa.days; PROG.create(pa); } prog(6);
   a = await G.ask({text:'Where do you like to practise? I’ll set the scene to match.', pose:'easy', input:false, chips:[{label:'Living room', value:'living'}, {label:'Studio', value:'studio'}, {label:'Beach', value:'beach'}, {label:'Park', value:'park'}, {label:'Mountains', value:'mountains'}, {label:'Rooftop at night', value:'night'}, {label:'Keep it plain', value:'plain'}]}); if (a == null) return;
   scene = SCENES[a] ? a : 'plain'; try { localStorage.setItem('sama.scene', scene); } catch {} answers.place = scene;
   if (scene !== 'plain'){ G.tell(`${SCENES[scene]}. I like it here.`, 'mountain'); await new Promise(r => setTimeout(r, 1500)); } prog(7);
   a = await G.ask({text:'One more thing: shall I look like you? You can give me your skin, hair, clothes and patterns.', pose:'upsalute', input:false, chips:[{label:'Yes, dress me up', value:'avatar'}, {label:'Maybe later', value:'flat'}]}); if (a == null) return;
   prog(8);
   saveProfile({...answers, look: a, onboarded:true});
-  const next = await G.ask({text:`All set, ${answers.name}. ${a === 'avatar' ? 'My wardrobe is in your profile, under “Your figure”. ' : ''}Where shall we start?`, pose:'mountain', input:false, chips:a === 'avatar' ? [{label:'Dress the figure', value:'dress'}, {label:'Plan my first practice', value:'coach'}, {label:'Check my alignment', value:'check'}] : [{label:'Plan my first practice', value:'coach'}, {label:'Check my alignment', value:'check'}, {label:'Browse the poses', value:'lib'}]});
+  const next = await G.ask({text:`All set, ${answers.name}. Your first practice is ready on Today.${a === 'avatar' ? ' My wardrobe is in your profile, under “Your figure”.' : ''}`, pose:'mountain', input:false, chips:a === 'avatar' ? [{label:'See today’s practice', value:'today'}, {label:'Dress the figure', value:'dress'}] : [{label:'See today’s practice', value:'today'}, {label:'Check my alignment', value:'check'}]});
   stop();
-  if (next === 'coach'){ switchView('coach'); setCoachMode('plan'); }
-  else if (next === 'lib') switchView('lib');
-  else if (next === 'dress'){ switchView('profile'); $('lookCard').open = true; setTimeout(() => $('lookCard').scrollIntoView({behavior:'smooth', block:'start'}), 100); }
-  else switchView('check');
-  if (!tourDone()) setTimeout(startTour, next === 'dress' || next === 'coach' || next === 'lib' ? 1200 : 500); // then a short walk through the app
+  if (next === 'dress'){ switchView('profile'); $('lookCard').open = true; setTimeout(() => $('lookCard').scrollIntoView({behavior:'smooth', block:'start'}), 100); }
+  else if (next === 'check') switchView('check');
+  else switchView('today');
+  if (!tourDone()) setTimeout(startTour, next === 'dress' ? 1200 : 900); // then a short walk through the app
 }
 
 // ---------- cycle: on this device only ----------
@@ -6646,6 +6896,7 @@ function initCalendarUI(){
 let pfBuilt = false, pfFig = null;
 function initial(){ return (profile.name || '').trim().charAt(0).toUpperCase() || '·'; }
 function renderProfile(){
+  try { renderPlanCard(); } catch (e){ console.warn('plan card', e); }
   if (!pfBuilt){
     pfBuilt = true; pfFig = figureAnimator($('pfFig'));
     $('pfName').addEventListener('change', () => saveProfile({name: $('pfName').value.trim().slice(0, 40)}));
@@ -7042,7 +7293,7 @@ const NEAR = (() => {
 // ---------- views ----------
 function switchView(v){
   for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', b.dataset.view===v);
-  $('viewCheck').hidden = v!=='check'; $('viewPlan').hidden = v!=='plan'; $('viewLib').hidden = v!=='lib'; $('viewCoach').hidden = v!=='coach'; $('viewNear').hidden = v!=='near'; $('viewProfile').hidden = v!=='profile';
+  $('viewToday').hidden = v!=='today'; $('viewCheck').hidden = v!=='check'; $('viewPlan').hidden = v!=='plan'; $('viewLib').hidden = v!=='lib'; $('viewCoach').hidden = v!=='coach'; $('viewNear').hidden = v!=='near'; $('viewProfile').hidden = v!=='profile';
   $('pBtn').setAttribute('aria-pressed', String(v==='profile'));
   if (v==='coach') renderCoach();
   if (v==='profile') renderProfile();
@@ -7050,16 +7301,20 @@ function switchView(v){
   if (v==='plan'){ renderPresets(); renderSaved(); }
   if (v==='lib') renderLib();
   if (v==='near') NEAR.showMine();
+  if (v==='today') renderToday();
+  document.body.classList.toggle('onToday', v==='today');
 }
 for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', () => switchView(b.dataset.view));
 
 // ---------- boot ----------
 renderRail(); renderHist(); showReference();
+if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !/[?&]embed=1/.test(location.search)) switchView('today'); // the day's practice first
 if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && !profile.onboarded && !(() => { try { return localStorage.getItem('sama.welcomed'); } catch { return null; } })()) showWelcome();
 else if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && profile.onboarded && !tourDone()) setTimeout(startTour, 2600); // people who joined before the tour existed see it once
 // ---------- first-time tour ----------
 const TOUR = [
-  {view:'check', sel:'.tabs', title:'Four places to start', text:'Check a single pose, plan a whole practice, browse the library, or talk with your coach. Switch any time.'},
+  {view:'today', sel:'#tStage', title:'Your practice for today', text:'Every day your next practice is ready here. Press start and Sama guides you through it, pose by pose.'},
+  {view:'today', sel:'.tabs', title:'Everything else', text:'Check a single pose, plan your own practice, browse the library, talk with your coach, or find studios near you. Switch any time.'},
   {view:'check', sel:'#rail', title:'Pick a pose', text:'Tap any pose to see how it’s done. The families and levels above narrow the list.'},
   {view:'check', sel:'.stage', title:'Your guide on the mat', text:'Sama shows each pose on a mat. Turn the figure to see it from the front or the side, or switch to the other side.'},
   {view:'check', sel:'#liveBtn', title:'Check your alignment', text:'Turn on your camera and Sama compares your joints with the pose as you hold it. The video never leaves your device.'},
