@@ -3,7 +3,7 @@
 module.exports = `
 SAMA, A FREE YOGA APP (web app at sama.rest, also an Android app and an installable home-screen app). No ads, no tracking, made by one person (Roberto Vargas).
 
-MAIN TABS (top of the screen): Today · Check alignment · Plan a practice · Library · Coach · Studios.
+MAIN TABS (top of the screen, in this order): Today · Coach · Library · Check alignment · Plan a practice · Studios.
 
 TODAY (the first tab, where the app opens)
 - A daily practice planned once: the first time, Sama asks what you want from yoga, how many minutes you have and how many days a week. From then on Today shows your next practice, ready to start with one button, with the coach figure showing its poses.

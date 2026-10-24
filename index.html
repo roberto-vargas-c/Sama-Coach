@@ -898,10 +898,10 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
 
   <div class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" type="button" role="tab" data-view="today" aria-selected="false">Today</button>
+    <button class="tab" type="button" role="tab" data-view="coach" aria-selected="false">Coach</button>
+    <button class="tab" type="button" role="tab" data-view="lib" aria-selected="false">Library</button>
     <button class="tab" type="button" role="tab" data-view="check" aria-selected="true"><span class="tl">Check alignment</span><span class="ts">Check</span></button>
     <button class="tab" type="button" role="tab" data-view="plan" aria-selected="false"><span class="tl">Plan a practice</span><span class="ts">Plan</span></button>
-    <button class="tab" type="button" role="tab" data-view="lib" aria-selected="false">Library</button>
-    <button class="tab" type="button" role="tab" data-view="coach" aria-selected="false">Coach</button>
     <button class="tab" type="button" role="tab" data-view="near" aria-selected="false">Studios</button>
   </div>
   <section id="viewToday" class="today" hidden>
@@ -922,7 +922,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
           <div class="tweek" id="tWeek"></div>
           <div class="tjour"><span id="tJourTxt"></span><div class="tjbar"><span id="tJBar"></span></div><div class="tjsteps" id="tJSteps"></div></div>
         </div>
-        <p class="tmorehint">Everything else is still here: check a single pose, plan your own practice, the library, your coach and studios near you.</p>
+        <p class="tmorehint">Everything else is still here: your coach, the library, checking a single pose, planning your own practice and studios near you.</p>
       </div>
     </div>
   </section>
@@ -7314,7 +7314,7 @@ else if (!/(^|&)tv(&|$)/.test(location.hash.slice(1)) && profile.onboarded && !t
 // ---------- first-time tour ----------
 const TOUR = [
   {view:'today', sel:'#tStage', title:'Your practice for today', text:'Every day your next practice is ready here. Press start and Sama guides you through it, pose by pose.'},
-  {view:'today', sel:'.tabs', title:'Everything else', text:'Check a single pose, plan your own practice, browse the library, talk with your coach, or find studios near you. Switch any time.'},
+  {view:'today', sel:'.tabs', title:'Everything else', text:'Talk with your coach, browse the library, check a single pose, plan your own practice, or find studios near you. Switch any time.'},
   {view:'check', sel:'#rail', title:'Pick a pose', text:'Tap any pose to see how it’s done. The families and levels above narrow the list.'},
   {view:'check', sel:'.stage', title:'Your guide on the mat', text:'Sama shows each pose on a mat. Turn the figure to see it from the front or the side, or switch to the other side.'},
   {view:'check', sel:'#liveBtn', title:'Check your alignment', text:'Turn on your camera and Sama compares your joints with the pose as you hold it. The video never leaves your device.'},
