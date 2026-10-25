@@ -56,12 +56,12 @@ body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -
 .top{display:contents} /* the logo scrolls away; the row of controls (language, theme, profile, settings, app) stays at the top */
 .topr{position:sticky;top:0;z-index:35;margin:0 -16px;padding:calc(8px + env(safe-area-inset-top,0px)) 16px 8px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:box-shadow .25s}
 .topr.stuck{box-shadow:0 8px 20px -14px rgba(0,0,0,.35);border-bottom:1px solid var(--line)}
-.topr .privacy{margin-right:auto}
+.topr .privacy{order:9;margin-left:auto} /* the controls start on the left, under the logo; the privacy note sits at the far end */
 .brand{display:flex;align-items:baseline;gap:10px}
 .brand h1{font-family:var(--f-display);font-weight:400;font-size:36px;line-height:1;margin:0;letter-spacing:-.01em;color:var(--brand)}
 .brand h1 .mark{width:42px;height:42px;vertical-align:-9px;margin-right:8px}
 .brand p{margin:0;color:var(--muted);font-size:14px}
-.topr{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.topr{display:flex;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap}
 .privacy{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .theme{display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;box-shadow:var(--shadow)}
 .theme button{border:none;background:none;color:var(--muted);font:inherit;font-size:12.5px;font-weight:600;height:28px;min-width:28px;padding:0 9px;border-radius:999px;cursor:pointer;display:flex;align-items:center;justify-content:center}
