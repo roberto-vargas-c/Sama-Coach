@@ -2733,12 +2733,20 @@ function projectRef(P, S, mirror = false){ return projectWith(P, S, fitParams(P,
 const CHAIN = [['lh','lk',LEN.thigh],['lk','la',LEN.shin],['rh','rk',LEN.thigh],['rk','ra',LEN.shin],['ls','le',LEN.upper],['le','lw',LEN.fore],['rs','re',LEN.upper],['re','rw',LEN.fore]];
 const RIGID = ['la','he','la','ft','ra','he','ra','ft','lw','ix','lw','pi','lw','th','rw','ix','rw','pi','rw','th'];
 const EASE = {cls: true, arcs: true}; // false: the earlier ease-in-out timing (kept for comparison)
+// Moves whose shape leads or lags the usual ease, measured as joint-angle curves in 17 filmed classes (each move seen 15-70 times):
+// b = the whole body, a = the arms; > 0 gets there early, < 0 late (u + k·u·(1 − u) on the move's clock, k in -1..1).
+// Plank to Down Dog: the hips are half-way up in the first quarter; Down Dog to Plank: the shoulders come forward late; tabletop to
+// Child: the hips sink back at once; plank to Chaturanga: the elbows bend in the second half; Chaturanga to Up Dog: the arms push early.
+const MOVE_WARP = {'plank>dog':{b:1}, 'dog>plank':{b:-.4}, 'tabletop>child':{b:1}, 'child>tabletop':{b:-.8}, 'tabletop>plank':{b:.8}, 'dog>tabletop':{b:-.8},
+  'tabletop>dog':{b:.7}, 'plank>chaturanga':{b:-1}, 'chaturanga>updog':{b:1}, 'staff>easy':{b:1}, 'revsideangle>warrior1':{a:1}};
 function lerpRef(A, B, t, hop = 0, through = false){
   // through: this leg is one piece of a continuous movement, so it does not ease in and out on its own
   // As filmed in class: a move gets going straight away and settles gently (median of every timed move: 11% done at a tenth of
   // the time, 56% at half, 93% at four fifths). A touch of soft start is kept so nothing jerks off the mark.
-  const q5 = t*t*t*(t*(t*6-15)+10), e = through ? t : EASE.cls ? .75*t*(.8 + t*(1.4 - 1.2*t)) + .25*q5 : q5, L = (a,b) => a + (b-a)*e;
-  const eArm = through ? Math.max(0, Math.min(1, (t - .05)/.9)) : EASE.cls ? e : (t<.5 ? 16*t*t*t*t*t : 1 - Math.pow(-2*t+2, 5)/2), LA = (a,b) => a + (b-a)*eArm; // in class the arms move with the body, not after it // arms linger a touch longer before they move
+  const W = !through && EASE.cls && A.poseId && B.poseId ? MOVE_WARP[A.poseId + '>' + B.poseId] : null, warp = (u, k) => k ? u + k*u*(1 - u) : u;
+  const clsE = u => { const q = u*u*u*(u*(u*6-15)+10); return .75*u*(.8 + u*(1.4 - 1.2*u)) + .25*q; };
+  const q5 = t*t*t*(t*(t*6-15)+10), e = through ? t : EASE.cls ? clsE(warp(t, W && W.b)) : q5, L = (a,b) => a + (b-a)*e;
+  const eArm = through ? Math.max(0, Math.min(1, (t - .05)/.9)) : EASE.cls ? (W && W.a ? clsE(warp(t, W.a)) : e) : (t<.5 ? 16*t*t*t*t*t : 1 - Math.pow(-2*t+2, 5)/2), LA = (a,b) => a + (b-a)*eArm; // in class the arms move with the body, not after it // arms linger a touch longer before they move
   const ARM = /^(l|r)(s|e|w|ix|pi|th)$/;
   const sxA = A.mirrored ? -1 : 1, sxB = B.mirrored ? -1 : 1;
   const PA = {}, PB = {}; // both in the same (screen-side) frame
@@ -2951,6 +2959,18 @@ function lerpRef(A, B, t, hop = 0, through = false){
       const mx = (bone(sd+'s', sd+'e', eArm) + bone(sd+'e', sd+'w', eArm))*.995, hd = Math.hypot(tg[0] - sh[0], tg[2] - sh[2]);
       if (hd < mx) drop = Math.max(drop, (tg[1] - sh[1]) - Math.sqrt(mx*mx - hd*hd)); }
     if (drop > 0) for (const n of Object.keys(P)) if (Array.isArray(P[n]) && P[n].length===3 && !DIRS.includes(n)) P[n] = [P[n][0], P[n][1] + drop, P[n][2]]; }
+  // A long step under the body (lunge back to Plank, Down Dog forward to a lunge): in class the hips rise a little as the foot
+  // passes beneath them, so the leg never has to fold double (17 filmed classes: the knee bends about 20° more than a straight
+  // blend). Lift the pelvis, keeping the spine's length, until the swinging leg has room.
+  const handsDown = pins.some(j => /w$/.test(j)); // stepping between the hands (lunge, Plank, Down Dog), not a standing step
+  if (EASE.arcs && handsDown && steps.length){ let lift = 0;
+    const hy = (Q, low) => low - (Q.lh[1] + Q.rh[1])/2 - .034; // hip height over the sole
+    for (const j of steps){ const sd = j[0], u0 = Math.max(0, Math.min(1, (t - .3)/.62)), u = u0*u0*(3 - 2*u0);
+      const rMin = .95*Math.min(len(sub(PA[j], PA[sd+'h'])), len(sub(PB[j], PB[sd+'h']))), hMid = (hy(PA, A.fit.lowest) + hy(PB, fitB.lowest))/2;
+      lift = Math.max(lift, Math.min(.18, Math.max(0, rMin - hMid))*Math.sin(Math.PI*u)); }
+    if (lift > .002){ const sm = P.ls.map((v,i) => (v + P.rs[i])/2), hm = P.lh.map((v,i) => (v + P.rh[i])/2), l0 = len(sub(hm, sm));
+      const dv = sub(add(sm, mul(norm(sub([hm[0], hm[1] - lift, hm[2]], sm)), l0)), hm);
+      for (const n of ['lh','rh']) P[n] = add(P[n], dv); for (const sd of ['l','r']) if (!pins.includes(sd + 'a') && !steps.includes(sd + 'a')) for (const n of ['k','a','he','ft']) P[sd+n] = add(P[sd+n], dv); } }
   for (const j of pins){
     const tgt = PA[j].map((v,i) => L(v, PB[j][i])), sd = j[0];
     if (/w$/.test(j)) reach2(sd+'s', sd+'e', sd+'w', bone(sd+'s', sd+'e', eArm), bone(sd+'e', sd+'w', eArm), tgt);
@@ -2966,7 +2986,11 @@ function lerpRef(A, B, t, hop = 0, through = false){
   // A step, as filmed in real classes: the body shifts first while the foot stays planted, then the foot lifts, travels on a low
   // arc and lands (it moves in roughly the last two thirds of the transition: dog to lunge, lunge back to plank).
   for (const j of steps){ const sd = j[0], u0 = Math.max(0, Math.min(1, (t - .3)/.62)), u = u0*u0*(3 - 2*u0);
-    const tgt = PA[j].map((v,i) => v + (PB[j][i] - v)*u); tgt[1] -= .1*Math.sin(Math.PI*u); // up is -y
+    let tgt = PA[j].map((v,i) => v + (PB[j][i] - v)*u); tgt[1] -= .1*Math.sin(Math.PI*u); // up is -y
+    // the leg swings about the hip, its reach growing or shrinking steadily (17 filmed classes: the knee bends a little on the way,
+    // about 20°, where a foot sliding straight along the mat folds it double)
+    if (EASE.arcs && handsDown){ const dA = sub(PA[j], PA[sd+'h']), dB = sub(PB[j], PB[sd+'h']), rA = len(dA), rB = len(dB), fl = L(A.fit.lowest, fitB.lowest);
+      if (rA > .1 && rB > .1){ tgt = add(P[sd+'h'], mul(slerp(norm(dA), norm(dB), u), rA + (rB - rA)*u)); tgt[1] = Math.min(tgt[1], fl - .034 - .05*Math.sin(Math.PI*u)); } }
     reach2(sd+'h', sd+'k', sd+'a', bone(sd+'h', sd+'k', e), bone(sd+'k', sd+'a', e), tgt, true);
     for (const h of ['he','ft']){ const off = PA[sd+h].map((v,i) => (v - PA[j][i]) + ((PB[sd+h][i] - PB[j][i]) - (v - PA[j][i]))*u); P[sd+h] = add(P[j], off); } }
   for (let i=0;i<RIGID.length;i+=2){ const a = RIGID[i], b = a[0]+RIGID[i+1]; const dA = len(sub(PA[b],PA[a])), dB = len(sub(PB[b],PB[a])); P[b] = add(P[a], mul(norm(sub(P[b],P[a])), L(dA,dB))); }
@@ -3032,7 +3056,7 @@ const POSTURE_EDGES = { // from -> [to, kind]; 'jump' hops, 'move' flows
   stand:[['fold','move'],['lunge','move'],['kneelup','move'],['squat','move'],['stance','move']], // straight down into a squat, facing the same way (no fold first)
   fold:[['stand','move'],['plank','jump'],['dog','jump'],['squat','move'],['arm','move'],['lungeh','move']], // classes step or hop straight back to Plank or Down Dog
   squat:[['fold','move'],['seated','move'],['arm','move'],['stand','move']],
-  seated:[['squat','move'],['supine','move'],['kneel','move'],['kneelup','move']],
+  seated:[['squat','move'],['supine','move'],['kneel','move'],['kneelup','move'],['pigeon','move']], // classes swing a leg back from sitting into Pigeon
   supine:[['seated','move'],['shoulder','move'],['bridge','move']],
   shoulder:[['supine','move']],
   bridge:[['supine','move']],
@@ -3048,11 +3072,18 @@ const POSTURE_EDGES = { // from -> [to, kind]; 'jump' hops, 'move' flows
   lungeh:[['lunge','move'],['dog','move'],['plank','move'],['kneel','move'],['fold','move'],['stance','move'],['pigeon','move']],
   // the long-stride standing poses (Warrior I and II, Triangle, Side Angle, High Lunge…): reached as in class, by stepping one foot
   // back from standing, or by stepping a foot forward between the hands and rising; never by appearing out of Mountain
-  stance:[['stand','move'],['lungeh','move'],['lunge','move']],
+  // from a wide stance classes sink straight into a squat on the way to the floor (17 filmed classes), not standing up first
+  stance:[['stand','move'],['lungeh','move'],['lunge','move'],['squat','move']],
   // Pigeon: lowered from a lunge with the hands down (as in class), left back to Down Dog or to hands and knees
-  pigeon:[['lungeh','move'],['dog','move'],['kneel','move']],
+  pigeon:[['lungeh','move'],['dog','move'],['kneel','move'],['seated','move']], // or sit out of it, on the way to lying down
 };
-const STANCE = new Set(['warrior1', 'warrior2', 'triangle', 'sideangle', 'highlunge', 'reversewarrior', 'humblewarrior', 'revsideangle', 'crescentmoon', 'skandasana']);
+// edges that cost more than one step: a squat from a stance is a longer move than standing up, Pigeon from sitting more than from a lunge
+const EDGE_COST = {'stance>squat':1.4, 'seated>pigeon':1.8, 'pigeon>seated':1.8};
+// pairs that classes do one way, every time (17 filmed classes, >= 85% of the times a pair was seen): the route goes through these poses
+const ROUTE_VIA = {'updog>dog':['plank'], 'forwardfold>upsalute':['halflift'], 'garland>skandasana':['mountain'], 'skandasana>garland':['mountain']}; // (the last two: a direct squat-to-Skandasana still folds a knee the wrong way)
+// pairs classes flip or roll straight between, with no stop
+const ROUTE_DIRECT = new Set(['sideplank>wildthing', 'wildthing>sideplank', 'dog>wildthing', 'threeleggeddog>wildthing']);
+const STANCE = new Set(['warrior1', 'warrior2', 'triangle', 'sideangle', 'highlunge', 'reversewarrior', 'humblewarrior', 'revsideangle', 'crescentmoon', 'skandasana', 'revtriangle']); // Revolved Triangle: a long stride, reached as in class straight from Revolved Side Angle
 const STANCE_SIDE = new Set(['warrior2', 'triangle', 'sideangle', 'reversewarrior', 'skandasana']); // facing the long side: from Mountain the feet step wide
 // the body position a route plans with: postureOf, but long-stride standing poses are their own stop, and Garland is a squat
 const PIGEON = new Set(['pigeon', 'sleepingpigeon', 'kingpigeon']);
@@ -3128,7 +3159,7 @@ function transitionPathSteps(fromId, toId, fromMir = false, toMir = false, sweep
   const base = transitionPathBase(fromId, toId, fromMir, toMir);
   if (!sweepFix) return base;
   // stepping a foot between a lunge and plank or downward dog swings that thigh a long way, and that is how a class moves (video)
-  const STEP = new Set(['lungeh>plank', 'plank>lungeh', 'lungeh>dog', 'dog>lungeh', 'lungeh>stance', 'stance>lungeh', 'stand>stance', 'stance>stand', 'stance>stance', 'lunge>stance', 'stance>lunge', 'lungeh>pigeon', 'pigeon>lungeh', 'pigeon>dog', 'pigeon>kneel']);
+  const STEP = new Set(['lungeh>plank', 'plank>lungeh', 'lungeh>dog', 'dog>lungeh', 'lungeh>stance', 'stance>lungeh', 'stand>stance', 'stance>stand', 'stance>stance', 'lunge>stance', 'stance>lunge', 'lungeh>pigeon', 'pigeon>lungeh', 'pigeon>dog', 'pigeon>kneel', 'seated>pigeon', 'pigeon>seated', 'stance>squat']);
   const worst = (path, a, ma) => { let w = 0, p = a, pm = ma; for (const st of path){ const m = st.mir ?? (st.id === toId ? toMir : pm); if (st.kind !== 'jump' && !STEP.has(routeOf(p) + '>' + routeOf(st.id))) w = Math.max(w, thighSweep(p, st.id, pm, m)); p = st.id; pm = m; } return w; };
   const w0 = worst(base, fromId, fromMir); if (w0 <= SWEEP_LIMIT) return base;
   let best = base, bw = w0;
@@ -3148,20 +3179,23 @@ function transitionPathBase(fromId, toId, fromMir = false, toMir = false){
     const both = [...transitionPathSteps(fromId, hub, fromMir, fromMir).map(st => ({...st, mir:fromMir})), ...transitionPathSteps(hub, toId, toMir, toMir).map(st => ({...st, mir:toMir}))];
     return both.filter((st,i) => !i || st.id !== both[i-1].id);
   }
-  if (a === b) return [{id:toId, kind:'move'}];
+  if (a === b || ROUTE_DIRECT.has(fromId + '>' + toId)) return [{id:toId, kind:'move'}];
+  const via = ROUTE_VIA[fromId + '>' + toId];
+  if (via) return [...via.map(id => ({id, kind:'move'})), {id:toId, kind:'move'}];
   const cost = {[a]:0}, prev = {}, done = new Set();
   for (;;){
     let c = null; for (const k in cost) if (!done.has(k) && (c===null || cost[k] < cost[c])) c = k;
     if (c===null || c===b) break; done.add(c);
     if ((c === 'stance' || c === 'pigeon') && c !== a) continue; // a long-stride pose or Pigeon is a place to arrive, not a way through
-    for (const [n,k] of POSTURE_EDGES[c]||[]){ const w = cost[c] + (k==='jump' && pace !== 'quick' ? 1.2 : 0) + ((c==='lungeh'&&(n==='fold'||n==='dog'||n==='plank'))||(n==='lungeh'&&(c==='fold'||c==='dog'||c==='plank')) ? 1.5 : ((c==='stand'&&n==='kneel')||(c==='kneel'&&n==='stand')||(c==='stand'&&n==='kneelup')||(c==='kneelup'&&n==='stand')||false) ? 2.5 : ((c==='plank'&&n==='bridge')||(c==='bridge'&&n==='plank')) ? 3.5 : ((c==='stand'&&n==='lunge')||(c==='lunge'&&n==='stand')) ? 2 : 1); if (!(n in cost) || w < cost[n]){ cost[n] = w; prev[n] = [c,k]; } }
+    for (const [n,k] of POSTURE_EDGES[c]||[]){ const w = cost[c] + (k==='jump' && pace !== 'quick' ? 1.2 : 0) + (EDGE_COST[c+'>'+n] ?? ((c==='lungeh'&&(n==='fold'||n==='dog'||n==='plank'))||(n==='lungeh'&&(c==='fold'||c==='dog'||c==='plank')) ? 1.5 : ((c==='stand'&&n==='kneel')||(c==='kneel'&&n==='stand')||(c==='stand'&&n==='kneelup')||(c==='kneelup'&&n==='stand')||false) ? 2.5 : ((c==='plank'&&n==='bridge')||(c==='bridge'&&n==='plank')) ? 3.5 : ((c==='stand'&&n==='lunge')||(c==='lunge'&&n==='stand')) ? 2 : 1)); if (!(n in cost) || w < cost[n]){ cost[n] = w; prev[n] = [c,k]; } }
   }
   if (!(b in cost)) return [{id:toId, kind:'move'}];
   const steps = []; let c = b; while (prev[c]){ const [p,k] = prev[c]; steps.unshift({cat:c, kind:k}); c = p; }
   const out = steps.map((st,i) => ({id: i===steps.length-1 ? toId : POSTURE_HUB[st.cat], kind:st.kind}));
   const LIE = new Set(['supine','bridge','shoulder']);
-  if (LIE.has(b) && toId !== POSTURE_HUB[b]) out.splice(out.length - 1, 0, {id:POSTURE_HUB[b], kind:'move'});
-  if (LIE.has(a) && fromId !== POSTURE_HUB[a]) out.unshift({id:POSTURE_HUB[a], kind:'move'});
+  const lying = (a === 'bridge' && b === 'supine') || (a === 'supine' && b === 'bridge'); // Bridge to lying on the back (to knees to chest, a twist): hips come down and the legs go on, no stop flat on the back
+  if (!lying && LIE.has(b) && toId !== POSTURE_HUB[b]) out.splice(out.length - 1, 0, {id:POSTURE_HUB[b], kind:'move'});
+  if (!lying && LIE.has(a) && fromId !== POSTURE_HUB[a]) out.unshift({id:POSTURE_HUB[a], kind:'move'});
   for (let i = 0; i < out.length; i++){ if (out[i].kind !== 'jump') continue;
     const prevId = i ? out[i-1].id : fromId, pc = routeOf(prevId), tc = routeOf(out[i].id);
     if (!JUMP_ENDS.has(out[i].id) && POSTURE_HUB[tc]){ out.splice(i + 1, 0, {id:out[i].id, kind:'move'}); out[i] = {...out[i], id:POSTURE_HUB[tc]}; }
@@ -7616,7 +7650,7 @@ function drawEdited(g, id, mirrored, angle, pts){
   const R = {...R0, kp, head, neck, crown, ls:kp[5], rs:kp[6], lh:kp[11], rh:kp[12], kp0:kp};
   drawScene(g, R); return R;
 }
-window.__sama = {PLAN_ORDER, NEAR, AUTH, buildPlan, FOCUS, voiceTrim, voicePlay, voicePrefetch, voice, voiceEl, EASE, P3, POSE_FIX, REF_SPECS, GROUND, build3d, finishExtremities, KI, LEN, DYK, SUPPORT, drawEdited, figShift, estimate, get camPlace(){ return {camAt, camSeen, camVote, eff: effectivePlace()}; }, senseCamPlace, poseFor, placeAngle, designPlace, startTour, transitionCues, CUE_TEXT, get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, transitionPath, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
+window.__sama = {PLAN_ORDER, NEAR, AUTH, buildPlan, FOCUS, voiceTrim, voicePlay, voicePrefetch, voice, voiceEl, EASE, P3, POSE_FIX, REF_SPECS, GROUND, build3d, finishExtremities, KI, LEN, DYK, SUPPORT, drawEdited, figShift, estimate, get camPlace(){ return {camAt, camSeen, camVote, eff: effectivePlace()}; }, senseCamPlace, poseFor, placeAngle, designPlace, startTour, transitionCues, CUE_TEXT, get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, transitionPath, transitionPathBase, routeOf, thighSweep, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
 function retheme(){
   applySkinBg();
   for (const k in THUMBS) delete THUMBS[k];
