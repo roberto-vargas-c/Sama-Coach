@@ -5279,6 +5279,11 @@ voiceEl.addEventListener('error', () => { // a recording that did not load from 
   const src = voiceEl.currentSrc || voiceEl.src || '';
   if (voice.playing && voice.cur && !src.startsWith('blob:') && voiceBase < VOICE_BASES.length - 1){ voiceBase++; voiceEl.src = voiceUrl(voice.cur); const p = voiceEl.play(); if (p && p.catch) p.catch(() => {}); return; }
   voiceAdvance(voice.tok); });
+function voiceFadeStop(){ // a quick fade instead of a cut in the middle of a word
+  const v0 = voiceEl.volume, tok = voice.tok; let k = 0;
+  voice.queue = []; voice.done = null;
+  const iv = setInterval(() => { k++; voiceEl.volume = Math.max(0, v0*(1 - k/6)); if (k >= 6 || voice.tok !== tok){ clearInterval(iv); if (voice.tok === tok) voiceStop(); voiceEl.volume = v0; } }, 45);
+}
 function voiceStop(){ voice.queue = []; voice.done = null; voice.playing = false; voice.trim = null; clearInterval(voice.cutTimer); voice.tok = (voice.tok || 0) + 1; try { voiceEl.pause(); } catch {} }
 function voiceUnlock(){ try { voiceEl.src = voiceSrc('clip_otherside'); voiceEl.muted = true; const p = voiceEl.play(); if (p && p.then) p.then(() => { if (!voice.playing) voiceEl.pause(); voiceEl.muted = false; }).catch(() => { voiceEl.muted = false; }); else voiceEl.muted = false; } catch {} }
 // ---------- background music: a soft ambient pad generated on the device, ducked under the voice ----------
@@ -5558,7 +5563,12 @@ function tick(){
   breathReminder();
   sess.left -= dt;
   if (sess.left <= 0){
-    if (sess.phase==='hold' && voice.playing && voiceOn){ sess.left = 0; renderSess(); return; } // let the sentence finish
+    // the voice may finish its sentence, but the counter never sits at 0 for long: after 2 s it fades out and the practice moves on
+    if (sess.phase==='hold' && voice.playing && voiceOn){
+      const now = performance.now(); if (!sess.waitAt) sess.waitAt = now;
+      if (now - sess.waitAt < 2000){ sess.left = 0; renderSess(); return; }
+      voiceFadeStop(); }
+    sess.waitAt = 0;
     if (sess.phase==='prep'){ sess.phase = 'hold'; sess.left = sess.P.items[sess.i].secs; beep(660); }
     else { beep(880, .25); return nextItem(1); }
   } else if (sess.phase==='hold' && sess.left < 3.2 && Math.ceil(sess.left) !== sess.cd){ sess.cd = Math.ceil(sess.left); beep(440, .06); }
