@@ -3415,7 +3415,8 @@ function drawFlatBackHair(g, R, av){
 }
 function drawFlatHead(g, R, av){
   const F = faceFrame(R), r = flatHeadR(R), h = F.h, s = R.scale, sgn = F.lx > .25 ? 1 : F.lx < -.25 ? -1 : 0, toward = F.toward;
-  const away = sgn ? 0 : Math.max(0, Math.min(1, (-toward - .2)/.35)), back = away >= 1; // the face turns away from us (Side Plank on the far side, a twist turned away): the hair comes round, the face fades
+  const away = sgn ? 0 : Math.max(0, Math.min(1, (-toward - .2)/.35)), back = away >= 1;
+  const nod = sgn ? 0 : Math.max(-.8, Math.min(.8, F.ly || 0)); // a face seen from the front that looks down (on all fours, folded): more hair on top, the features lower // the face turns away from us (Side Plank on the far side, a twist turned away): the hair comes round, the face fades
   g.save(); g.translate(h.x, h.y); g.rotate(F.rot);
   const fade = R.blob > 0 ? Math.max(0, 1 - R.blob/.3) : 1, a0 = g.globalAlpha; g.globalAlpha = a0*fade;
   if (av.hair === 'bun' && fade > 0){ g.fillStyle = av.hairColor; g.beginPath(); g.arc(-sgn*r*.35, -r*1.05, r*.42, 0, Math.PI*2); g.fill(); }
@@ -3424,13 +3425,14 @@ function drawFlatHead(g, R, av){
   g.globalAlpha = a0*fade;
   if (av.hair !== 'none' && fade > 0){ // the hair fades out of the blob (no dark half-moon on it)
     g.save(); g.beginPath(); g.ellipse(0, 0, r*.92*1.06, r*1.06, 0, 0, Math.PI*2); g.clip(); g.fillStyle = av.hairColor;
-    const yF = sgn ? -r*.45 : -r*.2, yB = sgn ? r*.35 : -r*.2 + away*r*.82;
+    const yF = sgn ? -r*.45 : -r*.2, yB = sgn ? r*.35 : -r*.2 + away*r*.82 + nod*r*.3;
     g.beginPath(); if (sgn){ g.moveTo(sgn*r*1.3, yF); g.lineTo(-sgn*r*1.3, yB); g.lineTo(-sgn*r*1.3, -r*1.3); g.lineTo(sgn*r*1.3, -r*1.3); } else g.rect(-r*1.3, -r*1.3, r*2.6, r*1.3 + yB); g.closePath(); g.fill();
     if (av.hair === 'curly'){ for (let i = 0; i < 9; i++){ const a = -Math.PI*(.05 + .9*i/8); g.beginPath(); g.arc(Math.cos(a)*r, Math.sin(a)*r + r*.05, r*.28, 0, Math.PI*2); g.fill(); } }
     g.restore();
   }
   if (fade <= 0 || back){ g.restore(); return; } // no face while the figure is a blob (it fades in and out with the hair), nor from behind
   g.globalAlpha = a0*fade*(1 - away);
+  if (nod) g.translate(0, nod*r*.28);
   const fx = sgn ? sgn*r*.45 : 0, line = Math.max(1.2, s*.01), inv = Math.cos(F.rot) < -.35 ? -1 : 1; // head upside down: curves flip so the face still reads calm, not frowning
   g.strokeStyle = shade(av.skin, .55); g.lineWidth = line; g.lineCap = 'round';
   const eye = (x, y) => { g.beginPath(); g.moveTo(x - r*.12, y); g.quadraticCurveTo(x, y + inv*r*.1, x + r*.12, y); g.stroke(); };
@@ -3756,9 +3758,33 @@ const MIRROR_BUILT = new Set(['wildthing']);
 function handFix(id, P){ if (!MIRROR_BUILT.has(id)) return P; const zc = (P.lh[2] + P.rh[2])/2, out = {};
   for (const [n, v] of Object.entries(P)) out[n] = Array.isArray(v) && v.length === 3 ? [v[0], v[1], DIRS3.has(n) ? -v[2] : 2*zc - v[2]] : v;
   return out; }
+// Where the eyes look in a pose (as taught): the floor, the legs, the sky, the front of the mat, or the other way round from
+// the description. The head turns about its own centre so the face looks there and the crown stays as near as it can to where
+// it was (a face is always square to the crown: looking at the floor on all fours, the crown points ahead).
+const GAZE = {cat:'floor', cow:'floor', lion:'floor', puppy:'floor', superman:'floor', kneeschestchin:'floor', forearmstand:'floor', kingdancer:'floor',
+  peacock:'floor', scorpion:'floor', frog:'floor', humblewarrior:'floor', lizard:'floor', upwardplank:'floor', tiger:'floor', halfboat:'floor',
+  ragdoll:'legs', handunderfoot:'legs', widefold:'legs', forwardfold:'legs', supinetwist:'sky', fish:'sky', cobra:'sky',
+  lowlunge:'front', quadlunge:'front', tree:'front', reversetable:'turn', eightangle:'floor'};
+function gazeFix(id, P){ const k = GAZE[id]; if (!k || !P.head || !P.crown) return P; const {sub, add, mul, norm, dot, cross, len} = V;
+  const h = P.head, u0 = norm(sub(P.crown, h)), f0 = P.face, mid = (a, b) => P[a].map((v, i) => (v + P[b][i])/2);
+  const ah = Math.hypot(u0[0], u0[2]) > .1 ? norm([u0[0], 0, u0[2]]) : [0, 0, 0]; // where the crown heads, level
+  let g = k === 'floor' ? add([0, 1, 0], mul(ah, .45)) : k === 'sky' ? add([0, -1, 0], mul(ah, -.35)) : k === 'legs' ? norm(sub(mid('la', 'ra'), h)) : k === 'turn' ? [-f0[0], f0[1], -f0[2]]
+    : (Math.hypot(f0[0], f0[2]) > .2 ? [f0[0], 0, f0[2]] : [P.front[0], 0, P.front[2]]);
+  g = norm(g); let u = sub(u0, mul(g, dot(u0, g)));
+  if (len(u) < .2){ const sp = norm(sub(mid('ls', 'rs'), mid('lh', 'rh'))); u = sub(sp, mul(g, dot(sp, g))); }
+  u = norm(u); let sl = norm(cross(u, g)); if (P.sl && dot(sl, P.sl) < 0) sl = mul(sl, -1);
+  const out = {...P, up: u, face: g, sl, crown: add(h, mul(u, .13)), nose: add(h, mul(g, .09)), lear: add(h, mul(sl, .075)), rear: add(h, mul(sl, -.075)),
+    leye: add(add(h, mul(g, .07)), add(mul(sl, .035), mul(u, .03))), reye: add(add(h, mul(g, .07)), add(mul(sl, -.035), mul(u, .03)))};
+  return out; }
+// Eight Angle stands on its hands far out to one side of the hips: the mat sits under the hands, so seen from the side the body
+// looked as if it floated above it. The body is placed with its hands at the middle of the mat.
+const HANDS_CENTRE = new Set(['eightangle']);
+function centreOnHands(id, P){ if (!HANDS_CENTRE.has(id)) return P; const dx = (P.lw[0] + P.rw[0])/2, dz = (P.lw[2] + P.rw[2])/2, out = {};
+  for (const [n, v] of Object.entries(P)) out[n] = Array.isArray(v) && v.length === 3 && !DIRS3.has(n) ? [v[0] - dx, v[1], v[2] - dz] : v;
+  return out; }
 const isTwoSided = id => { const q = POSES.find(x => x.id === id); return !!(q && q.asym); };
 const refFor = (id, mirrored = false, angle = refAngle) => {
-  const Pb = P3[id] || (P3[id] = handFix(id, applyPoseFix(id, build3d(REF_SPECS[id] || MOTION_SPECS[id], GROUND[id] || MOTION_GROUND[id] || ''))));
+  const Pb = P3[id] || (P3[id] = centreOnHands(id, gazeFix(id, handFix(id, applyPoseFix(id, build3d(REF_SPECS[id] || MOTION_SPECS[id], GROUND[id] || MOTION_GROUND[id] || ''))))));
   const P0 = isTwoSided(id) ? (P3[id + '|R'] || (P3[id + '|R'] = rightLead(Pb, id))) : Pb;
   // The other side of a two-sided pose. A pose that points along the mat (it faces the front with its chest, head, legs or feet)
   // is reflected across the mat's long midline: it stays in its place, keeps facing the front and only the sides trade over (the
