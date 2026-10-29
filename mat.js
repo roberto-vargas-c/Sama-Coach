@@ -1,5 +1,5 @@
 /* Sama mat finder: where the yoga mat lies in a camera picture, and where you stand on it.
-   Classic image work on a small copy of the frame (about 160 px wide), so it costs a millisecond or two on a phone.
+   Classic image work on a small copy of the frame (200 px wide), so it costs a millisecond or two on a phone.
    1. The body is masked out with thick strokes along the detected bones, so it neither seeds nor blocks the search.
    2. The floor right around the points that touch the ground (feet, or the lowest joints) is sampled, and its dominant
       colour is taken as the mat's: you are almost always standing, sitting or lying on it.
@@ -47,35 +47,44 @@
     const vis = i => K[i] && K[i].s >= VIS, d = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), c = [];
     if (vis(5) && vis(6) && vis(11) && vis(12)) c.push(d({x:(K[5].x + K[6].x)/2, y:(K[5].y + K[6].y)/2}, {x:(K[11].x + K[12].x)/2, y:(K[11].y + K[12].y)/2}));
     for (const [a, b, l] of [[11,13,.9],[12,14,.9],[13,15,.85],[14,16,.85],[5,6,.75]]) if (vis(a) && vis(b)) c.push(d(K[a], K[b])/l);
-    return c.length ? Math.max(4, Math.min(Math.max(W, H)*.5, Math.max(...c))) : Math.max(W, H)*.12;
+    return c.length ? Math.max(Math.max(W, H)*.02, Math.min(Math.max(W, H)*.5, Math.max(...c))) : Math.max(W, H)*.12;
   }
-  // the points that touch the floor: the feet when seen, else the lowest few joints (sitting, lying, on hands and knees)
-  function contacts(K){
-    const vis = i => K[i] && K[i].s >= VIS, f = GROUND.filter(vis);
-    if (f.length >= 2) return f.map(i => K[i]);
+  // the points that touch the floor: heels and toes when seen (the ankle sits a hand's width above the floor, which matters on a
+  // mat seen nearly edge-on), else the ankles nudged down, else the lowest few joints (sitting, lying, on hands and knees)
+  function contacts(K, k){
+    const vis = i => K[i] && K[i].s >= VIS, ht = [23,24,25,26].filter(vis);
+    if (ht.length >= 2) return ht.map(i => K[i]);
+    const an = [15,16].filter(vis); if (an.length) return an.map(i => ({x:K[i].x, y:K[i].y + .12*(k || 0), s:K[i].s}));
     return K.map((p, i) => ({p, i})).filter(o => o.i >= 5 && vis(o.i)).sort((a, b) => b.p.y - a.p.y).slice(0, 3).map(o => o.p);
   }
 
-  // px: RGBA bytes of a W×H picture; K: keypoints in that picture's pixels; prev: an earlier result, whose colour seeds this one
+  // px: RGBA bytes of a W×H picture; K: keypoints in that picture's pixels; prev: an earlier result, whose colour is tried first
   function find(px, W, H, K, prev){
     const n = W*H, C = ycc(px, n).map(a => blur(a, W, H));
-    const k = bodyScale(K, W, H), M = bodyMask(K, W, H, k), feet = contacts(K);
+    const k = bodyScale(K, W, H), M = bodyMask(K, W, H, k), feet = contacts(K, k);
     if (!feet.length) return null;
-    // 1. sample the floor around the contacts, on the ground side of them
-    const S = [];
-    for (const p of feet) for (let a = 0; a < 24; a++){ const t = a/24*Math.PI*2; if (Math.sin(t) < -.35) continue; // not above the foot
-      for (const rr of [.22, .32, .45]){ const x = Math.round(p.x + Math.cos(t)*rr*k), y = Math.round(p.y + Math.sin(t)*rr*k*.6 + .04*k);
-        if (x < 0 || y < 0 || x >= W || y >= H) continue; const i = y*W + x; if (!M[i]) S.push(i); } }
+    // 1. sample the floor right around and under the contacts, and between the feet
+    const S = [], add = (x, y) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= W || y >= H) return; const i = y*W + x; if (!M[i]) S.push(i); };
+    for (const p of feet) for (let a = 0; a < 24; a++){ const t = a/24*Math.PI*2; if (Math.sin(t) < -.2) continue; // not above the foot
+      for (const rr of [.1, .16, .24, .34]) add(p.x + Math.cos(t)*rr*k, p.y + Math.sin(t)*rr*k*.5 + .03*k); }
+    for (let i = 0; i < feet.length; i++) for (let j = i + 1; j < feet.length; j++) for (let t = .2; t < .9; t += .15) add(feet[i].x + (feet[j].x - feet[i].x)*t, feet[i].y + (feet[j].y - feet[i].y)*t + .03*k);
     if (S.length < 8) return null;
-    const med = j => { const v = S.map(i => C[j][i]).sort((a, b) => a - b); return v[v.length >> 1]; };
-    let m = prev && prev.color ? prev.color : [med(0), med(1), med(2)];
-    let seeds = S.filter(i => dist(C, i, m) < 16);
-    if (prev && prev.color && seeds.length < S.length*.3){ m = [med(0), med(1), med(2)]; seeds = S.filter(i => dist(C, i, m) < 16); } // the old colour is gone: look afresh
-    if (seeds.length < S.length*.3) return null; // no one colour around the feet: not standing on anything we can tell
-    m = [0, 1, 2].map(j => seeds.reduce((s, i) => s + C[j][i], 0)/seeds.length);
+    // 2. the colours found there: the main one, then the next, in case the main one is the floor (standing near the mat's end)
+    const med = L => [0, 1, 2].map(j => { const v = L.map(i => C[j][i]).sort((a, b) => a - b); return v[v.length >> 1]; });
+    const tries = []; if (prev && prev.color) tries.push(prev.color);
+    let rest = S; for (let r = 0; r < 2 && rest.length >= Math.max(6, S.length*.2); r++){ const m = med(rest); tries.push(m); rest = rest.filter(i => dist(C, i, m) >= 16); }
+    for (const m0 of tries){
+      const seeds = S.filter(i => dist(C, i, m0) < 16);
+      if (seeds.length < Math.max(6, S.length*.15)) continue;
+      const r = grow(C, M, W, H, seeds, k); if (r) return r;
+    }
+    return null;
+  }
+  function grow(C, M, W, H, seeds, k){
+    const n = W*H, m = [0, 1, 2].map(j => seeds.reduce((s, i) => s + C[j][i], 0)/seeds.length);
     const sd = Math.sqrt(seeds.reduce((s, i) => s + dist(C, i, m)**2, 0)/seeds.length);
-    const T1 = Math.max(14, Math.min(26, 2.6*sd + 8)), T2 = 7;
-    // 2. grow the region through like colour, stopping at sharp steps
+    const T1 = Math.max(14, Math.min(22, 2*sd + 8)), T2 = 7;
+    // 3. grow the region through like colour, stopping at sharp steps
     const R = new Uint8Array(n), q = new Int32Array(n); let qh = 0, qt = 0;
     for (const i of seeds) if (!R[i]){ R[i] = 1; q[qt++] = i; }
     while (qh < qt){ const i = q[qh++], x = i % W;
@@ -84,19 +93,19 @@
         if (dist(C, j, m) > T1 || dist(C, j, [C[0][i], C[1][i], C[2][i]]) > T2) continue;
         R[j] = 1; q[qt++] = j; } }
     const area = qt;
-    if (area < n*.012 || area > n*.7) return null; // a speck, or the whole floor
-    // 3. the edges: per row the outermost mat pixels, kept only where they do not sit against the body
+    if (area < n*.006 || area > n*.7) return null; // a speck, or the whole floor
+    // 4. the edges: per row the outermost mat pixels, kept only where they do not sit against the body
     const rows = [];
     for (let y = 0; y < H; y++){ let a = -1, b = -1, c = 0; for (let x = 0; x < W; x++) if (R[y*W + x]){ if (a < 0) a = x; b = x; }
       if (a >= 0) for (let x = a; x <= b; x++) if (R[y*W + x] || M[y*W + x]) c++; // the body lying or standing on the mat counts as mat here
       const near = (x0, d) => { for (let t = 1; t <= 4; t++){ const x = x0 + d*t; if (x >= 0 && x < W && M[y*W + x]) return true; } return false; };
       if (c >= 3) rows.push({y, a, b, c, la: a > 0 && !near(a, -1), lb: b < W - 1 && !near(b, 1), ea: a === 0, eb: b === W - 1}); }
-    if (rows.length < 4) return null;
+    if (rows.length < 3) return null;
     const wMed = rows.map(r => r.b - r.a).sort((a, b) => a - b)[rows.length >> 1], solid = rows.filter(r => r.b - r.a >= wMed*.3 && r.c >= (r.b - r.a + 1)*.35);
-    if (solid.length < 4) return null;
+    if (solid.length < 3) return null;
     const pct = (arr, p) => arr[Math.min(arr.length - 1, Math.max(0, Math.round(p*(arr.length - 1))))];
-    const ys = solid.map(r => r.y), yT = pct(ys, .01), yB = pct(ys, .99);
-    if (yB - yT < 3) return null;
+    const ys = solid.map(r => r.y); let yT = pct(ys, .01); const yB = pct(ys, .99);
+    if (yB - yT < 2) return null;
     const fit = (pts, fallback) => { // x = s*y + c, least squares with one round of trimming
       if (pts.length < 3) return fallback;
       let use = pts; for (let it = 0; it < 2; it++){ const N = use.length, my = use.reduce((s, p) => s + p[1], 0)/N, mx = use.reduce((s, p) => s + p[0], 0)/N;
@@ -110,17 +119,24 @@
     const minA = Math.min(...solid.map(r => r.a)), maxB = Math.max(...solid.map(r => r.b));
     const L = fit(Lp, {s:0, c:minA}), Rt = fit(Rp, {s:0, c:maxB});
     const xl = y => Math.max(-W*.2, L.s*y + L.c), xr = y => Math.min(W*1.2, Rt.s*y + Rt.c);
+    // 5. the far end hidden behind you (camera at the mat's end, you standing on it): the side edges still run toward their
+    // vanishing point, so put the far end where a mat three times as long as it is wide would end, for a typical phone lens
+    let hidden = false;
+    { let mk = 0, all = 0; for (let y = Math.max(0, yT - 3); y < yT; y++) for (let x = Math.max(0, Math.ceil(xl(y))); x <= Math.min(W - 1, Math.floor(xr(y))); x++){ all++; if (M[y*W + x]) mk++; }
+      if (all && mk/all > .5 && L.s !== Rt.s){ // most of the far end's width is covered by the body
+        const yv = (Rt.c - L.c)/(L.s - Rt.s), wn = xr(yB + 1) - xl(yB + 1), f = .7*Math.max(W, H);
+        if (yv < yT && wn > 2){ const zn = f/wn, yf = yv + (yB + 1 - yv)*zn/(zn + 3); if (yf < yT && yB - yf < (yB - yT)*4){ yT = Math.max(yv + 1, yf); hidden = true; } } } }
     const quad = [[xl(yT), yT], [xr(yT), yT], [xr(yB + 1), yB + 1], [xl(yB + 1), yB + 1]];
     const wt = quad[1][0] - quad[0][0], wb = quad[2][0] - quad[3][0];
-    if (wt < 2 || wb < 2 || wt > wb*1.6) return null; // the far end can't look much wider than the near one
-    // 4. how well the trapezoid is filled by mat (or by the body lying on it): a mat is solid, a floor pattern is not
+    if (wt < 1 || wb < 2 || wt > wb*1.6) return null; // the far end can't look much wider than the near one
+    // 6. how well the trapezoid is filled by mat (or by the body on it): a mat is solid, a floor pattern is not
     let inQ = 0, hit = 0;
     for (let y = Math.ceil(yT); y <= yB; y++){ const a = Math.max(0, Math.ceil(xl(y))), b = Math.min(W - 1, Math.floor(xr(y)));
       for (let x = a; x <= b; x++){ inQ++; const i = y*W + x; if (R[i] || M[i]) hit++; } }
     const fill = inQ ? hit/inQ : 0;
-    const cut = {left: Lp.length < 3 || solid.filter(r => r.ea).length > solid.length*.3, right: Rp.length < 3 || solid.filter(r => r.eb).length > solid.length*.3, near: yB >= H - 2, far: yT <= 1};
+    const cut = {left: Lp.length < 3 || solid.filter(r => r.ea).length > solid.length*.3, right: Rp.length < 3 || solid.filter(r => r.eb).length > solid.length*.3, near: yB >= H - 2, far: yT <= 1, hidden};
     if (cut.left && cut.right) return null; // no side edge in sight: most likely the floor itself, not a mat
-    const conf = Math.max(0, Math.min(1, (fill - .45)/.4)) * Math.min(1, area/(n*.04)) * (cut.far ? .5 : 1);
+    const conf = Math.max(0, Math.min(1, (fill - .45)/.4)) * Math.min(1, area/(n*.02)) * (cut.far ? .5 : 1);
     if (conf < .15) return null;
     return {quad: quad.map(([x, y]) => [x/W, y/H]), conf, fill, color: m, area: area/n, cut};
   }
@@ -147,16 +163,26 @@
   }
   // where you are on the mat: the floor contacts in mat coordinates, their middle, and what to say about it.
   // place: 'front' (camera looks along the mat, u runs across its width) or 'side' (camera looks across it, u runs along it)
-  function locate(quad, K, place){
-    const pts = contacts(K); if (!pts.length) return null;
+  // farHidden: the far end was estimated, not seen, so being near it is not called out
+  // aspect: the picture's width / height, as quad and K are in shares of the frame
+  function locate(quad, K, place, farHidden, aspect = 1){
+    const k = bodyScale(K.map(p => p && {...p, x:p.x*aspect}), aspect, 1), pts = contacts(K, k); if (!pts.length) return null;
     const uv = pts.map(p => toMat(quad, p.x, p.y)).filter(Boolean); if (!uv.length) return null;
     const c = [uv.reduce((s, p) => s + p[0], 0)/uv.length, uv.reduce((s, p) => s + p[1], 0)/uv.length];
-    const out = (p, e) => p[0] < -e || p[0] > 1 + e || p[1] < -e || p[1] > 1 + e;
+    // slack for each direction: the joints are only good to a few centimetres, which is a large share of a mat seen nearly
+    // edge-on (from beside it, its 60 cm width can be a thin band), so a direction squeezed thin in the picture is judged loosely
+    const at = (u, v) => { const p = fromMat(quad, u, v); return p ? [p[0]*aspect, p[1]] : [0, 0]; }, c0 = at(c[0], c[1]);
+    const per = (du, dv) => { const p = at(c[0] + du, c[1] + dv); return Math.max(1e-6, Math.hypot(p[0] - c0[0], p[1] - c0[1])/.01); }; // picture length of one mat unit, here
+    const su = Math.min(.6, .1*k/per(.01, 0)), sv = Math.min(.6, .1*k/per(0, .01));
+    const hid = p => farHidden && p[1] < 0 && p[0] > 0 && p[0] < 1; // past an end that was only estimated: not called out
+    const out = (p, e) => !hid(p) && (p[0] < -e - su || p[0] > 1 + e + su || p[1] < -e - sv || p[1] > 1 + e + sv);
     // how far from the middle, in each direction, as a share of the half-length (1 = at the edge); the width is the narrow way
-    const across = place === 'side' ? 1 : 0, du = (c[0] - .5)*2, dv = (c[1] - .5)*2, dw = across ? dv : du, dl = across ? du : dv;
+    const du = (c[0] - .5)*2, dv = (c[1] - .5)*2, side = place === 'side';
+    const fu = Math.abs(du) - 2*su, fv = hid(c) ? 0 : Math.abs(dv) - 2*sv; // beyond the slack
+    const fw = side ? fv : fu, fl = side ? fu : fv;
     let state = 'centre';
     if (out(c, .02) || uv.filter(p => out(p, .08)).length > uv.length/2) state = 'off';
-    else if (Math.abs(dw) > .6 || Math.abs(dl) > .78 || uv.some(p => out(p, .02))) state = 'edge'; // the middle drifting out, or a foot over the edge
+    else if (fw > .6 || fl > .78 || uv.some(p => out(p, .02))) state = 'edge'; // the middle drifting out, or a foot over the edge
     return {pts: uv, c, state, du, dv};
   }
 

@@ -4669,33 +4669,33 @@ async function motionCount(){
   motionCount();
 })();
 // ---------- the mat: where it lies in the picture and where you are on it (mat.js) ----------
-// The finder runs on a 160 px copy of the frame a few times a second. The mat doesn't move, so once found it is held
+// The finder runs on a 200 px copy of the frame a few times a second. The mat doesn't move, so once found it is held
 // and only nudged by later finds; a very different find has to repeat before it replaces the old one (a moved camera).
 // Where you stand is worked out on every frame against the held mat, so stepping off it is noticed even when the mat
 // can no longer be found around your feet.
 let matOn = true; try { matOn = localStorage.getItem('sama.mat') !== 'off'; } catch {}
-const MAT = {q:null, color:null, t:0, seenT:0, cand:null, candN:0, grab:null, where:null, state:null, stateT:0, pend:null, pendT:0, t0:0, spoke:0};
-function matReset(){ Object.assign(MAT, {q:null, color:null, t:0, seenT:0, cand:null, candN:0, where:null, state:null, stateT:0, pend:null, pendT:0, t0:performance.now()}); }
+const MAT = {q:null, hid:false, color:null, t:0, seenT:0, cand:null, candN:0, grab:null, where:null, state:null, stateT:0, pend:null, pendT:0, t0:0, spoke:0};
+function matReset(){ Object.assign(MAT, {q:null, hid:false, color:null, t:0, seenT:0, cand:null, candN:0, where:null, state:null, stateT:0, pend:null, pendT:0, t0:performance.now()}); }
 const quadGap = (a, b) => Math.max(...a.map((p, i) => Math.hypot(p[0] - b[i][0], p[1] - b[i][1])));
 function matSense(src, once){
   if (!matOn || !window.SamaMat || !kp || !mw || !mh) return;
   const now = performance.now(); if (!once && now - MAT.t < 300) return; MAT.t = now;
-  const gw = 160, gh = Math.max(40, Math.round(gw*mh/mw));
+  const gw = 200, gh = Math.max(40, Math.round(gw*mh/mw));
   const g = MAT.grab || (MAT.grab = document.createElement('canvas')); if (g.width !== gw) g.width = gw; if (g.height !== gh) g.height = gh;
   const gx = g.getContext('2d', {willReadFrequently: true}); let px;
   try { gx.drawImage(src, 0, 0, gw, gh); px = gx.getImageData(0, 0, gw, gh).data; } catch { return; }
   const r = SamaMat.find(px, gw, gh, kp.map(p => ({x:p.x*gw/mw, y:p.y*gh/mh, s:p.s})), MAT.color ? {color:MAT.color} : null);
   if (!r){ if (MAT.q && now - MAT.seenT > 20000){ MAT.q = null; MAT.color = null; } return; } // not confirmed for a while: let it go
-  if (!MAT.q || once){ if (r.conf >= .3){ MAT.q = r.quad; MAT.color = r.color; MAT.seenT = now; } return; }
-  if (quadGap(r.quad, MAT.q) < .08){ MAT.q = MAT.q.map((p, i) => [p[0] + (r.quad[i][0] - p[0])*.25, p[1] + (r.quad[i][1] - p[1])*.25]); MAT.color = r.color; MAT.seenT = now; MAT.candN = 0; return; }
+  if (!MAT.q || once){ if (r.conf >= .3){ MAT.q = r.quad; MAT.hid = r.cut.hidden; MAT.color = r.color; MAT.seenT = now; } return; }
+  if (quadGap(r.quad, MAT.q) < .08){ MAT.q = MAT.q.map((p, i) => [p[0] + (r.quad[i][0] - p[0])*.25, p[1] + (r.quad[i][1] - p[1])*.25]); MAT.hid = r.cut.hidden; MAT.color = r.color; MAT.seenT = now; MAT.candN = 0; return; }
   if (MAT.cand && quadGap(r.quad, MAT.cand) < .08) MAT.candN++; else { MAT.cand = r.quad; MAT.candN = 1; }
-  if (MAT.candN >= 4 && r.conf >= .5){ MAT.q = r.quad; MAT.color = r.color; MAT.seenT = now; MAT.candN = 0; } // the camera or the mat moved
+  if (MAT.candN >= 4 && r.conf >= .5){ MAT.q = r.quad; MAT.hid = r.cut.hidden; MAT.color = r.color; MAT.seenT = now; MAT.candN = 0; } // the camera or the mat moved
 }
 // where you are against the held mat; a new verdict has to hold for a moment before it shows, so it doesn't flicker
 function matLocate(){
   MAT.where = null;
   if (!matOn || !MAT.q || !kp || !window.SamaMat) { MAT.state = null; return; }
-  const w = SamaMat.locate(MAT.q, kp.map(p => ({x:p.x/mw, y:p.y/mh, s:p.s})), matPlace()); MAT.where = w;
+  const w = SamaMat.locate(MAT.q, kp.map(p => ({x:p.x/mw, y:p.y/mh, s:p.s})), matPlace(), MAT.hid, mw/mh); MAT.where = w;
   const st = w ? w.state : null, now = performance.now();
   if (st === MAT.state){ MAT.pend = null; return; }
   if (st !== MAT.pend){ MAT.pend = st; MAT.pendT = now; }
@@ -4742,8 +4742,8 @@ function drawMat(u, onVideo){
   ctx.fillStyle = 'rgba(20,26,22,.55)'; roundRect(x0, y0, mwid + 16*u, mlen + 16*u, 8*u); ctx.fill();
   const mx = x0 + 8*u, my = y0 + 8*u; ctx.fillStyle = MAT.color ? `rgb(${ycc2rgb(MAT.color).join(',')})` : css('--mat'); roundRect(mx, my, mwid, mlen, 3*u); ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.2*u; ctx.stroke();
-  if (w){ const fl = v => mir ? 1 - v : v;
-    for (const p of w.pts){ const px_ = mx + Math.max(-.1, Math.min(1.1, fl(p[0])))*mwid, py_ = my + Math.max(-.1, Math.min(1.1, p[1]))*mlen;
+  if (w){ const fl = v => mir ? 1 - v : v, lo = MAT.state === 'centre' ? 0 : -.1, hi = 1 - lo; // on the mat: the dots stay on it, whatever the joints' wobble
+    for (const p of w.pts){ const px_ = mx + Math.max(lo, Math.min(hi, fl(p[0])))*mwid, py_ = my + Math.max(lo, Math.min(hi, p[1]))*mlen;
       ctx.fillStyle = c; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2*u; ctx.beginPath(); ctx.arc(px_, py_, 3.2*u, 0, Math.PI*2); ctx.fill(); ctx.stroke(); } }
   ctx.restore();
 }
