@@ -1,7 +1,9 @@
 // Sama Coach — serverless proxy for the OpenAI API.
 // The page posts {messages, json, model} here; this function adds the secret key (from the
 // OPENAI_API_KEY environment variable) and forwards the request, so no key ever ships in the page.
+// Only signed-in people may use it: the page sends their Firebase ID token (see _auth.js).
 
+const {requireUser} = require('./_auth.js');
 const MAX_BODY = 200_000;          // bytes of JSON per request
 const MAX_MESSAGES = 60;
 const DEFAULT_MODEL = process.env.OPENAI_MODEL || 'gpt-6.1-sol';
@@ -16,7 +18,7 @@ function cors(res){
   // Same-origin calls need none of this; it only matters for local tooling and previews.
   res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
 
 async function readJson(req){
@@ -32,6 +34,7 @@ module.exports = async function handler(req, res){
   if (req.method !== 'POST') return res.status(405).json({error:'method_not_allowed'});
   const key = process.env.OPENAI_API_KEY;
   if (!key) return res.status(500).json({error:'no_key', message:'OPENAI_API_KEY is not set on the server.'});
+  if (!await requireUser(req, res)) return;
 
   let body;
   try { body = await readJson(req); } catch (e){ return res.status(400).json({error:'bad_request', message:String(e.message || e)}); }
