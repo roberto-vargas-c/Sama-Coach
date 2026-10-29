@@ -281,10 +281,10 @@ body.practice .stage.sample #cvBg{display:block} /* full screen: the scene carri
 /* TV layout: a big screen read from the sofa */
 body.tv{padding:3vh 3vw}
 body.tv .wrap{max-width:none;gap:2vh}
-body.tv .top .topr, body.tv #viewLib, body.tv #viewCoach, body.tv .tabs, body.tv .cats, body.tv .levels, body.tv .rail, body.tv .railEmpty, body.tv .actions, body.tv .tip, body.tv #refBtn, body.tv .avatar, body.tv .model, body.tv .panel, body.tv #viewPlan, body.tv .sess, body.tv .livectl, body.tv .vctl, body.tv .notice{display:none!important}
+body.tv .top .topr, body.tv #viewLib, body.tv #viewCoach, body.tv .tabs, body.tv .searchrow, body.tv .cats, body.tv .levels, body.tv .rail, body.tv .railEmpty, body.tv .actions, body.tv .tip, body.tv #refBtn, body.tv .avatar, body.tv .model, body.tv .panel, body.tv #viewPlan, body.tv .sess, body.tv .livectl, body.tv .vctl, body.tv .notice{display:none!important}
 body.tv .brand h1{font-size:4vh}body.tv .brand p{font-size:2vh}
 body.tv #viewCheck{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4vw;align-items:center}
-body.tv .grid{display:block}body.tv .stage{max-height:84vh;height:84vh;width:auto;aspect-ratio:1;margin:0 auto;border-radius:3vh}
+body.tv .grid{display:block}body.tv .stage, body.tv.practice .stage{max-height:84vh;height:84vh;width:auto;max-width:100%;aspect-ratio:1;margin:0 auto;border-radius:3vh}
 body.tv .tvpanel{display:flex!important;flex-direction:column;gap:1.5vh;order:2}
 .tvpanel{display:none}
 .tvstep{font-size:2.4vh;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -298,7 +298,7 @@ body.tv .tvpanel{display:flex!important;flex-direction:column;gap:1.5vh;order:2}
 .tvbtns{display:flex;gap:1.5vh;margin-top:1vh}.tvexit,.tvcam{font-size:2vh;min-height:5vh}
 .tvref{width:min(30vh,100%);height:auto;border-radius:2vh;align-self:flex-start}
 body:not(.tv) .tvbtns{display:none}
-@media (max-width:900px), (orientation:portrait){body.tv #viewCheck{grid-template-columns:1fr}body.tv .stage{height:auto;max-height:50vh;width:100%}.tvname{font-size:6vh}.tvtime{font-size:10vh}}
+@media (max-width:900px), (orientation:portrait){body.tv #viewCheck{grid-template-columns:minmax(0,1fr)}body.tv .stage, body.tv.practice .stage{height:auto;max-height:50vh;width:100%;aspect-ratio:1}.tvname{font-size:6vh}.tvtime{font-size:10vh}}
 .search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:0 14px;color:var(--muted);box-shadow:var(--shadow)}
 .search input{flex:1;min-width:0;border:none;background:none;font:inherit;font-size:14.5px;color:var(--ink);padding:10px 0;outline:none}
 .search input::placeholder{color:var(--muted)}
@@ -5859,8 +5859,8 @@ function nextItem(d){
 function endSession(done){
   if (!sess) return; motionEnd(); clearInterval(sess.timer);
   const progK = !sess.remote && sess.P && sess.P.programK != null ? sess.P.programK : null;
-  const from = sess.from;
-  if (done && progK != null){ PROG.complete(progK); TODAY.short = false; setTimeout(() => switchView('today'), 50); }
+  const tv = document.body.classList.contains('tv'), from = tv ? null : sess.from; // on the TV layout stay put: the other views are hidden there
+  if (done && progK != null){ PROG.complete(progK); TODAY.short = false; if (!tv) setTimeout(() => switchView('today'), 50); }
   else if (from && !sess.remote) setTimeout(() => switchView(from), 50); // back to where the practice was started (Today, the planner, the coach)
   voiceStop(); if (done && voiceOn && !sess.remote) voicePlay(['clip_end'], () => musicStop()); else musicStop();
   if ($('sessBreath')) $('sessBreath').hidden = true;
@@ -5971,8 +5971,13 @@ $('rotBtn').addEventListener('click', () => { const a0 = refAngle; refAngle = (r
 $('sessTv').addEventListener('click', tvShare); $('planTv').addEventListener('click', tvShare);
 $('tvCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('tvLink').value); $('tvCopy').textContent = 'Copied'; setTimeout(() => $('tvCopy').textContent = 'Copy', 1500); } catch { $('tvLink').select(); } });
 $('tvHere').addEventListener('click', () => { $('tvDlg').close(); enterTvLayout(); });
-$('tvExit').addEventListener('click', () => { document.body.classList.remove('tv'); history.replaceState(null, '', location.pathname + location.search); renderTv(); });
-function enterTvLayout(){ document.body.classList.add('tv'); $('tvPanel').hidden = false; renderTv(); window.scrollTo(0,0); }
+$('tvExit').addEventListener('click', () => { document.body.classList.remove('tv'); history.replaceState(null, '', location.pathname + location.search); tvPending = null; if (tvFrom && !sess) switchView(tvFrom); tvFrom = null; renderTv(); });
+// the TV layout lives in the pose view, so come over from the planner (or Today) and bring the practice along to start from the TV
+let tvFrom = null;
+function enterTvLayout(boot){
+  if (!boot && $('viewCheck').hidden){ tvFrom = lastView; switchView('check'); } // (a TV link's page opens on the pose view by itself)
+  if (!sess && !tvPending && tvFrom === 'plan' && plan) tvPending = plan;
+  document.body.classList.add('tv'); $('tvPanel').hidden = false; renderTv(); window.scrollTo(0,0); }
 function renderTv(){
   if (!document.body.classList.contains('tv')) return;
   const inSess = !!sess;
@@ -6001,13 +6006,13 @@ function tvReceive(msg){
   else if (m.t==='end'){ if (sess){ clearInterval(sess.timer); sess = null; beep(880, .25); } renderTv(); }
   else if (m.t==='pose'){ const pz = POSES.find(q => q.id===m.id); if (pz){ pose = pz; renderRail(); showReference(m.side==='left'); renderTv(); } }
 }
+$('tvStart').addEventListener('click', () => { if (!tvPending) return; const P = tvPending; tvPending = null; startSession(P); renderTv(); });
+document.addEventListener('keydown', e => { if (!sess || sess.remote || !document.body.classList.contains('tv')) return; if (e.key===' '){ e.preventDefault(); sess.paused = !sess.paused; renderSess(); } else if (e.key==='ArrowRight') nextItem(1); else if (e.key==='ArrowLeft') nextItem(-1); else if (e.key==='Escape') endSession(false); });
 (function initTv(){
   const h = location.hash.slice(1); if (!/(^|&)tv(&|$)/.test(h)) return;
   const q = new URLSearchParams(h.replace(/^tv&?/, '')); const enc = q.get('plan');
   if (enc) tvPending = decodePlan(enc);
-  enterTvLayout();
-  $('tvStart').addEventListener('click', () => { if (!tvPending) return; const P = tvPending; tvPending = null; startSession(P); renderTv(); });
-  document.addEventListener('keydown', e => { if (!sess || sess.remote) return; if (e.key===' '){ e.preventDefault(); sess.paused = !sess.paused; renderSess(); } else if (e.key==='ArrowRight') nextItem(1); else if (e.key==='ArrowLeft') nextItem(-1); else if (e.key==='Escape') endSession(false); });
+  enterTvLayout(true);
   if (navigator.presentation && navigator.presentation.receiver){
     navigator.presentation.receiver.connectionList.then(list => {
       const hook = c => { c.onmessage = e => tvReceive(e.data); c.onclose = () => { tvRemote = false; }; };
