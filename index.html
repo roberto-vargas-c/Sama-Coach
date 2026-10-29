@@ -378,6 +378,10 @@ h3{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute
 .topfix .k{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
 .topfix .w{grid-column:2;font-size:12.5px;color:var(--muted)}
 .topfix p{margin:0;font-size:15px;font-weight:500;grid-column:2;grid-row:1}
+.matline{margin:10px 0 0;padding:8px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-size:13.5px;color:var(--muted);display:flex;gap:8px;align-items:baseline}
+.matline::before{content:'';flex:none;width:8px;height:8px;border-radius:50%;background:var(--sand);transform:translateY(-1px)}
+.matline[data-s=centre]::before{background:var(--good)}.matline[data-s=edge]::before{background:var(--near)}.matline[data-s=off]::before{background:var(--fix)}
+.matline[data-s=edge],.matline[data-s=off]{color:var(--ink)}
 .checks{border-top:none}
 @media (prefers-reduced-motion: reduce){.spin{animation:none}.gauge .me{transition:none}}
 /* dropdown menus (minimal UI) */
@@ -1046,6 +1050,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
         <details class="phist" id="pHistBox"><summary>History of this pose</summary><p id="pHist"></p></details>
         <div class="scoreline"><span class="score word" id="score">–</span><span class="verdict" id="verdict"></span></div>
         <div class="topfix" id="topfix" hidden><span class="k">Fix first</span><p id="topfixText"></p><span class="w" id="topfixWhere"></span></div>
+        <p class="matline" id="matLine" hidden></p>
         <div class="meta" id="meta" hidden>
           <span class="pill">Held in line <b id="hold">0.0 s</b></span>
           <span class="pill">Best <b id="best">–</b></span>
@@ -1243,6 +1248,7 @@ Savasana, 3 min"></textarea>
             <div class="arow"><span>Background music</span><div class="segs" data-k="musicset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
             <div class="arow"><span>Camera position</span><div class="segs" data-k="camat"><button type="button" class="seg" data-v="auto">Detect</button><button type="button" class="seg" data-v="front">In front of the mat</button><button type="button" class="seg" data-v="side">Beside the mat</button></div></div>
             <div class="arow"><span>Camera shows</span><div class="segs" data-k="camview"><button type="button" class="seg" data-v="avatar">Me as my figure</button><button type="button" class="seg" data-v="skeleton">Video + skeleton</button></div></div>
+            <div class="arow"><span>Find my mat on camera</span><div class="segs" data-k="matset"><button type="button" class="seg" data-v="on">Show</button><button type="button" class="seg" data-v="off">Hide</button></div></div>
             <div class="arow"><span>Alignment lines on the figure</span><div class="segs" data-k="overlay"><button type="button" class="seg" data-v="on">Show</button><button type="button" class="seg" data-v="off">Hide</button></div></div>
             <div class="arow"><span>Reference while checking</span><div class="segs" data-k="inset"><button type="button" class="seg" data-v="on">Small inset</button><button type="button" class="seg" data-v="off">Hidden</button></div></div>
             <div class="arow"><span>About Sama</span><div class="segs"><a class="seg" href="/features/" style="text-decoration:none">All features</a></div></div>
@@ -1463,6 +1469,7 @@ Savasana, 3 min"></textarea>
 </dialog>
 
 <script src="/i18n/i18n.js"></script>
+<script src="/mat.js"></script>
 <script src="/vendor/tf.min.js"></script>
 <script src="/vendor/tf-backend-wasm.min.js"></script>
 <script>
@@ -4376,6 +4383,7 @@ function renderAvatarStage(){
     const K = kp.map(p => ({x: mir ? cv.width - p.x*sc : p.x*sc, y:p.y*sc, s:p.s, w:p.w}));
     const R = liveRef(K, cv.width, cv.height), f = R.f;
     liveFloor = liveFloor == null ? R.floor : liveFloor + (R.floor - liveFloor)*.05; // settles slowly, so the room does not bounce
+    drawMat(Math.max(cv.width, cv.height)/700, false);
     ctx.save(); ctx.scale(1/f, 1/f);
     drawFlatMat(ctx, R, avatar.mat || '#B5C2AE');
     drawFlatFigure(ctx, R, avatar);
@@ -4390,7 +4398,7 @@ function render(){
   if (mode==='sample') drawSampleScene();
   else if (mirror()){ ctx.save(); ctx.translate(cv.width,0); ctx.scale(-1,1); ctx.drawImage(media, 0, 0, cv.width, cv.height); ctx.restore(); ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(0,0,cv.width,cv.height); }
   else { ctx.drawImage(media, 0, 0, cv.width, cv.height); ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(0,0,cv.width,cv.height); }
-  if (mode !== 'sample') drawInset();
+  if (mode !== 'sample'){ drawInset(); drawMat(Math.max(cv.width, cv.height)/700, true); }
   if (!kp || !last) return;
   if (mode==='sample' && !showOverlay) return; // the figure alone, no lines or angles
   const u = Math.max(cv.width, cv.height)/700 * (mode==='sample' ? .75 : 1);
@@ -4518,9 +4526,10 @@ function renderPanel(){
 }
 function refresh(){
   if (mode === 'live' && kp) senseCamPlace(kp);
+  matLocate();
   last = kp ? (mode==='sample' && curRef && curRef.kp0 ? evaluate(pose, curRef.kp0) : evaluate(poseFor(effectivePlace()), kp)) : null;
   if (kp && last && kp.slice(0,17).reduce((a,p)=>a+p.s,0)/17 < 0.2) last = null;
-  render(); renderPanel(); renderTv();
+  render(); renderPanel(); renderMatLine(); renderTv();
 }
 
 // ---------- history ----------
@@ -4579,11 +4588,11 @@ async function openFile(file){
       : 'The file isn’t a photo this viewer can decode. Try a JPEG or PNG, or use Live camera.');
     return;
   }
-  cancelTween(); media = pic; mw = pic.width; mh = pic.height; sizeCanvas(mw, mh); mode = 'photo'; $('sideBtn').hidden = true; $('rotBtn').hidden = true;
+  matReset(); cancelTween(); media = pic; mw = pic.width; mh = pic.height; sizeCanvas(mw, mh); mode = 'photo'; $('sideBtn').hidden = true; $('rotBtn').hidden = true;
   $('tag').textContent = 'Photo'; $('vctl').hidden = true; $('meta').hidden = true; $('refBtn').hidden = false;
   render();
   try {
-    kp = (await estimate(pic, mw, mh, {refine:true})).kp; refresh();
+    kp = (await estimate(pic, mw, mh, {refine:true})).kp; matSense(pic, true); refresh();
     if (!last && tf.getBackend()==='webgl' && engine!=='gpu'){ // nothing found on the GPU: try once more on the CPU, which some phones need
       busy(true, 'Looking again…');
       try { await tf.setBackend('cpu'); await tf.ready(); kp = (await estimate(pic, mw, mh, {refine:true})).kp; refresh(); if (last){ photoCpu = true; $('model').textContent = 'Pose models ready · photos read on the CPU (this phone’s GPU gave no result)'; } } catch(e){ console.warn(e); }
@@ -4602,7 +4611,7 @@ async function openVideo(file){
     vid.src = URL.createObjectURL(file);
     await new Promise((ok, no) => { vid.onloadeddata = ok; vid.onerror = no; vid.load(); });
     await loadModel();
-    cancelTween(); media = vid; mw = vid.videoWidth; mh = vid.videoHeight; sizeCanvas(mw, mh); mode = 'video'; $('sideBtn').hidden = true; $('rotBtn').hidden = true;
+    matReset(); cancelTween(); media = vid; mw = vid.videoWidth; mh = vid.videoHeight; sizeCanvas(mw, mh); mode = 'video'; $('sideBtn').hidden = true; $('rotBtn').hidden = true;
     $('tag').textContent = 'Clip'; $('vctl').hidden = false; $('meta').hidden = false; $('refBtn').hidden = false;
     $('scrub').max = vid.duration || 1; $('scrub').value = 0;
     vs = {...vs, hold:0, best:null, bestT:0, lastT:null, saved:false, track:null};
@@ -4659,6 +4668,86 @@ async function motionCount(){
   $('mvClear').addEventListener('click', async () => { if (!confirm('Delete all movement recordings on this device?')) return; try { await mvTx('readwrite', st => st.clear()); } catch {} motionCount(); });
   motionCount();
 })();
+// ---------- the mat: where it lies in the picture and where you are on it (mat.js) ----------
+// The finder runs on a 160 px copy of the frame a few times a second. The mat doesn't move, so once found it is held
+// and only nudged by later finds; a very different find has to repeat before it replaces the old one (a moved camera).
+// Where you stand is worked out on every frame against the held mat, so stepping off it is noticed even when the mat
+// can no longer be found around your feet.
+let matOn = true; try { matOn = localStorage.getItem('sama.mat') !== 'off'; } catch {}
+const MAT = {q:null, color:null, t:0, seenT:0, cand:null, candN:0, grab:null, where:null, state:null, stateT:0, pend:null, pendT:0, t0:0, spoke:0};
+function matReset(){ Object.assign(MAT, {q:null, color:null, t:0, seenT:0, cand:null, candN:0, where:null, state:null, stateT:0, pend:null, pendT:0, t0:performance.now()}); }
+const quadGap = (a, b) => Math.max(...a.map((p, i) => Math.hypot(p[0] - b[i][0], p[1] - b[i][1])));
+function matSense(src, once){
+  if (!matOn || !window.SamaMat || !kp || !mw || !mh) return;
+  const now = performance.now(); if (!once && now - MAT.t < 300) return; MAT.t = now;
+  const gw = 160, gh = Math.max(40, Math.round(gw*mh/mw));
+  const g = MAT.grab || (MAT.grab = document.createElement('canvas')); if (g.width !== gw) g.width = gw; if (g.height !== gh) g.height = gh;
+  const gx = g.getContext('2d', {willReadFrequently: true}); let px;
+  try { gx.drawImage(src, 0, 0, gw, gh); px = gx.getImageData(0, 0, gw, gh).data; } catch { return; }
+  const r = SamaMat.find(px, gw, gh, kp.map(p => ({x:p.x*gw/mw, y:p.y*gh/mh, s:p.s})), MAT.color ? {color:MAT.color} : null);
+  if (!r){ if (MAT.q && now - MAT.seenT > 20000){ MAT.q = null; MAT.color = null; } return; } // not confirmed for a while: let it go
+  if (!MAT.q || once){ if (r.conf >= .3){ MAT.q = r.quad; MAT.color = r.color; MAT.seenT = now; } return; }
+  if (quadGap(r.quad, MAT.q) < .08){ MAT.q = MAT.q.map((p, i) => [p[0] + (r.quad[i][0] - p[0])*.25, p[1] + (r.quad[i][1] - p[1])*.25]); MAT.color = r.color; MAT.seenT = now; MAT.candN = 0; return; }
+  if (MAT.cand && quadGap(r.quad, MAT.cand) < .08) MAT.candN++; else { MAT.cand = r.quad; MAT.candN = 1; }
+  if (MAT.candN >= 4 && r.conf >= .5){ MAT.q = r.quad; MAT.color = r.color; MAT.seenT = now; MAT.candN = 0; } // the camera or the mat moved
+}
+// where you are against the held mat; a new verdict has to hold for a moment before it shows, so it doesn't flicker
+function matLocate(){
+  MAT.where = null;
+  if (!matOn || !MAT.q || !kp || !window.SamaMat) { MAT.state = null; return; }
+  const w = SamaMat.locate(MAT.q, kp.map(p => ({x:p.x/mw, y:p.y/mh, s:p.s})), matPlace()); MAT.where = w;
+  const st = w ? w.state : null, now = performance.now();
+  if (st === MAT.state){ MAT.pend = null; return; }
+  if (st !== MAT.pend){ MAT.pend = st; MAT.pendT = now; }
+  if (mode !== 'live' && mode !== 'video' || now - MAT.pendT > (st === 'centre' ? 500 : 1200)){ MAT.state = st; MAT.stateT = now; MAT.pend = null; }
+}
+const matPlace = () => MAT.q ? SamaMat.placeOf(MAT.q, mw/mh) : effectivePlace(); // read from the mat itself: running into the picture, or across it
+const MAT_TEXT = {centre:'On your mat, nicely in the middle.', edge:'Close to the edge of your mat. Move toward the middle.', off:'Off your mat. Step back onto it.'};
+const MAT_CUE = {edge:'Move toward the middle of your mat.', off:'Step back onto your mat.'};
+function matCue(){ const s = MAT.state; return s && MAT_CUE[s] && performance.now() - MAT.stateT > 1500 ? MAT_CUE[s] : null; }
+function renderMatLine(){
+  const el = $('matLine'); if (!el) return;
+  const on = matOn && (mode === 'live' || mode === 'video' || mode === 'photo');
+  let txt = '', st = '';
+  if (on && MAT.q && MAT.state) { txt = MAT_TEXT[MAT.state]; st = MAT.state; }
+  else if (on && MAT.q) txt = 'Mat found. Step onto it so Sama can see where you are.';
+  else if (on && kp && (mode === 'photo' || performance.now() - MAT.t0 > 4000)) txt = 'No mat found yet. One in a colour that stands out from the floor, fully in the picture, is easiest to see.';
+  if (el.textContent !== txt) el.textContent = txt; el.hidden = !txt; el.dataset.s = st;
+}
+// on the stage: the mat's outline, your spot on it, an arrow back toward the middle, and a small map of the mat from above
+function drawMat(u, onVideo){
+  if (!matOn || !MAT.q || !window.SamaMat) return;
+  const mir = mirror(), P = ([x, y]) => [mir ? (1 - x)*cv.width : x*cv.width, y*cv.height], Q = MAT.q.map(P);
+  const col = {centre:css('--good'), edge:css('--near'), off:css('--fix')}, c = col[MAT.state] || css('--sand');
+  ctx.save(); ctx.lineJoin = 'round';
+  if (onVideo){ // over the video: the mat's outline. On your figure the drawn scene has its own mat, so only the map and the arrow show
+    ctx.beginPath(); Q.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath();
+    ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fill();
+    ctx.setLineDash([10*u, 7*u]); ctx.lineWidth = 2.5*u; ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.stroke(); ctx.setLineDash([]); }
+  const w = MAT.where;
+  if (w && MAT.state){
+    const at = P(SamaMat.fromMat(MAT.q, w.c[0], w.c[1]));
+    ctx.fillStyle = c + '55'; ctx.strokeStyle = c; ctx.lineWidth = 2.5*u; ctx.beginPath(); ctx.ellipse(at[0], at[1], 22*u, 8*u, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    if (MAT.state !== 'centre'){ // the arrow: back toward the middle, along the way that is off
+      const side = matPlace() === 'side', cl = v => Math.max(.2, Math.min(.8, v));
+      const tu = MAT.state === 'off' ? cl(w.c[0]) : side ? (Math.abs(w.du) > .78 ? .5 : w.c[0]) : .5, tv = MAT.state === 'off' ? cl(w.c[1]) : side ? .5 : (Math.abs(w.dv) > .78 ? .5 : w.c[1]);
+      const to = P(SamaMat.fromMat(MAT.q, tu, tv)); let dx = to[0] - at[0], dy = to[1] - at[1]; const L = Math.hypot(dx, dy);
+      if (L > 4*u){ const len = Math.min(L, 90*u); dx /= L; dy /= L; const ex = at[0] + dx*len, ey = at[1] + dy*len, pulse = .85 + .15*Math.sin(performance.now()/350);
+        ctx.strokeStyle = c; ctx.lineWidth = 5*u*pulse; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(at[0] + dx*24*u, at[1] + dy*24*u); ctx.lineTo(ex, ey); ctx.stroke();
+        ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(ex + dx*12*u, ey + dy*12*u); ctx.lineTo(ex - dy*10*u, ey + dx*10*u); ctx.lineTo(ex + dy*10*u, ey - dx*10*u); ctx.closePath(); ctx.fill(); }
+    }
+  }
+  // the map: the mat from above, the camera at its bottom edge; dots for the feet (or what touches the floor)
+  const side = matPlace() === 'side', s = Math.min(cv.width, cv.height)*.26, mwid = side ? s : s*.36, mlen = side ? s*.36 : s, pad = 10*u, x0 = pad, y0 = pad;
+  ctx.fillStyle = 'rgba(20,26,22,.55)'; roundRect(x0, y0, mwid + 16*u, mlen + 16*u, 8*u); ctx.fill();
+  const mx = x0 + 8*u, my = y0 + 8*u; ctx.fillStyle = MAT.color ? `rgb(${ycc2rgb(MAT.color).join(',')})` : css('--mat'); roundRect(mx, my, mwid, mlen, 3*u); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.2*u; ctx.stroke();
+  if (w){ const fl = v => mir ? 1 - v : v;
+    for (const p of w.pts){ const px_ = mx + Math.max(-.1, Math.min(1.1, fl(p[0])))*mwid, py_ = my + Math.max(-.1, Math.min(1.1, p[1]))*mlen;
+      ctx.fillStyle = c; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2*u; ctx.beginPath(); ctx.arc(px_, py_, 3.2*u, 0, Math.PI*2); ctx.fill(); ctx.stroke(); } }
+  ctx.restore();
+}
+const ycc2rgb = ([Y, B, R]) => [Y + 1.402*(R - 128), Y - .344136*(B - 128) - .714136*(R - 128), Y + 1.772*(B - 128)].map(v => Math.round(Math.max(0, Math.min(255, v))));
 // ---------- video loop ----------
 async function processFrame(fresh){
   if (vs.busy || (mode!=='video' && mode!=='live')) return; vs.busy = true;
@@ -4668,6 +4757,7 @@ async function processFrame(fresh){
     const k = r.kp, a = .45, b = .55;
     kp = kp && !fresh ? k.map((p,i) => ({x:kp[i].x*a+p.x*b, y:kp[i].y*a+p.y*b, s:p.s,
       w: p.w && kp[i].w ? p.w.map((v,j)=>kp[i].w[j]*a+v*b) : p.w})) : k;
+    matSense(vid, fresh);
     refresh();
     if (mode === 'live') motionTap(r.kp);
     const live = mode==='live', t = live ? performance.now()/1000 : vid.currentTime;
@@ -4730,7 +4820,7 @@ async function startLive(){
     if (!vid.videoWidth) await new Promise(r => vid.addEventListener('loadedmetadata', r, {once:true}));
     busy(true, bpModel ? 'Starting camera…' : 'Loading pose models…'); await loadModel();
     if (photoCpu && tf.getBackend()!=='cpu'){ try { await tf.setBackend('cpu'); await tf.ready(); } catch {} }
-    cancelTween(); media = vid; mw = vid.videoWidth; mh = vid.videoHeight; sizeCanvas(mw, mh); mode = 'live'; $('sideBtn').hidden = true; $('rotBtn').hidden = true;
+    matReset(); cancelTween(); media = vid; mw = vid.videoWidth; mh = vid.videoHeight; sizeCanvas(mw, mh); mode = 'live'; $('sideBtn').hidden = true; $('rotBtn').hidden = true;
     $('tag').textContent = 'Live'; $('refBtn').hidden = true; $('vctl').hidden = true; $('meta').hidden = false; $('jump').hidden = true;
     $('livectl').hidden = false; document.querySelector('.actions').hidden = true;
     vs = {...vs, hold:0, best:null, bestT:0, lastT:null, saved:false, track:null};
@@ -4749,6 +4839,7 @@ function stopLive(keepFrame = true){
     const snap = document.createElement('canvas'); snap.width = vid.videoWidth; snap.height = vid.videoHeight;
     const sx = snap.getContext('2d'); if (mirror()){ sx.translate(snap.width,0); sx.scale(-1,1); } sx.drawImage(vid, 0, 0);
     if (mirror() && kp) kp = kp.map(p => ({...p, x: mw - p.x}));
+    if (mirror() && MAT.q) MAT.q = [MAT.q[1], MAT.q[0], MAT.q[3], MAT.q[2]].map(([x, y]) => [1 - x, y]); // the snapshot is stored mirrored
     media = snap; mode = 'photo'; $('tag').textContent = 'Last frame'; $('refBtn').hidden = false;
     if (vs.best!=null) addHist({pose:pose.id, score:vs.best, hold:vs.hold, at:Date.now()});
   }
@@ -4777,7 +4868,7 @@ function speakCue(){
   if (!vs.voice || !last) return;
   const now = performance.now(); if (now - vs.lastSpoke < 4000) return;
   const worst = last.checks.filter(x => x.status==='off'||x.status==='near').sort((a,b)=>a.s-b.s)[0];
-  const cue = worst ? worst.cue : 'Good. Hold it and breathe.';
+  const mc = matCue(), cue = mc && now - MAT.spoke > 15000 ? (MAT.spoke = now, mc) : worst ? worst.cue : 'Good. Hold it and breathe.';
   if (cue === vs.lastCue && now - vs.lastSpoke < 9000) return;
   vs.lastCue = cue; vs.lastSpoke = now; say(cue);
 }
@@ -7841,7 +7932,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
   for (const sw of box.querySelectorAll('.swatches')){ const k = sw.dataset.k; for (const c of AVATAR_CHOICES[k]){ const b = document.createElement('button'); b.type = 'button'; b.style.background = c; b.dataset.v = c; b.setAttribute('aria-label', k + ' ' + c); sw.appendChild(b); } }
   for (const grp of box.querySelectorAll('.segs[data-k]')) dropdownify(grp, {right:true});
   const sync = () => {
-    for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='lang' ? (window.SamaI18n ? SamaI18n.lang : 'en') : k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='camview' ? camView : k==='camat' ? camAt : k==='sceneset' ? scene : k==='motionset' ? (motionOn ? 'on' : 'off') : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===String(cur))); }
+    for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='lang' ? (window.SamaI18n ? SamaI18n.lang : 'en') : k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='matset' ? (matOn ? 'on' : 'off') : k==='camview' ? camView : k==='camat' ? camAt : k==='sceneset' ? scene : k==='motionset' ? (motionOn ? 'on' : 'off') : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===String(cur))); }
     only.hidden = false;
     $('avatarSum').textContent = 'Scene, voice, camera';
   };
@@ -7852,6 +7943,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
     if (k==='lang'){ if (window.SamaI18n) SamaI18n.setLang(b.dataset.v).then(sync); return; }
     if (k==='trans'){ transStyle = b.dataset.v; try { localStorage.setItem('sama.trans', transStyle); } catch {} sync(); return; }
     if (k==='overlay'){ showOverlay = b.dataset.v==='on'; try { localStorage.setItem('sama.overlay', b.dataset.v); } catch {} sync(); render(); return; }
+    if (k==='matset'){ matOn = b.dataset.v==='on'; try { localStorage.setItem('sama.mat', b.dataset.v); } catch {} if (!matOn) matReset(); sync(); refresh(); return; }
     if (k==='inset'){ showInset = b.dataset.v==='on'; try { localStorage.setItem('sama.inset', b.dataset.v); } catch {} sync(); render(); return; }
     if (k==='sceneset'){ scene = b.dataset.v; try { localStorage.setItem('sama.scene', scene); } catch {} sync(); render(); return; }
     if (k==='motionset'){ motionOn = b.dataset.v === 'on'; try { localStorage.setItem('sama.motion', b.dataset.v); } catch {} sync(); motionCount(); return; }
