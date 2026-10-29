@@ -1,11 +1,13 @@
 // Sama Help — the support chat behind Profile → Help.
 //   {mode:'ask',  messages:[{role,content}], lang}  → an answer about the app from the AI model: {reply, needs_human}
+//                                                     (signed-in people only: the page sends their Firebase ID token, see _auth.js)
 //   {mode:'send', message, email, transcript, info}  → emails the Sama team: {ok:true}
 // The team's address lives only in the SUPPORT_EMAIL environment variable, never in the page or the repository.
 // Email goes through Resend when RESEND_API_KEY is set (SUPPORT_FROM optional), otherwise through FormSubmit
 // (no account: the first message asks the inbox to confirm once).
 
 const KNOWLEDGE = require('./_support-knowledge.js');
+const {requireUser} = require('./_auth.js');
 const MODEL = process.env.SUPPORT_MODEL || process.env.OPENAI_MODEL || 'gpt-6.1-sol';
 const FALLBACK_MODEL = process.env.OPENAI_FALLBACK_MODEL || 'gpt-4o-mini';
 const BASE_URL = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
@@ -99,12 +101,13 @@ async function send(body, res){
 module.exports = async function handler(req, res){
   res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({error: 'method_not_allowed'});
   let body; try { body = await readJson(req); } catch { return res.status(400).json({error: 'bad_request'}); }
   const ip = String(req.headers['x-forwarded-for'] || (req.socket && req.socket.remoteAddress) || '').split(',')[0].trim();
   if (body.mode === 'send'){ if (limited(ip, 'send', 6)) return res.status(429).json({error: 'rate_limited'}); return send(body, res); }
   if (limited(ip, 'ask', 60)) return res.status(429).json({error: 'rate_limited'});
+  if (!await requireUser(req, res)) return;
   return ask(body, res);
 };

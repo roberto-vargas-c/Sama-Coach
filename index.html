@@ -514,6 +514,8 @@ body:not(.practice) .sess{order:0}
 .rsess{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
 .rsess b{font-weight:600;font-size:14px}
 .rsess i{display:block;font-size:12.5px;color:var(--muted);font-style:normal}
+.cgate h2{margin:0}
+#viewCoach.gated .cmode:not(#cmCalendar){display:none!important}
 .cerr{border-left:3px solid var(--off);padding:10px 14px;background:var(--surface);border-radius:10px;font-size:14px;color:var(--muted)}
 .cerr b{color:var(--ink);display:block;margin-bottom:2px}
 body.tv #viewCoach{display:none!important}
@@ -721,6 +723,7 @@ body.tv #viewCoach{display:none!important}
 .hmsg.user{align-self:flex-end;background:var(--brand);color:var(--brand-ink);border-bottom-right-radius:6px}
 .hmsg.wait{color:var(--muted);font-style:italic}
 .hmsg .btn{margin-top:8px;white-space:normal}
+.hmsg .crow{margin-top:10px}.hmsg .crow .btn{margin-top:0}
 .helpdlg .hfoot,.helpdlg .hcontact{border-top:1px solid var(--line);padding:10px 18px 14px;display:grid;gap:8px}
 .helpdlg .hchips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .helpdlg .hchips button{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
@@ -1110,6 +1113,11 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
       <button class="seg" type="button" role="tab" data-cm="calendar" aria-pressed="false">Calendar</button>
     </div>
     <p class="cnote">The coach only reads text: your answers, your scores and the corrections Sama found. Photos and clips never leave your device.</p>
+    <div class="cpanel cgate" id="coachGate" hidden>
+      <h2>Sign in to use the coach</h2>
+      <p>The coach and Sama Help run on an AI model, so they are for people signed in to Sama. Signing in is free and also keeps your practice on all your devices.</p>
+      <div class="crow" id="coachGateBtns"></div>
+    </div>
 
     <div class="cmode" id="cmPlan">
       <div class="cgrid">
@@ -6135,15 +6143,17 @@ function libraryDigest(){
 const LIB_LEGEND = 'Pose library, one per line: id|name|difficulty L1 gentle … L5 advanced|family|tags|typical hold|sided (done on both sides)|load (wrists or knees). Use ONLY these ids.';
 async function askCoach(messages, {json = false, signal, temperature} = {}){
   if (!COACH_URL) throw Object.assign(new Error('This copy of Sama is not connected to a coach server. Set the deployment address in the sama-coach-url meta tag.'), {code:'no_key'});
+  const token = await aiToken();
+  if (!token) throw Object.assign(new Error('Sign in to use the coach.'), {code:'signin'});
   let r;
   { const L = window.SamaI18n && SamaI18n.lang, name = {es:'Spanish (neutral international Spanish, addressing the person as tú)', de:'German (addressing the person as du)'}[L];
     if (name) messages = [...messages, {role:'system', content:`Write everything the person will read in ${name}. Pose names: use the usual ${L === 'es' ? 'Spanish' : 'German'} name, with the Sanskrit name where helpful. Keep JSON keys, pose ids and any ids or codes you are asked for exactly as specified, in English.`}]; }
-  try { r = await fetch(COACH_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({messages, json, temperature}), signal}); }
+  try { r = await fetch(COACH_URL, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + token}, body: JSON.stringify({messages, json, temperature}), signal}); }
   catch (e){ if (e && e.name === 'AbortError') throw Object.assign(new Error('Stopped.'), {code:'cancelled'}); throw Object.assign(new Error('Could not reach the coach. Check your connection.'), {code:'network'}); }
   let data = null; try { data = await r.json(); } catch {}
   if (!r.ok || !data || !data.text){
     const code = (data && data.error) || 'http_' + r.status;
-    const msg = code === 'no_key' ? 'The coach is not set up yet: the server has no OPENAI_API_KEY.' : code === 'rate_limited' ? 'The coach is busy right now. Try again in a moment.' : (data && data.message) || `The coach did not answer (${r.status}).`;
+    const msg = code === 'no_key' ? 'The coach is not set up yet: the server has no OPENAI_API_KEY.' : code === 'rate_limited' ? 'The coach is busy right now. Try again in a moment.' : code === 'signin' ? 'Sign in to use the coach.' : (data && data.message) || `The coach did not answer (${r.status}).`;
     throw Object.assign(new Error(msg), {code});
   }
   if (!json) return data.text;
@@ -6200,7 +6210,7 @@ function planButtons(P, name){
 }
 function errBox(e, retry){
   const d = document.createElement('div'); d.className = 'cerr'; d.innerHTML = '<b>The coach could not answer</b><span></span>'; d.querySelector('span').textContent = e && e.message || String(e);
-  if (retry && e.code !== 'no_key'){ const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small'; b.textContent = 'Try again'; b.style.marginTop = '8px'; b.addEventListener('click', retry); d.appendChild(b); }
+  if (retry && e.code !== 'no_key' && e.code !== 'signin'){ const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small'; b.textContent = 'Try again'; b.style.marginTop = '8px'; b.addEventListener('click', retry); d.appendChild(b); }
   return d;
 }
 function thinking(text = 'Thinking'){ const d = document.createElement('div'); d.className = 'cmsg coach think'; d.textContent = text; return d; }
@@ -6233,8 +6243,18 @@ function setCoachMode(m){
   if (m === 'calendar'){ if (!calBuilt){ calBuilt = true; initCalendarUI(); } renderCalendar(); }
   if (m === 'checks') $('ckCount').textContent = `${getHist().length} checks on this device`;
   if (m === 'routine') renderRoutineSources();
+  renderCoachGate();
 }
+// the AI modes are for signed-in people (the server checks too); the calendar stays open to everyone
+function renderCoachGate(){
+  const known = !AUTH.available || AUTH.ready, out = !AUTH.user;
+  $('viewCoach').classList.toggle('gated', out);
+  $('coachGate').hidden = !(out && known && coachMode !== 'calendar');
+  if (!$('coachGateBtns').children.length) signinButtons($('coachGateBtns'));
+}
+document.addEventListener('sama:auth', renderCoachGate);
 function renderCoach(){
+  renderCoachGate();
   if (coachBuilt) return; coachBuilt = true;
   $('coachModes').addEventListener('click', e => { const b = e.target.closest('[data-cm]'); if (b) setCoachMode(b.dataset.cm); });
   initIntake(); initChecks(); initRoutine(); initRoadmap();
@@ -7300,6 +7320,16 @@ async function authSignIn(kind){
     }
   } catch (e){ notice('Sign-in failed', e && e.message || String(e)); }
 }
+function signinButtons(box){
+  for (const [label, cls, kind] of [['Continue with Google', 'primary', 'google'], ['Email me a link', '', 'email']]){
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small ' + cls; b.textContent = label; b.addEventListener('click', () => authSignIn(kind)); box.appendChild(b);
+  }
+}
+// the AI features (coach, Sama Help) are for signed-in people: the server checks this token on every request
+async function aiToken(){
+  try { await authReady; } catch {}
+  try { return AUTH.user ? await AUTH.user.getIdToken() : null; } catch { return null; }
+}
 async function authSignOut(){ if (AUTH.fb) await AUTH.fb.auth().signOut(); AUTH.user = null; renderAuthUI(); }
 function userDoc(){ return AUTH.db && AUTH.user ? AUTH.db.collection('users').doc(AUTH.user.uid) : null; }
 let pushTimer = 0;
@@ -7336,6 +7366,7 @@ function renderAuthUI(){
   else { txt.textContent = 'Sign in to keep your data across your phone, laptop and the app.'; mk('Continue with Google', 'primary', () => authSignIn('google')); mk('Email me a link', '', () => authSignIn('email')); }
   $('wAuth').hidden = !AUTH.available;
   if (AUTH.user && $('nearSignin')) $('nearSignin').hidden = true;
+  document.dispatchEvent(new Event('sama:auth'));
 }
 const authReady = /[?&]embed=1/.test(location.search) ? Promise.resolve() : authInit(); // the embedded copy never signs in or syncs
 
@@ -7858,13 +7889,22 @@ if (document.fonts) document.fonts.ready.then(() => render());
 // The team's address lives on the server (SUPPORT_EMAIL); the page only ever posts to /api/support.
 (() => {
   const URL_ = COACH_URL ? COACH_URL.replace(/\/coach$/, '/support') : '';
-  const dlg = $('helpDlg'), log = $('hLog'); let convo = [], busy = false, started = false;
+  const dlg = $('helpDlg'), log = $('hLog'); let convo = [], busy = false, started = false, gateMsg = null;
   const lang = () => (window.SamaI18n && SamaI18n.lang) || 'en';
   const scroll = () => { log.scrollTop = log.scrollHeight; };
   function bubble(role, text, own){ const d = document.createElement('div'); d.className = 'hmsg ' + role; d.textContent = text; if (own) d.setAttribute('translate', 'no'); log.append(d); scroll(); return d; }
   function teamButton(where){ const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small primary'; b.textContent = 'Send this to the Sama team'; b.addEventListener('click', contact); where.append(document.createElement('br'), b); scroll(); }
+  // asking the assistant is for signed-in people; writing to the Sama team stays open to everyone
+  function gate(){
+    const out = !AUTH.user;
+    $('hForm').hidden = out; $('hChips').hidden = out || convo.length > 0;
+    if (out && !gateMsg){ gateMsg = bubble('bot', 'Sign in to ask Sama Help. You can still write to the Sama team without signing in.'); const b = document.createElement('div'); b.className = 'crow'; signinButtons(b); gateMsg.append(b); scroll(); }
+    if (!out && gateMsg){ gateMsg.remove(); gateMsg = null; }
+    if (!out && !started){ started = true; bubble('bot', 'Hi! Ask me anything about using Sama: the camera, practices, your account, studios, the app on your phone or TV.'); }
+  }
+  document.addEventListener('sama:auth', gate);
   function open(){
-    if (!started){ started = true; bubble('bot', 'Hi! Ask me anything about using Sama: the camera, practices, your account, studios, the app on your phone or TV.'); }
+    gate();
     $('hAsk').hidden = false; $('hContact').hidden = true; dlg.showModal(); setTimeout(() => $('hIn').focus(), 50);
   }
   async function ask(q){
@@ -7873,7 +7913,9 @@ if (document.fonts) document.fonts.ready.then(() => render());
     const wait = bubble('bot wait', 'Thinking…');
     try {
       if (!URL_) throw new Error('offline');
-      const r = await fetch(URL_, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({mode: 'ask', messages: convo, lang: lang()}), signal: AbortSignal.timeout ? AbortSignal.timeout(50000) : undefined});
+      const token = await aiToken();
+      const r = token && await fetch(URL_, {method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify({mode: 'ask', messages: convo, lang: lang()}), signal: AbortSignal.timeout ? AbortSignal.timeout(50000) : undefined});
+      if (!r){ wait.remove(); convo.pop(); gate(); return; } // signed out: offer sign-in instead
       const j = await r.json().catch(() => ({})); if (!r.ok || !j.reply) throw new Error(j.error || 'http ' + r.status);
       wait.remove(); convo.push({role: 'assistant', content: j.reply});
       const b = bubble('bot', j.reply.replace(/\*\*(.+?)\*\*/g, '$1').replace(/^#+\s*/gm, ''), true);
