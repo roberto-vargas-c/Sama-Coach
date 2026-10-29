@@ -27,7 +27,7 @@
 :root{
   --bg:#EFEBE4; --surface:#F8F6F2; --ink:#23302A; --muted:#6D7468; --line:#DCD7CD;
   --accent:#9C5A3C; --accent-ink:#FBF7F2; --accent-soft:#EBDCD2; --sand:#B5C2AE; --brand:#2F4A3B; --brand-ink:#F3F1EA;
-  --good:#5B8C5A; --near:#B9822A; --off:#BF4530;
+  --good:#5B8C5A; --near:#B9822A; --off:#BF4530; --fix:var(--accent); /* corrections: the warm accent, not the error red */
   --stage:#1E2621; --sil:#ADB5A8; --fig:#2E3631; --figbg:#F3F1EA; --mat:#B5C2AE;
   --shadow:0 1px 2px rgba(30,45,35,.06), 0 8px 24px -12px rgba(30,45,35,.25);
   --f-display:"Young Serif", Georgia, "Times New Roman", serif;
@@ -342,6 +342,7 @@ body:not(.tv) .tvbtns{display:none}
 .scoreline{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .score{font-family:var(--f-display);font-size:64px;line-height:.9;font-variant-numeric:tabular-nums}
 .score small{font-family:var(--f-body);font-size:15px;color:var(--muted);margin-left:2px}
+.score.word{font-size:36px;line-height:1.05}
 .verdict{white-space:pre-line;font-weight:600;font-size:15px}
 .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .pill{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;display:inline-flex;gap:6px;align-items:center;font-variant-numeric:tabular-nums;background:var(--bg)}
@@ -352,7 +353,7 @@ h3{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute
 .checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
 .ck{display:grid;grid-template-columns:10px minmax(0,1fr);gap:4px 12px;padding:12px 0;border-bottom:1px solid var(--line)}
 .ck .st{width:10px;height:10px;border-radius:50%;margin-top:6px;background:var(--line)}
-.ck[data-s="good"] .st{background:var(--good)} .ck[data-s="near"] .st{background:var(--near)} .ck[data-s="off"] .st{background:var(--off)}
+.ck[data-s="good"] .st{background:var(--good)} .ck[data-s="near"] .st{background:var(--near)} .ck[data-s="off"] .st{background:var(--fix)}
 .ck .row{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
 .ck .nm{font-weight:600}
 .ck .val{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -363,12 +364,12 @@ h3{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute
 .gauge .band{position:absolute;top:2px;height:10px;background:var(--accent-soft);border-left:1px solid var(--accent);border-right:1px solid var(--accent)}
 .gauge .tgt{position:absolute;top:0;width:1px;height:14px;background:var(--accent)}
 .gauge .me{position:absolute;top:2px;width:10px;height:10px;border-radius:50%;transform:translateX(-5px);background:var(--muted);border:2px solid var(--surface);transition:left .2s}
-.ck[data-s="good"] .me{background:var(--good)} .ck[data-s="near"] .me{background:var(--near)} .ck[data-s="off"] .me{background:var(--off)}
+.ck[data-s="good"] .me{background:var(--good)} .ck[data-s="near"] .me{background:var(--near)} .ck[data-s="off"] .me{background:var(--fix)}
 .empty{padding:14px 0;color:var(--muted);font-size:14px;border-bottom:1px solid var(--line)}
 .hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .hist li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
 .hist .d{color:var(--muted);font-size:12.5px}
-.hist .sc{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.hist .sc{font-weight:600;text-align:right}
 .how{font-size:13.5px;color:var(--muted);margin:0;padding-left:18px}
 .how li{margin:2px 0}
 .grp{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 4px;font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--ink);border-bottom:1px solid var(--line)}
@@ -1043,7 +1044,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
         </div>
         <button class="repbtn" id="repCheck" type="button">Something wrong with this pose? Report it</button>
         <details class="phist" id="pHistBox"><summary>History of this pose</summary><p id="pHist"></p></details>
-        <div class="scoreline"><span class="score" id="score">–<small>/100</small></span><span class="verdict" id="verdict"></span></div>
+        <div class="scoreline"><span class="score word" id="score">–</span><span class="verdict" id="verdict"></span></div>
         <div class="topfix" id="topfix" hidden><span class="k">Fix first</span><p id="topfixText"></p><span class="w" id="topfixWhere"></span></div>
         <div class="meta" id="meta" hidden>
           <span class="pill">Held in line <b id="hold">0.0 s</b></span>
@@ -1060,7 +1061,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
         <summary><h3>Setting up the shot</h3></summary>
         <ul class="how">
           <li>Prop the phone at hip height, 2–3 m away, with you head to feet in frame.</li>
-          <li>Record a clip and hold the pose: Sama times how long you stay in line (score 80 or above).</li>
+          <li>Record a clip and hold the pose: Sama times how long you stay in line.</li>
           <li>Practise barefoot with hands uncovered: Sama checks foot direction, heel line and wrist and palm position too.</li>
           <li>Fitted clothes and an uncluttered background give steadier readings.</li>
         </ul>
@@ -4327,10 +4328,11 @@ function liveRef(K, W, H){
   return {kp, S, live:true, mirrored:false, head, neck, crown, ls:kp[5], rs:kp[6], lh:kp[11], rh:kp[12], face3, up3:[hx, hy, 0], headR:.12*k, floor, scale:k, f};
 }
 // Corrections drawn on the figure itself: a soft ring on the joint to adjust and a short tag, instead of angles and numbers.
+// Warm accent rather than the error red, and a slow breathing pulse, so it reads as "focus here" and not "wrong".
 function drawFriendlyChecks(K, u, t){
-  const colors = {near:css('--near'), off:css('--off'), good:css('--good')};
+  const colors = {near:css('--near'), off:css('--fix'), good:css('--good')};
   const vis = last.checks.filter(x => x.s !== null && x.status !== 'good' && x.status !== 'hidden').sort((a,b) => a.s - b.s).slice(0, 4);
-  const pulse = mode === 'live' ? .8 + .2*Math.sin(t/260) : 1;
+  const pulse = mode === 'live' ? .9 + .1*Math.sin(t/700) : 1;
   const spots = [];
   for (const x of vis){
     const P = x.names.map(n => pt(K, n)), three = ['angle','line','angle3'].includes(x.c.t);
@@ -4378,7 +4380,7 @@ function renderAvatarStage(){
     drawFlatMat(ctx, R, avatar.mat || '#B5C2AE');
     drawFlatFigure(ctx, R, avatar);
     ctx.restore();
-    if (last && showOverlay) drawFriendlyChecks(K, Math.max(cv.width, cv.height)/700, performance.now());
+    if (last) drawFriendlyChecks(K, Math.max(cv.width, cv.height)/700, performance.now());
   }
   drawInset();
 }
@@ -4394,7 +4396,7 @@ function render(){
   const u = Math.max(cv.width, cv.height)/700 * (mode==='sample' ? .75 : 1);
   ctx.save(); if (mode==='sample'){ ctx.globalAlpha = .7; if (curRef) ctx.translate(-figShift(curRef)*sc, 0); } // lines sit on the figure where it is drawn
   const mir = mirror(), K = kp.map(p => ({x: mir ? cv.width - p.x*sc : p.x*sc, y:p.y*sc, s:p.s, w:p.w}));
-  const colors = {good:css('--good'), near:css('--near'), off:css('--off')};
+  const colors = {good:css('--good'), near:css('--near'), off:css('--fix')};
   const base = pt(K,'ma').s>=VIS ? pt(K,'ma') : pt(K,'mh');
   if (base.s >= VIS){
     ctx.save(); ctx.setLineDash([8*u,8*u]); ctx.strokeStyle='rgba(255,255,255,.55)'; ctx.lineWidth=1.5*u;
@@ -4460,6 +4462,14 @@ function gaugeRange(c){
   const lo = ['angle','line','angle3','fdir'].includes(c.t) ? c.tg-45 : Math.max(0, c.tg-45);
   return {lo, hi:lo+90, b0:c.tg-c.tol, b1:c.tg+c.tol, tg:c.tg};
 }
+// The pose is described in kind words, never as a number: how close it is and what to do next.
+const TIERS = [
+  {min:90, label:'Beautifully aligned', note:'Enjoy the pose and keep breathing.', color:'var(--good)'},
+  {min:80, label:'Almost there', note:'In line, with a small refinement left.', color:'var(--good)'},
+  {min:60, label:'Getting there', note:'A few gentle adjustments will help.', color:'var(--near)'},
+  {min:-Infinity, label:'This can improve', note:'Take it one step at a time, starting with the first fix.', color:'var(--fix)'},
+];
+function tierOf(s){ return s == null ? null : TIERS.find(t => s >= t.min); }
 function renderPanel(){
   $('pName').textContent = pose.name; $('pSk').textContent = `${pose.sk} · ${DIFF_NAMES[diffOf(pose.id)]}`;
   if ($('pHist').dataset.pose !== pose.id){ $('pHist').dataset.pose = pose.id; $('pHist').textContent = POSE_HISTORY[pose.id] || ''; $('pHistBox').hidden = !POSE_HISTORY[pose.id]; }
@@ -4470,16 +4480,16 @@ function renderPanel(){
       : '<strong>Framing</strong> The camera looks across the mat from its long side. Keep head to feet in frame; the small figure shows the pose as the camera should see it.')
       + (auto ? ' Moved the camera? Sama notices on its own, or set it in Settings.' : ''); }
   const list = $('checks'); list.textContent = ''; $('topfix').hidden = true;
+  $('score').style.color = '';
   if (!pose.checks.length){ $('score').innerHTML = '<small>Rest</small>'; $('verdict').textContent = 'Nothing to align here. Lie back, let the body grow heavy and breathe slowly.'; $('verdict').style.color = 'var(--muted)'; return; }
   if (!last){
-    $('score').innerHTML = '–<small>/100</small>'; $('verdict').textContent = mode==='sample' ? '' : 'No full body found. Step back so head to feet is in frame.' + (mode==='sample' ? '' : '\n' + diagText());
+    $('score').textContent = '–'; $('verdict').textContent = mode==='sample' ? '' : 'No full body found. Step back so head to feet is in frame.' + (mode==='sample' ? '' : '\n' + diagText());
     if (mode !== 'sample' && diagPad){ const im = document.createElement('canvas'); im.width = im.height = diagPad.width; im.style.cssText = 'display:block;width:96px;height:96px;border-radius:8px;margin-top:6px;border:1px solid var(--line)'; im.getContext('2d').drawImage(diagPad, 0, 0); im.title = 'What the person finder was given'; $('verdict').appendChild(im); } $('verdict').style.color = 'var(--muted)';
     return;
   }
-  const s = last.score;
-  $('score').innerHTML = `${s ?? '–'}<small>/100</small>`;
-  $('verdict').textContent = s==null ? 'Too little of the body is visible' : s>=90 ? 'Well aligned' : s>=80 ? 'In line, small refinements' : s>=60 ? 'A few adjustments' : 'Rebuild the shape';
-  $('verdict').style.color = s==null ? 'var(--muted)' : s>=80 ? 'var(--good)' : s>=60 ? 'var(--near)' : 'var(--off)';
+  const T = tierOf(last.checks.some(x => x.status==='off') ? Math.min(last.score, 89) : last.score); // not "beautifully" while a joint is still clearly off
+  $('score').textContent = T ? T.label : '–'; $('score').style.color = T ? T.color : '';
+  $('verdict').textContent = T ? T.note : 'Too little of the body is visible'; $('verdict').style.color = 'var(--muted)';
   if (mode==='sample'){ $('score').innerHTML = '<small>Reference shape</small>'; $('verdict').textContent = `Every joint at its target. Use Live camera or a photo to check yours.`; $('verdict').style.color = 'var(--muted)'; }
   const worst = last.checks.filter(x => x.status==='off'||x.status==='near').sort((a,b)=>a.s-b.s)[0];
   if (worst){ $('topfix').hidden = false; $('topfixText').textContent = worst.cue; $('topfixWhere').textContent = worst.c.g; }
@@ -4527,8 +4537,10 @@ function renderHist(h = getHist()){
     li.innerHTML = `<span><span class="pn"></span> <span class="d"></span></span><span class="sc"></span>`;
     li.querySelector('.pn').textContent = e.label || (p ? p.name : e.pose);
     li.querySelector('.d').textContent = `· ${d}`;
-    li.querySelector('.sc').textContent = e.pose==='practice' ? `${Math.round(e.hold/60)} min done` : `${e.score ?? '–'}/100` + (e.hold ? ` · ${e.hold.toFixed(1)} s held` : '');
-    li.querySelector('.sc').style.color = e.pose==='practice' ? 'var(--accent)' : e.score>=80 ? 'var(--good)' : e.score>=60 ? 'var(--near)' : 'var(--off)';
+    const T = tierOf(e.score), sc = li.querySelector('.sc');
+    if (e.pose==='practice') sc.textContent = `${Math.round(e.hold/60)} min done`;
+    else { sc.innerHTML = '<span></span><span></span>'; sc.firstChild.textContent = T ? T.label : '–'; if (e.hold) sc.lastChild.textContent = ` · ${e.hold.toFixed(1)} s held`; }
+    sc.style.color = e.pose==='practice' ? 'var(--accent)' : T ? T.color : 'var(--muted)';
     ul.appendChild(li);
   }
 }
@@ -4662,7 +4674,7 @@ async function processFrame(fresh){
     if ((live || !vid.paused) && last && last.score!=null){
       if (vs.lastT!=null){ const dt = t - vs.lastT; if (dt>0 && dt<1 && last.score>=80) vs.hold += dt; }
       if (vs.best==null || last.score > vs.best){ vs.best = last.score; vs.bestT = t; }
-      $('hold').textContent = `${vs.hold.toFixed(1)} s`; $('best').textContent = `${vs.best}`;
+      $('hold').textContent = `${vs.hold.toFixed(1)} s`; $('best').textContent = tierOf(vs.best).label;
       speakCue();
     }
     vs.lastT = live || !vid.paused ? t : null;
@@ -7231,7 +7243,7 @@ function renderProfile(){
   const days = new Set(h.map(e => new Date(e.at).toDateString())).size;
   const inLine = checks.filter(e => e.score >= 80).length;
   $('pfTiles').innerHTML = '';
-  for (const [v, l] of [[checks.length, 'checks'], [best == null ? '–' : best, 'best score'], [inLine, 'in line (80+)'], [minutes, 'minutes practised'], [days, 'active days']]){ const t = document.createElement('div'); t.className = 'ptile'; t.innerHTML = '<b></b><span></span>'; t.querySelector('b').textContent = v; t.querySelector('span').textContent = l; $('pfTiles').appendChild(t); }
+  for (const [v, l] of [[checks.length, 'checks'], [inLine, 'in line'], [minutes, 'minutes practised'], [days, 'active days']]){ const t = document.createElement('div'); t.className = 'ptile'; t.innerHTML = '<b></b><span></span>'; t.querySelector('b').textContent = v; t.querySelector('span').textContent = l; $('pfTiles').appendChild(t); }
   const lad = $('pfLadder'); lad.innerHTML = '';
   if (profile.goal && GOALS[profile.goal]){
     const g = GOALS[profile.goal], bestOf = id => { const s = checks.filter(e => e.pose === id).map(e => e.score); return s.length ? Math.max(...s) : null; };
@@ -7248,8 +7260,9 @@ function renderProfile(){
     const li = document.createElement('li'); const d = new Date(e.at).toLocaleString(LOC(), {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
     li.innerHTML = '<span><span class="pn"></span> <span class="d"></span></span><span class="sc"></span>';
     li.querySelector('.pn').textContent = e.label || poseName(e.pose); li.querySelector('.d').textContent = `· ${d}`;
-    li.querySelector('.sc').textContent = e.pose === 'practice' ? `${Math.round(e.hold/60)} min done` : `${e.score ?? '–'}/100`;
-    li.querySelector('.sc').style.color = e.pose === 'practice' ? 'var(--accent)' : e.score >= 80 ? 'var(--good)' : e.score >= 60 ? 'var(--near)' : 'var(--off)';
+    const T = tierOf(e.score);
+    li.querySelector('.sc').textContent = e.pose === 'practice' ? `${Math.round(e.hold/60)} min done` : T ? T.label : '–';
+    li.querySelector('.sc').style.color = e.pose === 'practice' ? 'var(--accent)' : T ? T.color : 'var(--muted)';
     ul.appendChild(li);
   }
   const sv = $('pfSaved'), all = getSaved(); sv.textContent = '';
