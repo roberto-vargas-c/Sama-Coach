@@ -3585,6 +3585,23 @@ function flatPattern(g, kind, color, s, part, frame){
     for (let r = Math.floor(y0/sp) - 1; r*sp < y0 + 2*E + sp; r++) for (let c = Math.floor(x0/sp) - 1; c*sp < x0 + 2*E + sp; c++){
       const h = hash2(r, c), x = c*sp + hash2(c, r)*sp, y = r*sp + h*sp;
       if (h < .3) star(x, y, s*.026); else { g.beginPath(); g.arc(x, y, s*(h < .7 ? .006 : .009), 0, Math.PI*2); g.fill(); } } }
+  // the doodle prints (redrawn from a hand-drawn character set): wobbly ink stripes that break and thin like a pen line,
+  // a fuzz of short ink dashes, a row of buttons down the front, and pen pinstripes running down the legs
+  else if (kind === 'inkstripes'){ g.lineCap = 'round'; const sp = step*.78;
+    for (let r = Math.floor(y0/sp) - 1; r*sp < y0 + 2*E + sp; r++){ const y = r*sp + (hash2(r, 7) - .5)*sp*.35, w = Math.max(1, s*(.006 + hash2(r, 3)*.006)), tilt = (hash2(r, 5) - .5)*.05, ph = hash2(r, 9)*6;
+      g.lineWidth = w; g.beginPath(); let pen = false;
+      for (let x = x0 - step; x < x0 + 2*E + step; x += step*.25){ const k = Math.floor(x/(step*.25)), gap = hash2(r, k) < .02; // now and then the pen lifts
+        const yy = y + Math.sin(x/(step*1.7) + ph)*sp*.06 + x*tilt*.04; if (gap){ pen = false; continue; } pen ? g.lineTo(x, yy) : g.moveTo(x, yy); pen = true; }
+      g.stroke(); } }
+  else if (kind === 'dashes'){ const sp = step*.62; g.lineCap = 'round'; g.lineWidth = Math.max(1, s*.0065);
+    for (let r = Math.floor(y0/(sp*1.6)) - 1; r*sp*1.6 < y0 + 2*E + sp; r++) for (let c = Math.floor(x0/sp) - 1; c*sp < x0 + 2*E + sp; c++){
+      const h = hash2(r, c); if (h < .22) continue; const x = c*sp + (r & 1 ? sp/2 : 0) + (hash2(c, r) - .5)*sp*.5, y = r*sp*1.6 + (h - .5)*sp*.6, L = sp*(.55 + h*.6), a = (hash2(c + 3, r) - .5)*.35;
+      g.beginPath(); g.moveTo(x - Math.sin(a)*L/2, y - Math.cos(a)*L/2); g.lineTo(x + Math.sin(a)*L/2, y + Math.cos(a)*L/2); g.stroke(); } }
+  else if (kind === 'buttons'){ if (part.part !== 'torso' && part.part !== 'shoulders'){ g.restore(); return; } g.lineCap = 'round'; g.lineWidth = Math.max(1.4, s*.011); // down the middle of the shirt only, never on a sleeve
+    for (let i = 0; i < 5; i++){ const y = -s*.06 - i*s*.075; g.beginPath(); g.moveTo(0, y - s*.012); g.lineTo(s*.002, y + s*.012); g.stroke(); } }
+  else if (kind === 'pinstripes'){ const sp = step*.7; g.lineCap = 'round';
+    for (let c = Math.floor(x0/sp) - 1; c*sp < x0 + 2*E + sp; c++){ const x = c*sp + sp/2, ph = hash2(c, 11)*6; g.lineWidth = Math.max(1, s*(.006 + hash2(c, 2)*.004)); g.beginPath();
+      for (let y = y0 - step; y < y0 + 2*E + step; y += step*.3){ const xx = x + Math.sin(y/(step*1.4) + ph)*sp*.06; y === y0 - step ? g.moveTo(xx, y) : g.lineTo(xx, y); } g.stroke(); } }
   g.restore();
 }
 function flatColor(av, part, far){
@@ -3979,6 +3996,23 @@ function outfitHat(g, R, av, kind){ // drawn in the head's own frame, over the h
   if (kind === 'straw'){ const c = '#E3C88F'; g.fillStyle = shade(c, .9); g.beginPath(); g.ellipse(0, -r*.62, wx*1.85, r*.3, 0, 0, Math.PI*2); g.fill(); // a wide brim, a rounded crown, a black band
     g.fillStyle = c; g.beginPath(); g.moveTo(-wx*.86, -r*.66); g.bezierCurveTo(-wx*.9, -r*1.55, wx*.9, -r*1.55, wx*.86, -r*.66); g.closePath(); g.fill();
     g.fillStyle = '#1E1D22'; g.beginPath(); g.moveTo(-wx*.87, -r*.68); g.lineTo(wx*.87, -r*.68); g.lineTo(wx*.88, -r*.88); g.lineTo(-wx*.88, -r*.88); g.closePath(); g.fill(); }
+  // the doodle characters' headwear: cat ears on a band, a red cat hat, a fox hood round the face, a striped knit cap, a flat-topped cap.
+  // Each has a thin ink edge, the way the characters are drawn.
+  const ink = (lw = .045) => { g.strokeStyle = '#1F1F24'; g.lineWidth = Math.max(1, r*lw); g.lineJoin = 'round'; g.stroke(); };
+  const ear = (x, w, y0, h, lean) => { g.beginPath(); g.moveTo(x - w, y0); g.quadraticCurveTo(x - w*.6 + lean*.4, y0 - h*.6, x + lean, y0 - h); g.quadraticCurveTo(x + w*.7 + lean*.3, y0 - h*.5, x + w, y0); g.closePath(); };
+  const ears = (y0, h, w, fill, inner) => { for (const d of sgn ? [-sgn*.2, sgn*.45] : [-1, 1]){ const x = d*wx*(sgn ? 1 : .62); ear(x, wx*w, y0, h, (sgn ? -sgn : d)*wx*.12); g.fillStyle = fill; g.fill(); ink();
+    if (inner){ ear(x, wx*w*.45, y0 - h*.08, h*.62, (sgn ? -sgn : d)*wx*.08); g.fillStyle = inner; g.fill(); } } };
+  if (kind === 'catears'){ ears(-r*.72, r*.78, .3, av.hatColor || '#F4F1EA', null); } // two pointed ears standing up out of the hair
+  if (kind === 'cathat'){ const c = av.hatColor; ears(-r*.62, r*1.05, .36, c, null); g.fillStyle = c; dome(-r*.35, -r*1.12); g.fill(); g.save(); dome(-r*.35, -r*1.12); ink(); g.restore();
+    g.fillStyle = c; g.fillRect(-wx*1.0, -r*.62, wx*2, r*.3); } // a red knit hat with cat ears, pulled down to the brow
+  if (kind === 'foxhood'){ const c = av.hatColor, ox = sgn*wx*.32; // a hood round the face, its ears standing tall; the face shows through an oval
+    ears(-r*.75, r*1.25, .4, c, null);
+    g.beginPath(); g.ellipse(-sgn*wx*.08, -r*.08, wx*1.24, r*1.3, 0, 0, Math.PI*2); g.ellipse(ox, r*.12, wx*(sgn ? .7 : .74), r*.86, 0, 0, Math.PI*2, true); g.fillStyle = c; g.fill('evenodd');
+    g.save(); g.beginPath(); g.ellipse(-sgn*wx*.08, -r*.08, wx*1.24, r*1.3, 0, 0, Math.PI*2); g.clip(); g.strokeStyle = shade(c, .62); g.lineWidth = Math.max(1, r*.045); g.lineCap = 'round'; // the fur's dashes
+    for (let i = 0; i < 22; i++){ const a = i/22*Math.PI*2, x = Math.cos(a)*wx*1.06 - sgn*wx*.08, y = -r*.08 + Math.sin(a)*r*1.12; if (y > r*.8) continue; g.beginPath(); g.moveTo(x, y - r*.08); g.lineTo(x + r*.01, y + r*.08); g.stroke(); } g.restore(); }
+  if (kind === 'knitcap'){ const c = av.hatColor || '#F4F1EA'; g.fillStyle = c; dome(-r*.48, -r*1.08); g.fill(); g.save(); dome(-r*.48, -r*1.08); g.clip(); g.strokeStyle = '#7C8597'; g.lineWidth = Math.max(1, r*.05); // a white skullcap ringed with thin stripes
+    for (const y of [-.6, -.76, -.92]){ g.beginPath(); g.moveTo(-wx*1.1, -r*y*-1); g.quadraticCurveTo(0, -r*y*-1 - r*.08, wx*1.1, -r*y*-1); g.stroke(); } g.restore(); dome(-r*.48, -r*1.08); ink(.05); }
+  if (kind === 'flatcap'){ const c = av.hatColor || '#1F1F24'; g.fillStyle = c; g.beginPath(); g.moveTo(-wx*1.04, -r*.5); g.lineTo(-wx*1.0, -r*1.08); g.quadraticCurveTo(0, -r*1.16, wx*1.0, -r*1.08); g.lineTo(wx*1.04, -r*.5); g.quadraticCurveTo(0, -r*.6, -wx*1.04, -r*.5); g.closePath(); g.fill(); } // a round flat-topped cap, low on the brow
   if (kind === 'flower'){ const fx = (sgn ? -sgn*r*.55 : r*.72), fy = -r*.62, pr = r*.17; g.fillStyle = '#D0283A'; // a red flower tucked in the hair above the ear
     for (let i = 0; i < 6; i++){ const a = i*Math.PI/3; g.beginPath(); g.arc(fx + Math.cos(a)*pr*1.05, fy + Math.sin(a)*pr*1.05, pr, 0, Math.PI*2); g.fill(); }
     g.fillStyle = '#F2C14E'; g.beginPath(); g.arc(fx, fy, pr*.6, 0, Math.PI*2); g.fill(); g.fillStyle = '#4E7A3A'; g.beginPath(); g.ellipse(fx - r*.28, fy + r*.12, r*.16, r*.07, .6, 0, Math.PI*2); g.fill(); }
@@ -4004,6 +4038,14 @@ const OUTFITS = { // wear: the clothes it sets; the rest are the extras it draws
   retro:{wear: av => av.figure === 'man' ? {topColor:'#2A9D9A', sleeves:'long', pattern:'colorblock', patternColor:'#6E4AA8', bottomColor:'#1E1D22', fit:'relaxed', legStripe:'#2A9D9A', socks:{color:'#F6F3EE', stripes:['#D8443A', '#2B4C9B']}, footColor:'#F2F0EA'}
       : {topColor:'#F6F3EE', sleeves:'short', sleeveColor:'#D8443A', pattern:'none', bottomColor:'#8FB0CF', fit:'relaxed', hat:'headband', bandColors:['#F6F3EE', '#D8443A', '#2B4C9B'], socks:{color:'#F6F3EE', stripes:['#D8443A', '#D8443A']}, footColor:'#F2F0EA'}, base:{bottom:'leggings'}}, // the 80s: a ringer tee, high-waisted jeans, a headband and tube socks; a colour-block windbreaker and track pants
   aerobics:{wear: () => ({topColor:'#F06BAA', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1E1D22', fit:'fitted', hat:'headband', bandColors:['#F06BAA', '#F6F3EE', '#F06BAA'], socks:{color:'#F06BAA', stripes:[], warm:true}}), base:{}, bulk:1.08}, // a slouchy sweatshirt, leggings, leg warmers and a sweatband
+  // Doodle: the hand-drawn characters, one each: a striped top over an orange skirt; a fuzzy tunic with cat ears; a red cat hat over a long jumper;
+  // a fox suit with its hood up; a red onesie and knit cap; a grey striped jumper, a flat cap and yellow mittens
+  breton:{wear: () => ({topColor:'#F4F1EA', sleeves:'long', pattern:'inkstripes', patternColor:'#1F1F24', bottom:'leggings', bottomColor:'#F4F1EA', legs:'pinstripes', fit:'fitted', footColor:'#1F1F24', skirt:'#E2783F', skirtLen:.55, skirtFlare:.45, skirtDashes:'#9E3F1E'}), base:{}},
+  moss:{wear: () => ({topColor:'#D4D66A', sleeves:'short', pattern:'dashes', patternColor:'#55602A', bottom:'leggings', bottomColor:'#5E9A94', fit:'relaxed', footColor:'#1F1F24', hat:'catears', hatColor:'#F4F1EA'}), base:{}},
+  redcat:{wear: () => ({topColor:'#E6E7C3', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1F1F24', fit:'fitted', footColor:'#1F1F24', hat:'cathat', hatColor:'#E0413A'}), base:{}, bulk:1.12},
+  fox:{wear: () => ({topColor:'#E86A3A', sleeves:'long', pattern:'dashes', patternColor:'#9E3F1E', bottom:'leggings', bottomColor:'#A69C94', fit:'fitted', footColor:'#1F1F24', hat:'foxhood', hatColor:'#E86A3A', skirt:'#E86A3A', skirtLen:.75, skirtFlare:.6, skirtDashes:'#9E3F1E', skirtFur:true}), base:{}},
+  onesie:{wear: () => ({topColor:'#E8504A', sleeves:'long', pattern:'buttons', patternColor:'#23233A', bottom:'leggings', bottomColor:'#E8504A', fit:'relaxed', hat:'knitcap', hatColor:'#F4F1EA'}), base:{}},
+  sailor:{wear: () => ({topColor:'#D2D2CE', sleeves:'long', pattern:'inkstripes', patternColor:'#3A3A40', bottom:'leggings', bottomColor:'#1F1F24', fit:'fitted', footColor:'#1F1F24', handColor:'#EDE15A', hat:'flatcap', hatColor:'#1F1F24'}), base:{}, mittens:true},
   vampire:{wear: () => ({}), base:{topColor:'#24222B', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1D1B22', fit:'fitted', footColor:'#1A191E', hairColor:'#17151A'}, cape:true, front:'vampire'},
 };
 function outfitParts(parts, R, sil, av, O){ // the extras that are shapes of their own, each with its place in the drawing order
@@ -4024,8 +4066,8 @@ function outfitParts(parts, R, sil, av, O){ // the extras that are shapes of the
     const q = [[W*1.04, H*.45], [Math.max(W, Hp)*1.12, rH*.2], [Hp*1.1, -rH*.55], [0, -rH*.62]], pts = [...q.map(([x, y]) => F(-x, y)), ...q.slice(0, 3).reverse().map(([x, y]) => F(x, y))];
     const j = add(g => { g.beginPath(); smoothClosed(g, pts); }, 'torso', 3.67); j.jacket = true; }
   if (av.skirt){ const hc = {x: (K[11].x + K[12].x)/2, y: (K[11].y + K[12].y)/2}, gi = SHAPE.girth || 1, W = (fr.hh*SHAPE.hipJ + fr.rH*SHAPE.waist)*gi, wl = F(-W*1.02, H*.3), wr = F(W*1.02, H*.3);
-    const hem = o => { const an = K[15 + o], q = {x: hc.x + (an.x - hc.x)*.9, y: hc.y + (an.y - hc.y)*.9}, ox = K[15 + o].x < K[16 - o].x ? -1 : 1;
-      return {x: q.x + ox*rS*(1.2 + 1.5*fc), y: q.y}; }; // the hem just above each ankle, flared well out past it: a full bell
+    const sl = av.skirtLen || .9, sf = av.skirtFlare || 1, hem = o => { const an = K[15 + o], q = {x: hc.x + (an.x - hc.x)*sl, y: hc.y + (an.y - hc.y)*sl}, ox = K[15 + o].x < K[16 - o].x ? -1 : 1;
+      return {x: q.x + ox*rS*(1.2 + 1.5*fc)*sf, y: q.y}; }; // the hem just above each ankle, flared well out past it: a full bell
     const hl0 = hem(0), hr0 = hem(1), [hl, hr] = hl0.x < hr0.x ? [hl0, hr0] : [hr0, hl0], [tl, tr] = wl.x < wr.x ? [wl, wr] : [wr, wl], dip = rS*.25;
     const skirt = g => { g.beginPath(); g.moveTo(tl.x, tl.y); g.bezierCurveTo(tl.x - rS*.5, tl.y + (hl.y - tl.y)*.25, hl.x + rS*.2, hl.y - (hl.y - tl.y)*.45, hl.x, hl.y); const n = 6; for (let i = 1; i <= n; i++){ const a = {x: hl.x + (hr.x - hl.x)*(i - .5)/n, y: hl.y + (hr.y - hl.y)*(i - .5)/n + dip}, b = {x: hl.x + (hr.x - hl.x)*i/n, y: hl.y + (hr.y - hl.y)*i/n}; g.quadraticCurveTo(a.x, a.y, b.x, b.y); }
       g.bezierCurveTo(hr.x - rS*.2, hr.y - (hr.y - tr.y)*.45, tr.x + rS*.5, tr.y + (hr.y - tr.y)*.25, tr.x, tr.y); g.closePath(); };
@@ -4078,6 +4120,8 @@ function outfitDraw(g, p, R, sil, av, O){ // the extras that are prints over a p
   if (p.part === 'skirt'){ g.fillStyle = p.color; p(g); g.fill(); flatShade(g, p, p.color, s); g.save(); p(g); g.clip(); // ribbon bands along the hem, and the tiers' seam
     const {hl, hr, tl, tr} = p, at = (f, d) => ({x: tl.x + (hl.x - tl.x)*f + ((tr.x + (hr.x - tr.x)*f) - (tl.x + (hl.x - tl.x)*f))*d, y: tl.y + (hl.y - tl.y)*f + ((tr.y + (hr.y - tr.y)*f) - (tl.y + (hl.y - tl.y)*f))*d});
     const band = (f, w, col) => { g.strokeStyle = col; g.lineWidth = s*w; g.beginPath(); const a = at(f, -.2), b = at(f, 1.2); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); };
+    if (av.skirtDashes){ g.strokeStyle = av.skirtDashes; g.lineWidth = Math.max(1, s*.006); g.lineCap = 'round'; for (const [f, L] of [[.04, .07], [.96, -.07]]) for (let i = 0; i <= 18; i++){ const a = at(f, i/18), b = at(f + L, i/18 + (hash2(i, f*9) - .5)*.02); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); } // the doodle skirt: ink dashes along the waist and the hem
+      if (av.skirtFur) flatPattern(g, 'dashes', av.skirtDashes, s, p, {x: hl.x, y: hl.y, a: 0}); g.restore(); return true; }
     band(.55, .006, shade(p.color, .8)); band(.84, .014, '#F6F3EE'); band(.89, .012, '#2B4C9B'); band(.935, .012, '#F2C14E'); band(.98, .012, '#2B4C9B'); g.restore(); return true; }
   if (p.part === 'ruffle'){ g.fillStyle = p.color; p(g); g.fill(); flatShade(g, p, p.color, s); g.strokeStyle = shade(p.color, .82); g.lineWidth = Math.max(1, s*.004); p(g); g.stroke(); g.save(); p(g); g.clip(); const {F, wR, top, dep, ribbons} = p; // two ribbons following the scalloped edge
     ribbons.forEach((col, i) => { g.strokeStyle = col; g.lineWidth = s*.01; g.beginPath(); for (let j = 0; j <= 24; j++){ const t = j/24, q = F(-wR*1.1 + 2.2*wR*t, top - dep*(.32 + i*.17) - s*.0*t - (s*.01)*Math.sin(t*Math.PI)*0 - (dep*.09)*Math.sin(t*Math.PI)); j ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y); } g.stroke(); }); g.restore(); return true; }
@@ -4192,11 +4236,19 @@ function drawFlatFigure(g, R, av){
     const strapClip = clothed && p.hem; if (strapClip){ const {F, H, rS} = torsoFrame3(R, sil), q = [F(-9e3, -9e3), F(9e3, -9e3), F(9e3, H - rS*.15), F(-9e3, H - rS*.15)]; g.save(); g.beginPath(); g.moveTo(q[0].x, q[0].y); q.slice(1).forEach(v => g.lineTo(v.x, v.y)); g.closePath(); g.clip(); } // the straps stay plain: a pattern's motif cut to a sliver there reads as specks
     if (clothed) flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, p, torsoFrame); // one direction across the whole shirt
     if (strapClip) g.restore();
+    if (av.legs && (['thigh', 'hips', 'seat', 'glute'].includes(p.part) || (p.part === 'shin' && av.bottom !== 'shorts'))) // a print of its own on the trousers, running down each leg
+      flatPattern(g, av.legs, isFar ? shade(av.legsColor || av.patternColor, farDim) : av.legsColor || av.patternColor, s, p, (p.part === 'thigh' || p.part === 'shin') && p.ks ? frameOf(p) : torsoFrame);
+    const armPrint = q => { // a knit's stripes wrap round the sleeve: across the upper arm up to the elbow, across the forearm beyond it
+      if (av.pattern !== 'inkstripes' || !q.ks) return flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, q, torsoFrame);
+      const unit = (x, y) => { const d = Math.hypot(x, y) || 1; return {x: x/d, y: y/d}; }, [i0, i1] = q.ks, el = K[i1], wr = K[i1 + 2] || el, B = 9e3;
+      const u = unit(el.x - K[i0].x, el.y - K[i0].y), f = unit(wr.x - el.x, wr.y - el.y), n = unit(u.x + f.x, u.y + f.y), t = {x: -n.y, y: n.x};
+      for (const sgn of [-1, 1]){ g.save(); g.beginPath(); for (const [a, b] of [[B, 0], [-B, 0], [-B, B*sgn], [B, B*sgn]]) g.lineTo(el.x + t.x*a + n.x*b, el.y + t.y*a + n.y*b); g.closePath(); g.clip();
+        flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, q, sgn < 0 ? {x: el.x, y: el.y, a: Math.atan2(u.y, u.x) - Math.PI/2} : {x: el.x, y: el.y, a: Math.atan2(f.y, f.x) - Math.PI/2}); g.restore(); } };
     if (p.part === 'upper' && av.sleeves !== 'none' && p.ks && detailed){ // the detailed body's sleeve is the arm's own outline down to the hem, a touch looser: it can never miss the arm and show skin beside it
       const a0 = K[p.ks[0]], b = K[p.ks[1]], dl = Math.hypot(b.x - a0.x, b.y - a0.y) || 1, d = {x: (b.x - a0.x)/dl, y: (b.y - a0.y)/dl}, n = {x: -d.y, y: d.x}, long = av.sleeves === 'long', e = {x: a0.x + d.x*dl*(long ? 9 : .58), y: a0.y + d.y*dl*(long ? 9 : .58)}, B = s*9, sc0 = av.sleeveColor || av.topColor, sc = isFar ? shade(sc0, farDim) : sc0;
       g.save(); g.beginPath(); for (const q of [[e.x + n.x*B, e.y + n.y*B], [e.x - n.x*B, e.y - n.y*B], [e.x - n.x*B - d.x*B, e.y - n.y*B - d.y*B], [e.x + n.x*B - d.x*B, e.y + n.y*B - d.y*B]]) g.lineTo(q[0], q[1]); g.closePath(); g.clip(); // the shoulder side of the hem
       g.fillStyle = sc; g.strokeStyle = sc; g.lineWidth = sil.upper[0]*s*.22; g.lineJoin = 'round'; p(g); g.fill(); g.stroke(); if (!(R.blob > .3)) flatShade(g, p, sc, s);
-      flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, p, torsoFrame); g.restore();
+      armPrint(p); g.restore();
     } else if (p.part === 'upper' && av.sleeves !== 'none' && p.ks){ // a sleeve: wider than the arm at the shoulder, ending in a slight flare
       const K6 = K[p.ks[0] === 5 ? 6 : 5], a0 = K[p.ks[0]], b = K[p.ks[1]], a = detailed ? {x: a0.x + (K6.x - a0.x)*.13*.9 + (b.x - a0.x)*.1, y: a0.y + (K6.y - a0.y)*.13*.9 + (b.y - a0.y)*.1} : a0; // on the detailed body the arm starts a little in from the joint
       const long = av.sleeves === 'long', f = long ? 1 : .58, e = {x: a.x + (b.x - a.x)*f, y: a.y + (b.y - a.y)*f}, r = sil.upper[0]*s;
@@ -8592,7 +8644,14 @@ const COSTUMES = [
   {name:'Vampire', look:{body:'detailed', outfit:'vampire', mat:'#5B3A78'}},
   {name:'Costa Rica', look:{body:'detailed', outfit:'tipico', mat:'#2B4C9B'}},
   {name:'Retro', look:{body:'detailed', outfit:'retro', mat:'#B5574B'}},
-  {name:'Aerobics', look:{body:'detailed', outfit:'aerobics', mat:'#E9A1C4'}}];
+  {name:'Aerobics', look:{body:'detailed', outfit:'aerobics', mat:'#E9A1C4'}},
+  // Doodle: redrawn from a hand-drawn vector character set
+  {name:'Breton', look:{body:'detailed', outfit:'breton', mat:'#E2783F'}},
+  {name:'Cat ears', look:{body:'detailed', outfit:'moss', mat:'#5E9A94'}},
+  {name:'Red cat', look:{body:'detailed', outfit:'redcat', mat:'#E0413A'}},
+  {name:'Fox', look:{body:'detailed', outfit:'fox', mat:'#CFC6BC'}},
+  {name:'Onesie', look:{body:'detailed', outfit:'onesie', mat:'#3D4B6A'}},
+  {name:'Stripes', look:{body:'detailed', outfit:'sailor', mat:'#EDE15A'}}];
 // The generator: a random base hue, then a palette that holds together (an analogous, complementary or single-hue scheme),
 // muted the way the brand is: a mid-tone top, a print that contrasts with it, dark trousers and a mat that answers the top.
 function genSkin(rnd = Math.random){
