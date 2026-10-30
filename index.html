@@ -1289,6 +1289,7 @@ Savasana, 3 min"></textarea>
             <div class="arow"><span>Hair</span><div class="segs" data-k="hair"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="bun">Bun</button><button type="button" class="seg" data-v="ponytail">Ponytail</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="curly">Curly</button><button type="button" class="seg" data-v="none">None</button></div></div>
             <div class="arow"><span>Hair colour</span><div class="swatches" data-k="hairColor"></div></div>
             <div class="arow"><span>Build</span><div class="segs" data-k="build"><button type="button" class="seg" data-v="slim">Slim</button><button type="button" class="seg" data-v="regular">Regular</button><button type="button" class="seg" data-v="soft">Soft</button><button type="button" class="seg" data-v="strong">Strong</button></div></div>
+            <div class="arow"><span>Body</span><div class="segs" data-k="figure"><button type="button" class="seg" data-v="woman">Woman</button><button type="button" class="seg" data-v="man">Man</button></div></div>
             <div class="arow flatonly"><span>Sleeves</span><div class="segs" data-k="sleeves"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="none">Sleeveless</button></div></div>
             <div class="arow"><span>Top colour</span><div class="swatches" data-k="topColor"></div></div>
             <div class="arow flatonly"><span>Pattern</span><div class="segs" data-k="pattern"><button type="button" class="seg" data-v="none">Plain</button><button type="button" class="seg" data-v="dots">Dots</button><button type="button" class="seg" data-v="stripes">Stripes</button><button type="button" class="seg" data-v="zigzag">Zigzag</button><button type="button" class="seg" data-v="checks">Checks</button><button type="button" class="seg" data-v="waves">Waves</button><button type="button" class="seg" data-v="leaves">Leaves</button><button type="button" class="seg" data-v="rays">Sunrise</button><button type="button" class="seg" data-v="stars">Stars</button></div></div>
@@ -3428,7 +3429,7 @@ function drawSilhouetteScene(g, R, bg, ink, matColor){
 }
 
 // ---------- avatar: the same figure, but coloured and dressed the way the user chose ----------
-const AVATAR_DEFAULT = {v:5, mode:'flat', fit:'fitted', skin:'#C68B62', hair:'short', hairColor:'#2B1D16', build:'regular', top:'tank', topColor:'#F3F1EA', bottom:'leggings', bottomColor:'#2F4A3B', sleeves:'short', pattern:'stripes', patternColor:'#2F4A3B', beard:'no', mat:'#B5C2AE', height:175, matLen:183}; // the main character: cream shirt with ink navy stripes, ink navy trousers, sand mat (the logo's colours)
+const AVATAR_DEFAULT = {v:5, mode:'flat', fit:'fitted', skin:'#C68B62', hair:'short', hairColor:'#2B1D16', build:'regular', top:'tank', topColor:'#F3F1EA', bottom:'leggings', bottomColor:'#2F4A3B', sleeves:'short', pattern:'stripes', patternColor:'#2F4A3B', beard:'no', figure:'woman', mat:'#B5C2AE', height:175, matLen:183}; // the main character: cream shirt with ink navy stripes, ink navy trousers, sand mat (the logo's colours)
 const AVATAR_CHOICES = {
   skin:['#F6D7C3','#E8B99A','#C68B62','#9E6240','#6E4330','#3E2A21'],
   hairColor:['#2B1D16','#5A3825','#A8703E','#D9B36B','#8C8C8C','#B23A2E'],
@@ -3699,7 +3700,9 @@ function footLines(g, base, he, ft, an, r, inner, behind, s){
   g.restore();
 }
 // the detailed body's widths, fitted to the concept sheet by overlaying the two outlines (hips and waist in hip radii from the hip joints, the rest as factors)
-const SHAPE = {hipJ:1, waist:.55, hip:.94, sh:.935, strap:1.25, armhole:1, trap:1.06, neck:1.09, thigh0:.92, thighMid:1.05, knee:.92, calf:1.05, calfAt:1.5, ankle:.78, inner:.3, innerMid:.21, innerKnee:.305, legIn:-.1, ankleIn:.11, hem:.92, ankleW:.92, footIn:.58, footOut:1.05, head:.835, headW:.94, jaw:1.15, ear:.89, headK:.9, lift:.325}; // fitted to concept sheet 1 by overlaying the outlines (95% overlap, arms left out); headK: the head's size, lift: how far (in head radii) it rises on a longer neck
+const SHAPE_WOMAN = {hipJ:1, waist:.55, hip:.94, sh:.935, strap:1.25, armhole:1, trap:1.06, neck:1.09, thigh0:.92, thighMid:1.05, knee:.92, calf:1.05, calfAt:1.5, ankle:.78, inner:.3, innerMid:.21, innerKnee:.305, legIn:-.1, ankleIn:.11, hem:.92, ankleW:.92, footIn:.58, footOut:1.05, head:.835, headW:.94, jaw:1.15, ear:.89, headK:.9, lift:.325, foot:1, arm:1}; // fitted to concept sheet 1 by overlaying the outlines (95.5% overlap, arms left out); headK: the head's size, lift: how far (in head radii) it rises on a longer neck
+const SHAPE_MAN = {hipJ:1, waist:.71, hip:.78, sh:.935, strap:1.45, armhole:1, trap:1.18, neck:1.21, thigh0:.8, thighMid:1.1, knee:.86, calf:1.11, calfAt:1.5, ankle:.78, inner:.5, innerMid:.15, innerKnee:.245, legIn:.08, ankleIn:.05, hem:.92, ankleW:1.1, footIn:.7, footOut:1.29, foot:.94, head:1.015, headW:.88, jaw:1.03, ear:.89, headK:.9, lift:.175, arm:1.25}; // fitted the same way to the male concept sheet (95.6%): shoulders and neck broader, waist straighter, hips narrower, legs straighter and set further apart, bigger feet and fuller arms
+let SHAPE = SHAPE_WOMAN; // the detailed body's widths in use: drawFlatFigure picks the table for the avatar's figure
 function detailParts(parts, R, sil, av){
   // the concept sheets' proportions: slimmer arms, legs that run smoothly through the knee (no round cap), bigger hands and feet
   sil.upper = sil.upper.map(v => v*.8); sil.fore = sil.fore.map(v => v*.8);
@@ -3708,6 +3711,7 @@ function detailParts(parts, R, sil, av){
   const facing = Math.max(0, Math.min(1, Math.hypot(K[5].x - K[6].x, K[5].y - K[6].y)/(sil.shoulder*s*4))); // 1: the shoulders are square to us, 0: in profile
   const behind = R.face3 && R.face3[2] > .35, hc = lerp(P(11), P(12), .5), loose = av.bottom !== 'shorts' && av.fit && av.fit !== 'fitted';
   const backOf = o => { const he = P(23 + o), ft = P(25 + o), v = norm(he.x - ft.x, he.y - ft.y), k = Math.min(1, v.l/(sil.foot*s*2.2)); return {x: v.x*k, y: v.y*k}; }; // strength fades as the foot points at the camera
+  const ankleAt = o => { const a = P(15 + o), b = P(16 - o), d = norm(b.x - a.x, b.y - a.y), m = SHAPE.ankleIn*Math.min(d.l, s*.22); return {...a, x: a.x + d.x*m, y: a.y + d.y*m}; }; // the ankles a little in over the feet (only a little when the feet are far apart)
   const tag = (fn, src) => { fn.part = src.part; fn.side = src.side; fn.ks = src.ks; fn.detailed = true; return fn; };
   const out = parts.map(p => {
     if (p.pelvis){ const q = g => { g.beginPath(); smoothClosed(g, pelvisOutline(R, sil)); }; q.part = 'hips'; return q; } // one smooth pelvis from the waist, round over the hips, into the tops of the thighs
@@ -3724,24 +3728,24 @@ function detailParts(parts, R, sil, av){
     const toMid = norm(hc.x - P(11 + o).x, hc.y - P(11 + o).y), inThigh = {dir: toMid, k: sv => sv < .5 ? SHAPE.inner + (SHAPE.innerMid - SHAPE.inner)*sv*2 : sv < 1 ? SHAPE.innerMid + (SHAPE.innerKnee - SHAPE.innerMid)*(sv - .5)*2 : sv < 1.4 ? SHAPE.innerKnee*(1.4 - sv)/.4 : 0};
     const kn = P(13 + o);
     const leg = g => { const T0 = sil.thigh[0]*s*SHAPE.thigh0, K = sil.thigh[1]*s*SHAPE.knee, A = sil.shin[1]*s*SHAPE.ankle; g.beginPath();
-      chainPath(g, [lerp(P(11 + o), hc, SHAPE.legIn), kn, lerp(kn, lerp(P(15 + o), P(16 - o), SHAPE.ankleIn), SHAPE.hem)], [[0, T0], [.4, T0*SHAPE.thighMid], [.82, K*1.12], [1, K], [SHAPE.calfAt, K*SHAPE.calf], [1.78, A*1.25], [2, A]], back, .5, inThigh); };
+      chainPath(g, [lerp(P(11 + o), hc, SHAPE.legIn), kn, lerp(kn, ankleAt(o), SHAPE.hem)], [[0, T0], [.4, T0*SHAPE.thighMid], [.82, K*1.12], [1, K], [SHAPE.calfAt, K*SHAPE.calf], [1.78, A*1.25], [2, A]], back, .5, inThigh); };
     const thighOnly = g => { const T0 = sil.thigh[0]*s, K = sil.thigh[1]*s; g.beginPath(); chainPath(g, [P(11 + o), P(13 + o)], [[0, T0], [.3, T0*1.02], [1, K]], back, .5, inThigh); };
     const shinOnly = g => { const K = sil.shin[0]*s*.9, A = sil.shin[1]*s*.9; g.beginPath(); chainPath(g, [P(13 + o), P(15 + o)], [[0, K], [.28, K*1.13], [.6, A*1.25], [1, A]], back, .5); };
     if (p.part === 'thigh' && !loose) return tag(av.bottom !== 'shorts' ? leg : thighOnly, p); // in leggings the whole leg is one shape, so nothing shows at the knee
     if (p.part === 'shin' && p.ks[1] === 15 + o && !loose && av.bottom !== 'shorts') return null;
     if (p.part === 'shin' && p.ks[1] === 15 + o && !loose) return tag(shinOnly, p);
-    if (p.part === 'upper') return tag(g => { const U = sil.upper[0]*s, E = sil.upper[1]*s*.92, W = sil.fore[1]*s*.78; g.beginPath();
+    if (p.part === 'upper') return tag(g => { const U = sil.upper[0]*s*SHAPE.arm, E = sil.upper[1]*s*.92*SHAPE.arm, W = sil.fore[1]*s*.78*SHAPE.arm; g.beginPath();
       chainPath(g, [lerp(lerp(P(5 + o), P(6 - o), .13), P(7 + o), .1), P(7 + o), P(9 + o)], [[0, U*1.0], [.45, U*.95], [1, E], [1.25, E*1.1], [2, W]], null, .5); }, p); // the whole arm, starting a little in from the joint (the overlay: our shoulders ran ~15% wide)
     if (p.part === 'fore') return null;
     if (p.part === 'hand'){ const q = tag(g => { g.beginPath(); smoothClosed(g, handOutline(P(9 + o), P(19 + o), P(17 + o), P(21 + o), sil.hand*s*1.95)); }, p);
       q.lines = (g, base) => handLines(g, base, P(9 + o), P(19 + o), P(17 + o), P(21 + o), sil.hand*s*1.95, s); return q; }
-    if (p.part === 'foot'){ const he = P(23 + o), ft = P(25 + o), an = lerp(P(15 + o), P(16 - o), SHAPE.ankleIn), r = sil.foot*s*1.4, inner = an.x < hc.x ? 1 : -1;
+    if (p.part === 'foot'){ const he = P(23 + o), ft = P(25 + o), an = ankleAt(o), r = sil.foot*s*1.4*SHAPE.foot, inner = an.x < hc.x ? 1 : -1;
       const q = tag(g => { g.beginPath(); smoothClosed(g, footOutline(he, ft, an, r, inner, behind)); }, p);
       q.lines = (g, base) => footLines(g, base, he, ft, an, r, inner, behind, s); return q; }
     return p;
   });
   if (av.bottom !== 'shorts' && !loose) for (const sd of ['l', 'r']){ // a bare ankle between the leggings' hem and the foot
-    const o = sd === 'l' ? 0 : 1, an = lerp(P(15 + o), P(16 - o), SHAPE.ankleIn), w = sil.shin[1]*s*SHAPE.ankle*SHAPE.ankleW;
+    const o = sd === 'l' ? 0 : 1, an = ankleAt(o), w = sil.shin[1]*s*SHAPE.ankle*SHAPE.ankleW;
     const ankle = g => { g.beginPath(); taperSub(g, lerp(P(13 + o), an, .7), an, w, w); }; ankle.part = 'foot'; ankle.side = sd; ankle.ks = [13 + o, 15 + o]; out.push(ankle);
   }
   for (const sd of ['l', 'r']){ // the glutes: a round under the seat on the side away from the toes, so they show from the side and go behind the hips face-on
@@ -3811,7 +3815,7 @@ function drawFlatFigure(g, R, av){
     const waist = bandOf(K[11], K[12], sc, Math.max(sil.hip, sil.thigh[0])*s0*.98); waist.part = 'hips'; waist.waistBand = true; parts.push(waist);
     if (av.sleeves !== 'none'){ const yoke = bandOf(K[5], K[6], R.head, Math.max(sil.shoulder, sil.upper[0]*1.42)*s0*.98); yoke.part = 'shoulders'; yoke.yoke = true; parts.push(yoke); }
   }
-  const detailed = av.body === 'detailed' && !(R.blob > 0); if (detailed) parts = detailParts(parts, R, sil, av); if (av.__noArms) parts = parts.filter(p => !['upper','fore','hand','sleeve', ...(av.__skip || [])].includes(p.part));
+  const detailed = av.body === 'detailed' && !(R.blob > 0); SHAPE = av.figure === 'man' ? SHAPE_MAN : SHAPE_WOMAN; if (detailed) parts = detailParts(parts, R, sil, av); if (av.__noArms) parts = parts.filter(p => !['upper','fore','hand','sleeve', ...(av.__skip || [])].includes(p.part));
   const zs = R.kp[5].w ? R.kp[5].w[2] : 0, zr = R.kp[6].w ? R.kp[6].w[2] : 0, far = zs > zr + .02 ? 'l' : zr > zs + .02 ? 'r' : null;
   // the far side is drawn a shade darker, more so the further back it is, so it does not flick dark the frame the body turns past side-on
   const farDim = 1 - .14*Math.max(0, Math.min(1, (Math.abs(zs - zr) - .02)/.05));
@@ -7301,7 +7305,7 @@ async function startOnboarding(){
   if (!await runSteps(G, steps, ans, prog)) return;
   const answers = {name: ans.name, level: ans.level, body: ans.body || [], days: ans.days};
   if (ans.gender === 'woman') answers.gender = 'woman';
-  if (ans.gender && ans.gender !== 'open'){ Object.assign(avatar, ans.gender === 'woman' ? {hair:'long', build:'slim'} : {hair:'short', build:'regular'}); saveAvatar(); try { window.__syncLook && window.__syncLook(); } catch {} retheme(); }
+  if (ans.gender && ans.gender !== 'open'){ Object.assign(avatar, ans.gender === 'woman' ? {hair:'long', build:'slim', figure:'woman'} : {hair:'short', build:'regular', figure:'man'}); saveAvatar(); try { window.__syncLook && window.__syncLook(); } catch {} retheme(); }
   saveProfile({...answers, onboarded:true});
   PROG.create({intent: ans.intent, minutes: ans.minutes, days: ans.days});
   const next = await G.ask({text:`All set, ${answers.name}. Your first practice is ready on Today. Your figure’s wardrobe, your cycle and a dream pose are waiting in your profile whenever you like.`, pose:'upsalute', input:false, chips:[{label:'See today’s practice', value:'today'}, {label:'Dress the figure', value:'dress'}]});
@@ -8275,7 +8279,7 @@ function genSkin(rnd = Math.random){
   for (const s of SKINS) grid.appendChild(card(s.look, s.name));
   $('skinGen').addEventListener('click', () => { fresh.replaceChildren(...Array.from({length:4}, () => card(genSkin()))); fresh.hidden = false; for (const b of fresh.children) paint(b); mark(); });
   for (const h of [grid, fresh]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear(b._look); });
-  window.__shape = SHAPE; window.__skins = {repaint, genSkin, SKINS, drawSkin, drawFig(g, R, look, noMat){ g.save(); g.translate(-figShift(R), 0); const av = {...avatar, ...look}; if (!noMat) drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av); g.restore(); }};
+  window.__shapes = {woman: SHAPE_WOMAN, man: SHAPE_MAN}; window.__skins = {repaint, genSkin, SKINS, drawSkin, drawFig(g, R, look, noMat){ g.save(); g.translate(-figShift(R), 0); const av = {...avatar, ...look}; if (!noMat) drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av); g.restore(); }};
   repaint(); new MutationObserver(repaint).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
   for (const h of [$('avatarBox'), $('lookCard')]) h.addEventListener('click', () => setTimeout(() => { repaint(); }, 0)); // a hand-picked colour or skin tone shows on every card
 })();
