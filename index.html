@@ -3385,8 +3385,13 @@ function torsoOutline(R, SIL, kind){
   const fr = torsoFrame3(R, SIL), {F, H, hh, rS, rH, nw} = fr, hw = fr.hw*.86, side = (pts) => [...pts.map(([x, y]) => F(-x, y)), ...pts.slice().reverse().map(([x, y]) => F(x, y))];
   const W = hh + rH*.78, Hp = hh + rH*1.0;
   if (kind === 'skin') return side([[nw*.9, H + rS*1.3], [hw*.5, H + rS*.72], [hw + rS*.05, H + rS*.25], [hw + rS*.32, H - rS*.35], [hw + rS*.05, H - rS*1.0], [hw*.4, H - rS*1.4]]).reverse();
-  if (kind === 'tank') return side([[nw*1.25, H + rS*.62], [nw*1.5 + rS*.3, H + rS*.68], [hw - rS*.35, H - rS*.45], [hw - rS*.2, H - rS*1.1], [W*1.0, H*.52], [W*.92, H*.36], [Hp, H*.08], [Hp*.85, -rH*.25], [Hp*.3, -rH*.35]]).concat([F(0, H + rS*.35)]).reverse();
+  if (kind === 'tank') return side([[nw*1.25, H + rS*.62], [nw*1.5 + rS*.3, H + rS*.68], [hw - rS*.6, H - rS*.3], [hw - rS*.5, H - rS*1.1], [W*1.0, H*.52], [W*.92, H*.36], [Hp, H*.08], [Hp*.85, -rH*.25], [Hp*.3, -rH*.35]]).concat([F(0, H + rS*.35)]).reverse();
   return side([[nw*1.5, H + rS*.95], [hw*.55, H + rS*.75], [hw + rS*.35, H + rS*.15], [hw + rS*.3, H - rS*.7], [W*1.04, H*.55], [W*.94, H*.36], [Hp, H*.08], [Hp*.85, -rH*.25], [Hp*.3, -rH*.35]]).reverse();
+}
+function pelvisOutline(R, SIL){ // waist (where the shirt ends) curving out over the hips and in to the crotch, in the torso frame
+  const {F, H, hh, rH} = torsoFrame3(R, SIL), W = hh + rH*.8, Hp = hh + rH*.98, top = rH*1.05;
+  const side = [[W*.98, top], [Hp*.99, top*.45], [Hp, 0], [Hp*.93, -rH*.7], [Hp*.55, -rH*1.15]];
+  return [...side.map(([x, y]) => F(-x, y)), F(0, -rH*1.25), ...side.slice().reverse().map(([x, y]) => F(x, y))].reverse();
 }
 function silTorsoShaped(g, R, SIL = SIL_BASE, tank = false){ g.beginPath(); smoothClosed(g, torsoOutline(R, SIL, tank ? 'tank' : 'shirt')); }
 function silhouetteParts(R, SIL = SIL_BASE){
@@ -3697,17 +3702,19 @@ const NECK_LIFT = .4; // the detailed body's head sits this far (in head radii) 
 function detailParts(parts, R, sil, av){
   // the concept sheets' proportions: slimmer arms, legs that run smoothly through the knee (no round cap), bigger hands and feet
   sil.upper = sil.upper.map(v => v*.8); sil.fore = sil.fore.map(v => v*.8);
-  if (!(av.bottom !== 'shorts' && av.fit && av.fit !== 'fitted')){ sil.thigh = [sil.thigh[0]*1.0, sil.thigh[1]*.76]; sil.shin = [Math.max(sil.shin[0], sil.thigh[1]*.98), sil.shin[1]*.8]; }
+  if (!(av.bottom !== 'shorts' && av.fit && av.fit !== 'fitted')){ sil.thigh = [sil.thigh[0]*1.0, sil.thigh[1]*.98]; sil.shin = [Math.max(sil.shin[0], sil.thigh[1]*.98), sil.shin[1]*.9]; }
   const K = R.kp, s = R.scale, P = i => K[i], lerp = (p, q, f) => ({x: p.x + (q.x - p.x)*f, y: p.y + (q.y - p.y)*f}), norm = (x, y) => { const l = Math.hypot(x, y) || 1; return {x: x/l, y: y/l, l}; };
   const facing = Math.max(0, Math.min(1, Math.hypot(K[5].x - K[6].x, K[5].y - K[6].y)/(sil.shoulder*s*4))); // 1: the shoulders are square to us, 0: in profile
   const behind = R.face3 && R.face3[2] > .35, hc = lerp(P(11), P(12), .5), loose = av.bottom !== 'shorts' && av.fit && av.fit !== 'fitted';
   const backOf = o => { const he = P(23 + o), ft = P(25 + o), v = norm(he.x - ft.x, he.y - ft.y), k = Math.min(1, v.l/(sil.foot*s*2.2)); return {x: v.x*k, y: v.y*k}; }; // strength fades as the foot points at the camera
   const tag = (fn, src) => { fn.part = src.part; fn.side = src.side; fn.ks = src.ks; fn.detailed = true; return fn; };
   const out = parts.map(p => {
-    if (p.pelvis){ const q = g => taperPath(g, P(11), P(12), sil.hip*s*.86, sil.hip*s*.86); q.part = 'hips'; return q; } // rounder, narrower hips
+    if (p.pelvis){ const q = g => { g.beginPath(); smoothClosed(g, pelvisOutline(R, sil)); }; q.part = 'hips'; return q; } // one smooth pelvis from the waist, round over the hips, into the tops of the thighs
+    if (p.waistBand || p.seatJoin) return null; // (the simple body's straight-sided block and crotch fill: the pelvis outline does both)
     if (p.yoke) return null;
     if (p.neckPart) return tag(g => { const h = R.head, d = Math.hypot(R.neck.x - h.x, R.neck.y - h.y) || 1, r = flatHeadR(R), top = {x: R.neck.x - (R.neck.x - h.x)/d*r*NECK_LIFT, y: R.neck.y - (R.neck.y - h.y)/d*r*NECK_LIFT};
       g.beginPath(); taperSub(g, lerp(P(5), P(6), .5), top, sil.neck*s*.95, sil.neck*s*.8); }, p); // the flat-topped sleeve band: the sloped shoulders below replace it
+    if (p.volume && facing > .6) return null;
     if (p.volume){ const v = g => taperPath(g, lerp(P(11), P(12), .5), lerp(lerp(P(5), P(6), .5), lerp(P(11), P(12), .5), av.sleeves === 'none' && facing > .5 ? .3 : 0), sil.hip*s*(1 - .45*facing), sil.shoulder*s*(1.05 - .6*facing)); v.part = 'torso'; return v; } // the body's depth: full in profile, slim behind the shaped front
     if (p.line){ const q = tag(g => { g.beginPath(); smoothClosed(g, torsoOutline(R, sil, 'skin')); }, p); q.bare = av.sleeves === 'none'; return q; } // round shoulders, the neck rising out of them
     if (p.outline){ const torso = g => silTorsoShaped(g, R, sil, av.sleeves === 'none'); torso.part = 'torso'; return torso; } // an hourglass torso: chest, a waist pulled in, the hips flaring out
@@ -3715,8 +3722,8 @@ function detailParts(parts, R, sil, av){
     // one smooth outline per limb: hip to ankle, shoulder to wrist, with the width easing between key widths (no caps, no seams)
     const toMid = norm(hc.x - P(11 + o).x, hc.y - P(11 + o).y), inThigh = {dir: toMid, k: sv => sv < .35 ? .45 : sv < 1.0 ? .45 - .45*(sv - .35)/.65 : 0};
     const kn = (() => { const k = P(13 + o), k2 = P(14 - o), d = norm(k2.x - k.x, k2.y - k.y), m = Math.min(d.l*.12, s*.022); return {...k, x: k.x + d.x*m, y: k.y + d.y*m}; })(); // knees a touch closer together, as in the concept sheets
-    const leg = g => { const T0 = sil.thigh[0]*s, K = sil.thigh[1]*s*.95, A = sil.shin[1]*s*.9; g.beginPath();
-      chainPath(g, [P(11 + o), kn, P(15 + o)], [[0, T0], [.3, T0*1.02], [.85, K*1.04], [1, K], [1.28, K*1.13], [1.6, A*1.25], [2, A]], back, .5, inThigh); };
+    const leg = g => { const T0 = sil.thigh[0]*s, K = sil.thigh[1]*s*.92, A = sil.shin[1]*s*.85; g.beginPath();
+      chainPath(g, [P(11 + o), kn, P(15 + o)], [[0, T0], [.4, T0*.95], [.82, K*1.12], [1, K], [1.3, K*1.12], [1.65, A*1.3], [2, A]], back, .5, inThigh); };
     const thighOnly = g => { const T0 = sil.thigh[0]*s, K = sil.thigh[1]*s; g.beginPath(); chainPath(g, [P(11 + o), P(13 + o)], [[0, T0], [.3, T0*1.02], [1, K]], back, .5, inThigh); };
     const shinOnly = g => { const K = sil.shin[0]*s*.9, A = sil.shin[1]*s*.9; g.beginPath(); chainPath(g, [P(13 + o), P(15 + o)], [[0, K], [.28, K*1.13], [.6, A*1.25], [1, A]], back, .5); };
     if (p.part === 'thigh' && !loose) return tag(av.bottom !== 'shorts' ? leg : thighOnly, p); // in leggings the whole leg is one shape, so nothing shows at the knee
@@ -3788,7 +3795,7 @@ function drawFlatFigure(g, R, av){
       const cr = {x: c.x + (c.x - hipC.x)*.12, y: c.y + (c.y - hipC.y)*.12}; // the crotch sits just below the line between the thighs
       gg.beginPath(); gg.moveTo(K[11].x, K[11].y); gg.lineTo(a.x, a.y); gg.quadraticCurveTo(cr.x, cr.y, b.x, b.y); gg.lineTo(K[12].x, K[12].y); gg.closePath();
       const r = sil.thigh[0]*s0*.9; gg.moveTo(a.x + r, a.y); gg.arc(a.x, a.y, r, 0, Math.PI*2); gg.moveTo(b.x + r, b.y); gg.arc(b.x, b.y, r, 0, Math.PI*2); };
-    seat.part = 'seat'; parts.push(seat);
+    seat.part = 'seat'; seat.seatJoin = true; parts.push(seat);
   }
   { // flat tops: fill between the two round caps (thighs at the hips, sleeves at the shoulders) up to their tops, so the
     // waistband and the shoulder line run straight across and only the outer ends stay round. Turned sideways, the joints
@@ -3797,7 +3804,7 @@ function drawFlatFigure(g, R, av){
     const bandOf = (A, B, toward, h) => gg => { const dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy) || 1; let n = {x: -dy/d, y: dx/d};
       const c = {x: (A.x + B.x)/2, y: (A.y + B.y)/2}; if (n.x*(toward.x - c.x) + n.y*(toward.y - c.y) < 0) n = {x: -n.x, y: -n.y};
       gg.beginPath(); gg.moveTo(A.x, A.y); gg.lineTo(B.x, B.y); gg.lineTo(B.x + n.x*h, B.y + n.y*h); gg.lineTo(A.x + n.x*h, A.y + n.y*h); gg.closePath(); };
-    const waist = bandOf(K[11], K[12], sc, Math.max(sil.hip, sil.thigh[0])*s0*.98); waist.part = 'hips'; parts.push(waist);
+    const waist = bandOf(K[11], K[12], sc, Math.max(sil.hip, sil.thigh[0])*s0*.98); waist.part = 'hips'; waist.waistBand = true; parts.push(waist);
     if (av.sleeves !== 'none'){ const yoke = bandOf(K[5], K[6], R.head, Math.max(sil.shoulder, sil.upper[0]*1.42)*s0*.98); yoke.part = 'shoulders'; yoke.yoke = true; parts.push(yoke); }
   }
   const detailed = av.body === 'detailed' && !(R.blob > 0); if (detailed) parts = detailParts(parts, R, sil, av);
