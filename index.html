@@ -3393,19 +3393,27 @@ function torsoOutline(R, SIL, kind, neck = null){ // neck: {l, r} screen points 
   const nc = Math.max(nw*1.05*SHAPE.neck, nw*1.4*SHAPE.neck*fk), tm = Math.max(hw*.66, nc + rS*.2*fk);
   const skinTop = [[nc*.5, H + rS*.9], [nc, H + rS], [nc + (tm - nc)*.45, H + rS*.84*SHAPE.trap], [tm, H + rS*.62*SHAPE.trap], [hw + rS*.05 + gx*.5, H + rS*.25*SHAPE.trap], [hw + rS*.32 + gx, H - rS*.35]];
   for (let i = 1; i < skinTop.length; i++) skinTop[i][0] = Math.max(skinTop[i][0], skinTop[i - 1][0] + rS*.02); // always widening from the neck to the shoulder: no wings where the neck is wider than a turned shoulder
-  if (kind === 'skin'){ // a raised arm grows out of the shoulder: the slope from the neck runs on along the top of the arm, and under it the outline curves down into the side of the chest (no round shoulder hanging below the arm)
+  let lowSk = null; // the shoulders' top, sunk to lifted arms: the straps lie on it
+  if (kind === 'skin' || kind === 'pit' || kind === 'tank'){ // a raised arm grows out of the shoulder: the slope from the neck runs on along the top of the arm, and under it the outline curves down into the side of the chest (no round shoulder hanging below the arm)
     const o0 = F(0, 0), ex = F(1, 0), ey = F(0, 1), ax = ex.x - o0.x, ay = ex.y - o0.y, ux = ey.x - o0.x, uy = ey.y - o0.y, det = ax*uy - ay*ux || 1, loc = q => [((q.x - o0.x)*uy - (q.y - o0.y)*ux)/det, (ax*(q.y - o0.y) - ay*(q.x - o0.x))/det];
     const U = SIL.upper[0]*R.scale*SHAPE.arm, rest = skinTop.slice(0, 4), tail = [[hw + rS*.05 + gx*.5, H + rS*.25*SHAPE.trap], [hw + rS*.32 + gx, H - rS*.35], [hw + rS*.05 + gx, H - rS*1.0]];
     const half = sgn => { const [sI, eI] = loc(R.ls)[0]*sgn > 0 ? [5, 7] : [6, 8], [jx, jy] = loc(R.kp[sI]), [kx, ky] = loc(R.kp[eI]), J = [Math.abs(jx) + gx, jy], dl = Math.hypot(kx - jx, ky - jy) || 1, d = [(kx - jx)*sgn/dl, (ky - jy)/dl];
-      const t = Math.max(0, Math.min(1, (d[1] + .65)/.55))*Math.max(0, Math.min(1, (fc - .35)/.3)), n = [-d[1], d[0]], at = (f, w) => [J[0] + d[0]*rS*f + n[0]*w, J[1] + d[1]*rS*f + n[1]*w];
-      const arm = [at(.45, U*.93), at(.55, -U*.85), [Math.min(hw - rS*.4, J[0] - rS*.5) + gx*.5, Math.min(H - rS*.9, J[1] - U - rS*.15)]];
-      return t > 0 ? tail.map((q, i) => [q[0] + (arm[i][0] - q[0])*t, q[1] + (arm[i][1] - q[1])*t]) : tail; };
+      const t = Math.max(0, Math.min(1, (d[1] + .65)/.55))*Math.max(0, Math.min(1, (fr.hw/(rS*2) - 1.2)/.08))*Math.max(0, Math.min(1, (d[0] - .4)/.3)), n = [-d[1], d[0]], at = (f, w) => [J[0] + d[0]*rS*f + n[0]*w, J[1] + d[1]*rS*f + n[1]*w];
+      const pit = [Math.min(hw - rS*.4, J[0] - rS*.5) + gx*.5, Math.min(H - rS*.9, J[1] - U - rS*.15)], arm = [at(.6, U*.8), J, pit], mix = (q, r) => [q[0] + (r[0] - q[0])*t, q[1] + (r[1] - q[1])*t];
+      const sIn = nw*1.25*SHAPE.neckW*fk, sOut = Math.min(Math.max((nw*1.5 + rS*.3)*SHAPE.strap*fk, sIn + rS*Math.max(SHAPE.strapW, .4)*fk), Math.max(hw, W), Math.max(tm, sIn + rS*.3)), sx = Math.min((sIn + sOut)/2, rest[3][0] - rS*.05);
+      let k = 1; while (k < rest.length - 1 && rest[k][0] < sx) k++; const [x0, y0] = rest[k - 1], [x1, y1] = rest[k], under = [sx, y0 + (y1 - y0)*Math.max(0, Math.min(1, (sx - x0)/((x1 - x0) || 1))) - rS*.12]; // under the strap: where the arm's own outline turns in, out of sight
+      const P0 = R.kp[sI], P1 = R.kp[eI], pl = Math.hypot(P1.x - P0.x, P1.y - P0.y) || 1, dx = (P1.x - P0.x)/pl, dy = (P1.y - P0.y)/pl, upv = {x: ey.x - o0.x, y: ey.y - o0.y}, ns = -dy*upv.x + dx*upv.y > 0 ? 1 : -1, bx = P0.x - dy*ns*U*.95, by = P0.y + dx*ns*U*.95, Q = F(sgn*rest[3][0], 0), cr = upv.x*dy - upv.y*dx;
+      const top = mix(rest[3], [rest[3][0], Math.abs(cr) > .2 ? Math.min(rest[3][1] + rS*.3, ((bx - Q.x)*dy - (by - Q.y)*dx)/cr) : rest[3][1]]); // the shoulder's top sinks to the top of a lifted arm, so the slope from the neck runs straight on along it
+      const r1 = rest[1], fx = (rest[2][0] - r1[0])/((top[0] - r1[0]) || 1), slope2 = mix(rest[2], [rest[2][0], Math.min(rest[2][1], r1[1] + (top[1] - r1[1])*fx + rS*.04)]); // and the slope eases down to it, no shelf
+      return {t, kI: eI - 2, top, slope2, pts: t > 0 ? tail.map((q, i) => mix(q, arm[i])) : tail, pit: mix(tail[2], pit), inner: [hw*.4, H - rS*1.4], slope: under}; }; // t: how far the arm is lifted; inside a lifted arm's own outline (drawn over this one) the shoulder steps out of the way
+    if (kind === 'tank'){ const hL = half(-1), hR = half(1); lowSk = [rest[1], [rest[2][0], Math.min(hL.slope2[1], hR.slope2[1])], [rest[3][0], Math.min(hL.top[1], hR.top[1])], ...skinTop.slice(4)]; } else {
+    if (kind === 'pit') return [-1, 1].map(sg => { const h = half(sg), S = ([x, y]) => F(sg*x, y); return {t: h.t, kI: h.kI, slope: S(h.slope), top: S(h.top), pit: S(h.pit), inner: S(h.inner), deep: F(-sg*hw, H - rS*2.5), far: F(-sg*hw, H + rS*4)}; });
     const sideLR = (pL, pR) => [...pL.map(([x, y, k]) => ({...F(-x, y), k})), ...pR.slice().reverse().map(([x, y, k]) => ({...F(x, y), k}))];
-    const body = sideLR([...rest.slice(neck ? 1 : 0), ...half(-1), [hw*.4, H - rS*1.4]], [...rest.slice(neck ? 1 : 0), ...half(1), [hw*.4, H - rS*1.4]]);
-    return neck ? [...neck.l, ...body, ...neck.r.slice().reverse()].reverse() : body.reverse(); } // the neck and the shoulders as one outline, so they join smoothly in any view
+    const hL = half(-1), hR = half(1), near = h => rest.slice(neck ? 1 : 0, 2).filter((q, i) => !(neck && h.t > .3) || i > 0), body = sideLR([...near(hL), ...(neck && hL.t > .3 ? [] : [hL.slope2]), hL.top, ...hL.pts, [hw*.4, H - rS*1.4]], [...near(hR), ...(neck && hR.t > .3 ? [] : [hR.slope2]), hR.top, ...hR.pts, [hw*.4, H - rS*1.4]]); // (a lifted arm's slope runs straight from the neck)
+    return neck ? [...neck.l, ...body, ...neck.r.slice().reverse()].reverse() : body.reverse(); } } // the neck and the shoulders as one outline, so they join smoothly in any view
   const a2 = [Math.max((hw - rS*.5)*SHAPE.ah2, W*(1 - fc)), H - rS*SHAPE.ah2y], w1 = [W, H*.52], bust = [(a2[0] + w1[0])/2*SHAPE.bust, (a2[1] + w1[1])/2]; // the bust: the side of the top swelling out between the armpit and the waist
   const sIn = nw*1.25*SHAPE.neckW*fk, sOut = Math.min(Math.max((nw*1.5 + rS*.3)*SHAPE.strap*fk, sIn + rS*Math.max(SHAPE.strapW, .4)*fk), Math.max(hw, W), Math.max(tm, sIn + rS*.3)), arm1 = Math.max((hw - rS*.6)*SHAPE.armhole, Math.min(sOut, W*(1 - fc)), sOut*.97); // the strap ends inside the shoulder and drops straight into the armhole: no fin over the arm
-  const sk = [[0, H + rS*1.02], ...skinTop.slice(1), [hw*9, H - rS*9]];
+  const sk = [[0, H + rS*1.02], ...(lowSk || skinTop.slice(1)), [hw*9, H - rS*9]];
   const onSkin = x => { let i = 0; while (i < sk.length - 2 && sk[i + 1][0] < x) i++; const [x0, y0] = sk[i], [x1, y1] = sk[i + 1]; return Math.min(H + rS*.62, y0 + (y1 - y0)*Math.max(0, Math.min(1, (x - x0)/((x1 - x0) || 1))) - rS*.07); }; // the straps lie on the shoulder's slope, just inside it, never standing up above it
   const hemX = Math.max(Hp*Math.max(SHAPE.hemW, 1.08), W*1.02); // the hem always covers the top of the trousers, belly or not
   const hangs = pts => { // the top hangs from the armpit to the hem over the body's widest points: never curving in at the waist, only out (over the bust, a belly), and smoothly
@@ -3701,7 +3709,7 @@ function smoothClosed(g, pts){
 }
 // widths: [[s, w], ...] along the chain (s counts segments: 0 at the first joint, 1 at the second, ...), eased between keys;
 // `back` (the side away from the toes) gets a little more of each swell, for the calf and the hamstring
-function chainPath(g, J, widths, back, backK = 0, inward = null){ // inward: {dir, k(s)} adds width on the side facing dir (the inner thigh)
+function chainSides(J, widths, back, backK = 0, inward = null){ // the chain's two edges, sampled (L on one side, Rr on the other), and its width
   const n = widths.length, sl = widths.slice(0, -1).map((q, i) => (widths[i + 1][1] - q[1])/((widths[i + 1][0] - q[0]) || 1)), tg = widths.map((q, i) => i === 0 || i === n - 1 || sl[i - 1]*sl[i] <= 0 ? 0 : 2/(1/sl[i - 1] + 1/sl[i])); // the width runs through its keys as one smooth curve (a monotone spline: no flat steps at each key, no overshoot)
   const W = sv => { let i = 0; while (i < n - 2 && widths[i + 1][0] < sv) i++; const [s0, w0] = widths[i], [s1, w1] = widths[i + 1], h = (s1 - s0) || 1, f = Math.max(0, Math.min(1, (sv - s0)/h)), f2 = f*f, f3 = f2*f; return w0*(2*f3 - 3*f2 + 1) + tg[i]*h*(f3 - 2*f2 + f) + w1*(3*f2 - 2*f3) + tg[i + 1]*h*(f3 - f2); };
   const segs = J.length - 1, N = 10, dirs = []; for (let k = 0; k < segs; k++){ const dx = J[k + 1].x - J[k].x, dy = J[k + 1].y - J[k].y, l = Math.hypot(dx, dy) || 1; dirs.push({x: dx/l, y: dy/l}); }
@@ -3713,7 +3721,10 @@ function chainPath(g, J, widths, back, backK = 0, inward = null){ // inward: {di
     const nx = -d.y, ny = d.x, w = W(sv), bs = back ? nx*back.x + ny*back.y : 0, is = inward ? nx*inward.dir.x + ny*inward.dir.y : 0, ik = inward ? inward.k(sv) : 0, wl = w*(1 + backK*.12*Math.max(0, bs) + ik*Math.max(0, is)), wr = w*(1 + backK*.12*Math.max(0, -bs) + ik*Math.max(0, -is));
     L.push({x: x + nx*wl, y: y + ny*wl}); Rr.push({x: x - nx*wr, y: y - ny*wr});
   }
-  const a = J[0], b = J[segs], th0 = Math.atan2(dirs[0].y, dirs[0].x), th1 = Math.atan2(dirs[segs - 1].y, dirs[segs - 1].x);
+  return {L, Rr, W, dirs};
+}
+function chainPath(g, J, widths, back, backK = 0, inward = null){ // inward: {dir, k(s)} adds width on the side facing dir (the inner thigh)
+  const {L, Rr, W, dirs} = chainSides(J, widths, back, backK, inward), segs = J.length - 1, a = J[0], b = J[segs], th0 = Math.atan2(dirs[0].y, dirs[0].x), th1 = Math.atan2(dirs[segs - 1].y, dirs[segs - 1].x);
   g.moveTo(L[0].x, L[0].y); for (const q of L) g.lineTo(q.x, q.y);
   g.arc(b.x, b.y, W(segs), th1 + Math.PI/2, th1 - Math.PI/2, true);
   for (let i = Rr.length - 1; i >= 0; i--) g.lineTo(Rr[i].x, Rr[i].y);
@@ -3797,13 +3808,25 @@ function detailParts(parts, R, sil, av){
     if (p.part === 'thigh' && !loose) return tag(av.bottom !== 'shorts' ? leg : thighOnly, p); // in leggings the whole leg is one shape, so nothing shows at the knee
     if (p.part === 'shin' && p.ks[1] === 15 + o && !loose && av.bottom !== 'shorts') return null;
     if (p.part === 'shin' && p.ks[1] === 15 + o && !loose) return tag(shinOnly, p);
-    if (p.part === 'upper'){ const e0 = A(7 + o), s0 = A(5 + o), q = tag(g => { const U = sil.upper[0]*s*SHAPE.arm, E = sil.upper[1]*s*.92*SHAPE.arm, W = sil.fore[1]*s*.78*SHAPE.arm; g.beginPath();
-      const sh0 = lerp(A(5 + o), A(6 - o), SHAPE.armIn), el = A(7 + o), hang = Math.max(0, Math.min(1, (el.y - sh0.y)/(Math.hypot(el.x - sh0.x, el.y - sh0.y) || 1))); // a hanging arm starts a little down the arm (its cap is the shoulder's); a raised one right at the joint, so it never floats off the shoulder
-      chainPath(g, [hang < .45 && av.sleeves === 'none' ? lerp(sh0, A(6 - o), .2) : lerp(sh0, el, .2*hang*hang), el, A(9 + o)], [[0, U*(hang < .45 && av.sleeves === 'none' ? .93 : 1)], [.45, U*.95], [1, E], [1.25, E*1.1], [2, W]], null, .5); }, p); // the whole arm, starting a little in from the joint (the overlay: our shoulders ran ~15% wide)
-      q.lifted = av.sleeves === 'none' && (e0.y - s0.y) < .45*Math.hypot(e0.x - s0.x, e0.y - s0.y);
-      if (q.lifted){ const {F, rS} = torsoFrame3(R, sil), c = F(0, 0), ex = F(1, 0), ux = F(0, 1).x - c.x, uy = F(0, 1).y - c.y, ax = ex.x - c.x, ay = ex.y - c.y, jx = ((s0.x - c.x)*uy - (s0.y - c.y)*ux)/(ax*uy - ay*ux || 1), xc = jx - Math.sign(jx)*rS*1.1;
-        q.cut = [F(xc, -9e3), F(jx*9e3, -9e3), F(jx*9e3, 9e3), F(xc, 9e3)]; } // its round start stays under the shirt: cut off where the strap runs, the shoulder's skin carries on from there
-      return q; } // a lifted arm lies over the shoulder's skin, which fills in under it into the armpit
+    if (p.part === 'upper'){ const U = sil.upper[0]*s*SHAPE.arm, E = sil.upper[1]*s*.92*SHAPE.arm, W = sil.fore[1]*s*.78*SHAPE.arm, widths = [[0, U], [.45, U*.95], [1, E], [1.25, E*1.1], [2, W]];
+      const sh0 = lerp(A(5 + o), A(6 - o), SHAPE.armIn), el = A(7 + o), hang = Math.max(0, Math.min(1, (el.y - sh0.y)/(Math.hypot(el.x - sh0.x, el.y - sh0.y) || 1))); // a hanging arm starts a little down the arm (its cap is the shoulder's)
+      const pit = av.sleeves === 'none' ? torsoOutline(R, sil, 'pit').find(h => h.kI === 5 + o) : null; if (pit){ pit.slope.k = 1; pit.inner.k = 1; }
+      if (!pit || !(pit.t > 0)) return tag(g => { g.beginPath(); chainPath(g, [lerp(sh0, el, .2*hang*hang), el, A(9 + o)], widths, null, .5); }, p); // the whole arm, starting a little in from the joint (the overlay: our shoulders ran ~15% wide)
+      // a lifted arm grows out of the shoulder as one outline: the slope from the neck runs on along the top of the arm, round the wrist, back along
+      // its underside and down into the side of the chest. The shoulder's own outline steps inside it, so no edge of either shows as a kink
+      const {L, Rr, W: Wd, dirs} = chainSides([sh0, el, A(9 + o)], [[0, U*.95], ...widths.slice(1)], null, .5), mid = (L.length/4) | 0, up = {x: pit.slope.x - pit.pit.x, y: pit.slope.y - pit.pit.y};
+      const topL = (L[mid].x - Rr[mid].x)*up.x + (L[mid].y - Rr[mid].y)*up.y > 0, T = topL ? L : Rr, B = topL ? Rr : L, out = {x: el.x - sh0.x, y: el.y - sh0.y};
+      const past = (q, r, m) => (q.x - r.x)*out.x + (q.y - r.y)*out.y > m*Math.hypot(out.x, out.y);
+      const ta = T[0], tb = T[2], tl = Math.hypot(tb.x - ta.x, tb.y - ta.y) || 1, tf = ((pit.top.x - ta.x)*(tb.x - ta.x) + (pit.top.y - ta.y)*(tb.y - ta.y))/tl/tl; pit.top = {x: ta.x + (tb.x - ta.x)*tf, y: ta.y + (tb.y - ta.y)*tf}; // the shoulder's top on the line of the arm's top, so one runs straight into the other
+      const i0 = Math.max(1, T.findIndex(q => past(q, pit.top, U*.6))), i1 = Math.max(1, B.findIndex(q => past(q, pit.pit, U*.9)));
+      const end = A(9 + o), wr = Wd(2), d1 = dirs[dirs.length - 1], aT = Math.atan2(T[T.length - 1].y - end.y, T[T.length - 1].x - end.x), aB = Math.atan2(B[B.length - 1].y - end.y, B[B.length - 1].x - end.x), aD = Math.atan2(d1.y, d1.x);
+      let dA = aB - aT; while (dA > Math.PI) dA -= Math.PI*2; while (dA < -Math.PI) dA += Math.PI*2; const mA = aT + dA/2; if (Math.cos(mA - aD) < 0) dA -= Math.sign(dA)*Math.PI*2; // round the wrist the outer way
+      const cap = [1, 2, 3, 4, 5].map(k => ({x: end.x + Math.cos(aT + dA*k/6)*wr, y: end.y + Math.sin(aT + dA*k/6)*wr}));
+      const ring = inside => [pit.slope, pit.top, ...T.slice(i0), ...cap, ...B.slice(i1).reverse(), pit.pit, ...inside];
+      const pts = ring([pit.inner]), wide = ring([pit.deep, pit.far]); // wide: the same, closed far inside the body, for the shade (so no shade runs along the closing edge)
+      const q = tag(g => { g.beginPath(); smoothClosed(g, pts); }, p); q.lifted = true; q.flat = true;
+      q.lines = (g, base) => { g.save(); g.beginPath(); smoothClosed(g, pts); g.clip(); flatShade(g, gg => { gg.beginPath(); smoothClosed(gg, wide); }, base, s); g.restore(); };
+      return q; }
     if (p.part === 'fore') return null;
     if (p.part === 'hand' && pressed){ if (o) return null; // palms pressed together (prayer, overhead or at the heart): one pair of hands, side by side, fingers up
       const q = tag(g => { g.beginPath(); smoothClosed(g, pressed.pts); }, p); q.lines = (g, base) => { g.save(); g.strokeStyle = shade(base, .8); g.lineWidth = Math.max(.7, s*.0022); g.lineCap = 'round'; g.beginPath(); g.moveTo(pressed.seam[0].x, pressed.seam[0].y); g.lineTo(pressed.seam[1].x, pressed.seam[1].y); g.stroke(); g.restore(); }; return q; }
@@ -3896,7 +3919,7 @@ function drawFlatFigure(g, R, av){
   // back to front: far limbs; the near upper arm (its shoulder end hides behind the shirt); the shirt; the trousers over it
   // (shin under thigh, so the knee reads as the end of the thigh); the near arm again minus its shoulder; the head
   const SUB = {foot:.05, shin:.1, thigh:.3, upper:.4, fore:.5, hand:.6}; // feet first, so the trouser hems fall over them
-  const order = p => p.under || (p.lifted && p.side !== far) ? 1.95 : p.part==='head' || p.part==='neck' ? 9 : p.hem ? 3.7 : p.part==='glute' ? (R.face3 && R.face3[2] > .35 ? 3.6 : 3.45) : p.part==='seatlines' ? 3.65 : p.part==='band' ? 3.62 : p.part==='neckline' ? 2.5 : p.bare ? 1.9 : p.front ? 4 : (p.side && p.side===far) ? SUB[p.part] || 0
+  const order = p => p.under || p.lifted ? 1.95 : p.part==='head' || p.part==='neck' ? 9 : p.hem ? 3.7 : p.part==='glute' ? (R.face3 && R.face3[2] > .35 ? 3.6 : 3.45) : p.part==='seatlines' ? 3.65 : p.part==='band' ? 3.62 : p.part==='neckline' ? 2.5 : p.bare ? 1.9 : p.front ? 4 : (p.side && p.side===far) ? SUB[p.part] || 0
     : p.part==='upper' ? 1 : p.part==='torso' || p.part==='shoulders' ? 2 : p.part==='shin' || p.part==='foot' || p.part==='thigh' ? 3 + SUB[p.part] : p.part==='hips' || p.part==='seat' ? 3.5 : 4 + (SUB[p.part] || 0);
   const Kw = R.kp, hz = Kw[0] && Kw[0].w ? Kw[0].w[2] : null, nearSide = far === 'l' ? 'r' : far === 'r' ? 'l' : null;
   // an arm reaching up past the ear (Low Lunge, Chair, Warrior I) is the near one, so it lies over the side of the head as well
@@ -3909,7 +3932,7 @@ function drawFlatFigure(g, R, av){
   const order0 = order;
   // the arm passes the side of the head, never across the face: keep a window around the face clear of it
   const faceHole = null; // the nearer arm simply lies over the head, as it does from the side
-  const orderF = p => (armFront || (armUp && !(R.blob > 0))) && p.side === nearSide && (p.part === 'upper' || p.part === 'fore' || p.part === 'hand') ? 9.5 : order0(p);
+  const orderF = p => p.lifted ? 1.95 : (armFront || (armUp && !(R.blob > 0))) && p.side === nearSide && (p.part === 'upper' || p.part === 'fore' || p.part === 'hand') ? 9.5 : order0(p);
   for (const p of [...parts]) if (p.part === 'upper' && !(p.side && p.side === far) && !p.lifted){ // second pass of the near upper arm, with a hole where the shoulder joint is
     const K = R.kp, sh = K[p.ks[0]], rr = sil.shoulder*R.scale*1.25;
     const again = gg => p(gg); again.part = 'upper'; again.side = p.side; again.ks = p.ks; again.front = true; again.hole = {x: sh.x, y: sh.y, r: rr}; parts.push(again);
@@ -3930,8 +3953,7 @@ function drawFlatFigure(g, R, av){
   let headDone = false;
   for (const p of [...parts].sort((a,b) => orderF(a)-orderF(b))){
     if (p.part === 'head'){ headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); }); headDone = true; continue; }
-    const isFar = !!(p.side && p.side === far);
-    if (p.cut){ g.save(); g.beginPath(); g.moveTo(p.cut[0].x, p.cut[0].y); p.cut.slice(1).forEach(v => g.lineTo(v.x, v.y)); g.closePath(); g.clip(); }
+    const isFar = !!(p.side && p.side === far) && !p.lifted; // (a lifted arm shares its outline with the shoulder: one colour)
     if (p.hole){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.arc(p.hole.x, p.hole.y, p.hole.r, 0, Math.PI*2, true); g.clip(); }
     const overHead = faceHole && orderF(p) === 9.5; if (overHead){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.moveTo(...faceHole[0]); for (const q of faceHole.slice(1)) g.lineTo(...q); g.closePath(); g.clip('evenodd'); }
     const unseen = R.live && p.ks && p.ks.some(i => R.kp[i].s < VIS); if (unseen) g.globalAlpha *= .35; // a limb the camera did not find is only a hint
@@ -3957,7 +3979,6 @@ function drawFlatFigure(g, R, av){
     if (unseen) g.globalAlpha /= .35;
     if (overHead) g.restore();
     if (p.hole) g.restore();
-    if (p.cut) g.restore();
   }
   if (!headDone) headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); });
   if (clipBlob) g.restore();
