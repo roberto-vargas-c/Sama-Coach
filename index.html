@@ -3960,6 +3960,12 @@ function outfitHat(g, R, av, kind){ // drawn in the head's own frame, over the h
     g.fillStyle = c; cone(); g.fill(); g.save(); cone(); g.clip(); g.strokeStyle = av.hatTrim; g.lineWidth = r*.16; for (let i = -6; i < 8; i++){ g.beginPath(); g.moveTo(i*r*.38 - r, -r*.2); g.lineTo(i*r*.38 + r*.4, -r*2); g.stroke(); } g.restore();
     g.fillStyle = shade(c, .84); roundRectOn(g, -wx*1.08, -r*.58, wx*2.16, r*.28, r*.12); g.fill();
     g.fillStyle = av.hatTrim; g.beginPath(); g.arc(side*wx*1.55, -r*.82, r*.24, 0, Math.PI*2); g.fill(); }
+  if (kind === 'straw'){ const c = '#E3C88F'; g.fillStyle = shade(c, .9); g.beginPath(); g.ellipse(0, -r*.62, wx*1.85, r*.3, 0, 0, Math.PI*2); g.fill(); // a wide brim, a rounded crown, a black band
+    g.fillStyle = c; g.beginPath(); g.moveTo(-wx*.86, -r*.66); g.bezierCurveTo(-wx*.9, -r*1.55, wx*.9, -r*1.55, wx*.86, -r*.66); g.closePath(); g.fill();
+    g.fillStyle = '#1E1D22'; g.beginPath(); g.moveTo(-wx*.87, -r*.68); g.lineTo(wx*.87, -r*.68); g.lineTo(wx*.88, -r*.88); g.lineTo(-wx*.88, -r*.88); g.closePath(); g.fill(); }
+  if (kind === 'flower'){ const fx = (sgn ? -sgn*r*.55 : r*.72), fy = -r*.62, pr = r*.17; g.fillStyle = '#D0283A'; // a red flower tucked in the hair above the ear
+    for (let i = 0; i < 6; i++){ const a = i*Math.PI/3; g.beginPath(); g.arc(fx + Math.cos(a)*pr*1.05, fy + Math.sin(a)*pr*1.05, pr, 0, Math.PI*2); g.fill(); }
+    g.fillStyle = '#F2C14E'; g.beginPath(); g.arc(fx, fy, pr*.6, 0, Math.PI*2); g.fill(); g.fillStyle = '#4E7A3A'; g.beginPath(); g.ellipse(fx - r*.28, fy + r*.12, r*.16, r*.07, .6, 0, Math.PI*2); g.fill(); }
   if (kind === 'pumpkin'){ g.fillStyle = '#E8782A'; dome(-r*.45, -r*1.18); g.fill(); g.strokeStyle = '#C45E1C'; g.lineWidth = Math.max(1, r*.05); g.save(); dome(-r*.45, -r*1.18); g.clip();
     for (const x of [-.5, 0, .5]){ g.beginPath(); g.moveTo(x*wx, -r*.45); g.quadraticCurveTo(x*wx*1.3, -r*.85, x*wx*.5, -r*1.2); g.stroke(); } g.restore();
     g.fillStyle = '#5B7F3A'; g.beginPath(); g.moveTo(-r*.08, -r*1.12); g.quadraticCurveTo(-r*.1, -r*1.45, r*.12, -r*1.52); g.lineTo(r*.16, -r*1.42); g.quadraticCurveTo(r*.06, -r*1.35, r*.1, -r*1.12); g.closePath(); g.fill(); }
@@ -3974,6 +3980,8 @@ const OUTFITS = { // wear: the clothes it sets; the rest are the extras it draws
     base:{sleeves:'long', pattern:'quilt', bottom:'leggings', fit:'relaxed'}, bulk:1.16, jacket:true, hat:'beanie', boots:true, mittens:true},
   skeleton:{wear: () => ({}), base:{topColor:'#1E1D22', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1E1D22', fit:'fitted'}, bones:true},
   pumpkin:{wear: () => ({}), base:{topColor:'#1E1D22', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1E1D22', fit:'fitted'}, hat:'pumpkin', pumpkin:true},
+  tipico:{wear: av => av.figure === 'man' ? {topColor:'#F4F1EA', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#24304F', fit:'relaxed', hat:'straw', kerchief:'#C8262E', sash:'#C8262E'}
+      : {topColor:'#EDE6DA', sleeves:'none', pattern:'none', bottom:'leggings', bottomColor:'#C8262E', fit:'fitted', hat:'flower', skirt:'#C8262E', ruffle:['#FAF8F3', '#2B4C9B', '#C8262E'], sash:'#2B4C9B'}, base:{}}, // Costa Rica's traje tipico, as danced: a full red skirt with ribbon bands and an off-shoulder blouse; a white shirt, red neckerchief and sash, a straw hat
   vampire:{wear: () => ({}), base:{topColor:'#24222B', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1D1B22', fit:'fitted', footColor:'#1A191E', hairColor:'#17151A'}, cape:true, front:'vampire'},
 };
 function outfitParts(parts, R, sil, av, O){ // the extras that are shapes of their own, each with its place in the drawing order
@@ -3993,6 +4001,25 @@ function outfitParts(parts, R, sil, av, O){ // the extras that are shapes of the
   if (O.jacket){ const gi = SHAPE.girth || 1, W = (fr.hh*SHAPE.hipJ + fr.rH*SHAPE.waist)*gi, Hp = (fr.hh*SHAPE.hipJ + fr.rH*SHAPE.hip)*gi, rH = fr.rH; // a jacket is long: it hangs on over the hips, so no waistband or seat shows
     const q = [[W*1.04, H*.45], [Math.max(W, Hp)*1.12, rH*.2], [Hp*1.1, -rH*.55], [0, -rH*.62]], pts = [...q.map(([x, y]) => F(-x, y)), ...q.slice(0, 3).reverse().map(([x, y]) => F(x, y))];
     const j = add(g => { g.beginPath(); smoothClosed(g, pts); }, 'torso', 3.67); j.jacket = true; }
+  if (av.skirt){ const hc = {x: (K[11].x + K[12].x)/2, y: (K[11].y + K[12].y)/2}, gi = SHAPE.girth || 1, W = (fr.hh*SHAPE.hipJ + fr.rH*SHAPE.waist)*gi, wl = F(-W*1.02, H*.3), wr = F(W*1.02, H*.3);
+    const hem = o => { const an = K[15 + o], q = {x: hc.x + (an.x - hc.x)*.9, y: hc.y + (an.y - hc.y)*.9}, ox = K[15 + o].x < K[16 - o].x ? -1 : 1;
+      return {x: q.x + ox*rS*(1.2 + 1.5*fc), y: q.y}; }; // the hem just above each ankle, flared well out past it: a full bell
+    const hl0 = hem(0), hr0 = hem(1), [hl, hr] = hl0.x < hr0.x ? [hl0, hr0] : [hr0, hl0], [tl, tr] = wl.x < wr.x ? [wl, wr] : [wr, wl], dip = rS*.25;
+    const skirt = g => { g.beginPath(); g.moveTo(tl.x, tl.y); g.bezierCurveTo(tl.x - rS*.5, tl.y + (hl.y - tl.y)*.25, hl.x + rS*.2, hl.y - (hl.y - tl.y)*.45, hl.x, hl.y); const n = 6; for (let i = 1; i <= n; i++){ const a = {x: hl.x + (hr.x - hl.x)*(i - .5)/n, y: hl.y + (hr.y - hl.y)*(i - .5)/n + dip}, b = {x: hl.x + (hr.x - hl.x)*i/n, y: hl.y + (hr.y - hl.y)*i/n}; g.quadraticCurveTo(a.x, a.y, b.x, b.y); }
+      g.bezierCurveTo(hr.x - rS*.2, hr.y - (hr.y - tr.y)*.45, tr.x + rS*.5, tr.y + (hr.y - tr.y)*.25, tr.x, tr.y); g.closePath(); };
+    add(skirt, 'skirt', 3.68, {color: av.skirt, hl, hr, tl, tr}); }
+  if (av.sash){ const gi = SHAPE.girth || 1, W = (fr.hh*SHAPE.hipJ + fr.rH*SHAPE.waist)*gi, q = [F(-W*1.06, H*.4), F(W*1.06, H*.4), F(W*1.08, H*.26), F(-W*1.08, H*.26)];
+    add(g => { if (av.figure === 'man' && front) taperPath(g, F(W*.75, H*.3), F(W*.95, -fr.rH*.9), rS*.28, rS*.22); else g.beginPath(); g.moveTo(q[0].x, q[0].y); for (const t of q.slice(1)) g.lineTo(t.x, t.y); g.closePath(); }, 'sash', 3.7, {color: av.sash}); } // a wide sash at the waist (his hangs down one side)
+  if (av.ruffle){ const [c0, c1, c2] = av.ruffle, wR = (hw + rS*.95)*(.45 + .55*fc), top = H - rS*.05, dep = rS*1.5, n = 8; // the off-shoulder blouse: a white flounce round the tops of the arms, edged with two ribbons, the shoulders bare above it
+    const edge = k => { const pts = []; for (let i = 0; i <= 12; i++){ const t = i/12, x = -wR + 2*wR*t, y = top + rS*.12*Math.cos((t - .5)*Math.PI)*0 - rS*.1*Math.sin(t*Math.PI); pts.push([x, y - k]); } return pts; }; // a gentle dip at the front
+    const flounce = g => { g.beginPath(); const tp = edge(0), first = F(...tp[0]); g.moveTo(first.x, first.y); for (const q of tp.slice(1)){ const v = F(...q); g.lineTo(v.x, v.y); }
+      const rc = F(wR + rS*.1, top - dep*.45), e = F(wR*.96, top - dep); g.quadraticCurveTo(rc.x, rc.y, e.x, e.y); // a rounded end over each arm
+      for (let i = 1; i <= n; i++){ const x0 = wR*.96 - (i - 1)*2*wR*.96/n, x1 = wR*.96 - i*2*wR*.96/n, m = F((x0 + x1)/2, top - dep - rS*.22), b = F(x1, top - dep); g.quadraticCurveTo(m.x, m.y, b.x, b.y); }
+      const lc = F(-wR - rS*.1, top - dep*.45), s0 = F(...tp[0]); g.quadraticCurveTo(lc.x, lc.y, s0.x, s0.y); g.closePath(); };
+    add(flounce, 'ruffle', 4.5, {color: c0, ribbons: [c1, c2], F, wR, top, dep});
+    for (const q of out) if (q.part === 'torso' && q.hem){ const yC = top - rS*.05, row = []; for (let i = 0; i <= 10; i++) row.push(F(-wR*3 + i*wR*.6, yC)); q.cut = [...row, F(wR*3, H + rS*30), F(-wR*3, H + rS*30)]; } } // no straps: the blouse ends under the flounce
+  if (av.kerchief){ const k = .45 + .55*fc, base = F(0, H + rS*.75), tip = F(0, H - rS*(front ? .9 : 1.3)); // a red neckerchief: knotted at the throat, its point down the chest (down the back from behind)
+    add(g => { g.beginPath(); const l = F(-nw*1.9*k, H + rS*1.0), r = F(nw*1.9*k, H + rS*1.0); g.moveTo(l.x, l.y); g.lineTo(r.x, r.y); g.lineTo(tip.x, tip.y); g.closePath(); if (front){ g.moveTo(base.x + rS*.28, base.y); g.arc(base.x, base.y, rS*.28, 0, Math.PI*2); } }, 'kerchief', 9.2, {color: av.kerchief}); }
   if (O.front) add(g => g.beginPath(), 'shirtfront', 2.55); // over the neckline's scoop
   if (O.pumpkin){ const c = F(0, H*.36), up = F(0, H*.36 + 1), a = Math.atan2(up.y - c.y, up.x - c.x) - Math.PI/2, ry = H*.6, rx = Math.max((hw + rS*.9)*1.2, ry*.95); // round from every side
     add(g => { g.beginPath(); g.ellipse(c.x, c.y, rx, ry, a, 0, Math.PI*2); }, 'pumpkin', front ? 4.55 : 1.5, {c, a, rx, ry}); } // (from behind it is on the far side of the body) // worn over the chest: in front of the torso and arms, the hands come out beside it
@@ -4006,7 +4033,7 @@ function outfitParts(parts, R, sil, av, O){ // the extras that are shapes of the
     const backShape = g => { g.beginPath(); const hl = hemAt(-spread, 1), hr = hemAt(spread, 1), m = hemAt(0, 1.06), sw = (hw + rS*.6)*(.5 + .5*fc), arc = sd => [F(sd*sw*.92, H + rS*1.0), F(sd*sw, H - rS*.3)]; // from behind: over the round of each shoulder, no corners
       const [cl, pl] = arc(-1), [cr, pr] = arc(1), nl = F(-nw*1.3, H + rS*1.0), nr = F(nw*1.3, H + rS*1.0); g.moveTo(nl.x, nl.y); g.quadraticCurveTo(cl.x, cl.y, pl.x, pl.y); g.quadraticCurveTo(pl.x - (pr.x - pl.x)*.08, pl.y + L*.35, hl.x, hl.y);
       g.quadraticCurveTo(mid.x - spread*.5, m.y + L*.04, m.x, m.y); g.quadraticCurveTo(mid.x + spread*.5, m.y + L*.04, hr.x, hr.y); g.quadraticCurveTo(pr.x + (pr.x - pl.x)*.08, pr.y + L*.35, pr.x, pr.y); g.quadraticCurveTo(cr.x, cr.y, nr.x, nr.y); g.closePath(); };
-    add(front ? shape(1) : backShape, 'cape', front ? -2 : 3.9, {color: '#1A1820'}); if (front && fc > .55) add(shape(.82), 'cape', -1.9, {color: '#A3202B', lining: true}); // (from behind the cape hangs over the back, under the arms)
+    add(front ? shape(1) : backShape, 'cape', front ? -2 : 4.7, {color: '#1A1820'}); // (from behind it covers the back and the arms hanging under it) if (front && fc > .55) add(shape(.82), 'cape', -1.9, {color: '#A3202B', lining: true}); 
     if (front) for (const sd of [-1, 1]) add(g => { const a = F(sd*nw*1.5, H + rS*.75), b = F(sd*(hw*.95 + rS*.2), H + rS*1.1), c = F(sd*(hw*.7 + rS*.2)*.9, H + rS*3.1), d = F(sd*nw*1.2, H + rS*2.2);
       g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineTo(c.x, c.y); g.quadraticCurveTo(d.x, d.y, a.x, a.y); g.closePath(); }, 'collar', 1.85, {color: '#A3202B', side: null}); // the high collar's red inside, standing behind the head
     else { const base = F(0, H), nk = {x: R.neck.x + (R.head.x - R.neck.x)*.4, y: R.neck.y + (R.head.y - R.neck.y)*.4}, up = {x: (nk.x - base.x), y: (nk.y - base.y)}, w = Math.max(nw*2.2, rS*.8)*(.5 + .5*fc); // from behind: one black collar round the back of the neck, up to the hairline
@@ -4025,6 +4052,13 @@ function outfitDraw(g, p, R, sil, av, O){ // the extras that are prints over a p
       g.beginPath(); g.moveTo(-rx*.55, -ry*.05); g.quadraticCurveTo(0, -ry*.25, rx*.55, -ry*.05); g.quadraticCurveTo(0, -ry*.62, -rx*.55, -ry*.05); g.closePath(); g.fill();
       g.fillStyle = '#E8782A'; for (const x of [-.22, .18]){ g.fillRect(rx*x, -ry*.3, rx*.11, ry*.1); } }
     g.restore(); return true; }
+  if (p.part === 'skirt'){ g.fillStyle = p.color; p(g); g.fill(); flatShade(g, p, p.color, s); g.save(); p(g); g.clip(); // ribbon bands along the hem, and the tiers' seam
+    const {hl, hr, tl, tr} = p, at = (f, d) => ({x: tl.x + (hl.x - tl.x)*f + ((tr.x + (hr.x - tr.x)*f) - (tl.x + (hl.x - tl.x)*f))*d, y: tl.y + (hl.y - tl.y)*f + ((tr.y + (hr.y - tr.y)*f) - (tl.y + (hl.y - tl.y)*f))*d});
+    const band = (f, w, col) => { g.strokeStyle = col; g.lineWidth = s*w; g.beginPath(); const a = at(f, -.2), b = at(f, 1.2); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); };
+    band(.55, .006, shade(p.color, .8)); band(.84, .014, '#F6F3EE'); band(.89, .012, '#2B4C9B'); band(.935, .012, '#F2C14E'); band(.98, .012, '#2B4C9B'); g.restore(); return true; }
+  if (p.part === 'ruffle'){ g.fillStyle = p.color; p(g); g.fill(); flatShade(g, p, p.color, s); g.strokeStyle = shade(p.color, .82); g.lineWidth = Math.max(1, s*.004); p(g); g.stroke(); g.save(); p(g); g.clip(); const {F, wR, top, dep, ribbons} = p; // two ribbons following the scalloped edge
+    ribbons.forEach((col, i) => { g.strokeStyle = col; g.lineWidth = s*.01; g.beginPath(); for (let j = 0; j <= 24; j++){ const t = j/24, q = F(-wR*1.1 + 2.2*wR*t, top - dep*(.32 + i*.17) - s*.0*t - (s*.01)*Math.sin(t*Math.PI)*0 - (dep*.09)*Math.sin(t*Math.PI)); j ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y); } g.stroke(); }); g.restore(); return true; }
+  if (p.part === 'sash' || p.part === 'kerchief'){ g.fillStyle = p.color; p(g); g.fill(); return true; }
   if (p.part === 'cape' || p.part === 'collar'){ g.fillStyle = p.color; p(g); g.fill(); return true; }
   if (p.part === 'shirtfront'){ g.fillStyle = av.topColor; outfitShirtFront(g, R, sil, O.front, av.patternColor); return true; }
   if (p.part === 'cuff'){ g.fillStyle = '#EDE6DA'; p(g); g.fill(); return true; }
@@ -4034,7 +4068,7 @@ function outfitOver(g, p, R, sil, av, O){ // prints over the body's own parts, c
   if (!O.bones) return; g.save(); p(g); g.clip(); outfitSkeleton(g, p, R, sil); g.restore();
 }
 function drawFlatFigure(g, R, av){
-  const O = av.outfit && OUTFITS[av.outfit]; if (O){ av = {...av, body:'detailed', ...O.base, ...O.wear(av)}; if (O.hat && av.hair === 'bun') av.hair = 'short'; } // an outfit dresses the body: its clothes over the person's own
+  const O = av.outfit && OUTFITS[av.outfit]; if (O){ av = {...av, body:'detailed', ...O.base, ...O.wear(av)}; if ((O.hat || av.hat) && av.hair === 'bun' && (O.hat || av.hat) !== 'flower') av.hair = 'short'; } // an outfit dresses the body: its clothes over the person's own
   const sil = silFor(av); for (const k of ['thigh','shin','upper','fore']) sil[k] = sil[k].map(v => v*1.22); sil.hand *= 1.15; sil.foot *= 1.1; sil.neck *= 1.3;
   if (O && O.bulk) for (const k of ['upper', 'fore']) sil[k] = sil[k].map(v => v*O.bulk); // a padded jacket: fuller sleeves
   // trouser fit: fuller legs, the feet untouched (shorts only widen the thigh)
@@ -4107,7 +4141,7 @@ function drawFlatFigure(g, R, av){
   // the same flat cut for the top of the shirt, along a line just above the shoulders
   let headDone = false;
   for (const p of [...parts].sort((a,b) => orderF(a)-orderF(b))){
-    if (p.part === 'head'){ headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); if (O && O.hat) outfitHat(g, R, av, O.hat); }); headDone = true; continue; }
+    if (p.part === 'head'){ headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); if (O && (O.hat || av.hat)) outfitHat(g, R, av, O.hat || av.hat); }); headDone = true; continue; }
     const isFar = !!(p.side && p.side === far) && !p.lifted; // (a lifted arm shares its outline with the shoulder: one colour)
     if (O && outfitDraw(g, p, R, sil, av, O)) continue;
     if (p.cut){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); smoothClosed(g, p.cut); g.clip('evenodd'); }
@@ -4139,7 +4173,7 @@ function drawFlatFigure(g, R, av){
     if (p.hole) g.restore();
     if (p.cut) g.restore();
   }
-  if (!headDone) headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); if (O && O.hat) outfitHat(g, R, av, O.hat); });
+  if (!headDone) headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); if (O && (O.hat || av.hat)) outfitHat(g, R, av, O.hat || av.hat); });
   if (clipBlob) g.restore();
   if (R.blob > .5) drawBlobLogo(g, R);
 }
@@ -8514,7 +8548,8 @@ const COSTUMES = [
   {name:'Winter', look:{body:'detailed', outfit:'winter', mat:'#E4EAF0'}},
   {name:'Skeleton', look:{body:'detailed', outfit:'skeleton', mat:'#2A2930'}},
   {name:'Pumpkin', look:{body:'detailed', outfit:'pumpkin', mat:'#3A2F45'}},
-  {name:'Vampire', look:{body:'detailed', outfit:'vampire', mat:'#5B3A78'}}];
+  {name:'Vampire', look:{body:'detailed', outfit:'vampire', mat:'#5B3A78'}},
+  {name:'Costa Rica', look:{body:'detailed', outfit:'tipico', mat:'#2B4C9B'}}];
 // The generator: a random base hue, then a palette that holds together (an analogous, complementary or single-hue scheme),
 // muted the way the brand is: a mid-tone top, a print that contrasts with it, dark trousers and a mat that answers the top.
 function genSkin(rnd = Math.random){
