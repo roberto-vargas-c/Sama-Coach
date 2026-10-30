@@ -3553,6 +3553,7 @@ function flatPattern(g, kind, color, s, part, frame){
   else if (kind === 'aurora'){ g.lineCap = 'round'; // soft ribbons of light sweeping up across the chest
     [[0, color, .9, .045], [s*.06, shade(color, 1.3) === color ? '#9FE3C4' : '#8FE0BE', .8, .03], [-s*.07, color, .55, .025]].forEach(([dx, col, al, w]) => { g.strokeStyle = col; g.globalAlpha = al; g.lineWidth = s*w;
       g.beginPath(); g.moveTo(-s*.2 + dx, -s*.06); g.bezierCurveTo(-s*.02 + dx, -s*.18, -s*.16 + dx, -s*.32, s*.08 + dx, -s*.48); g.stroke(); }); g.globalAlpha = 1; }
+  else if (kind === 'colorblock'){ const band = (y0, y1, col) => { g.fillStyle = col; g.beginPath(); g.moveTo(-E, y0 - E*.35); g.lineTo(E, y0 + E*.35); g.lineTo(E, y1 + E*.35); g.lineTo(-E, y1 - E*.35); g.closePath(); g.fill(); }; band(-s*.42, -s*.34, color); band(-s*.34, -s*.29, '#E86AA6'); } // a windbreaker's slanted colour blocks
   else if (kind === 'checks') rows((y, r) => { for (let x = Math.floor(x0/(2*step))*2*step - 2*step + (r & 1 ? step : 0); x < x0 + 2*E + step; x += step*2) g.fillRect(x, y, step, step); });
   // the skin prints (redrawn from the AI concept sheets): rolling waves, scattered leaves, a sunrise at the waist, a starry night
   else if (kind === 'waves'){ const w = step*3.4; g.lineWidth = Math.max(1.5, s*.018); g.lineCap = 'round'; g.beginPath();
@@ -3966,6 +3967,9 @@ function outfitHat(g, R, av, kind){ // drawn in the head's own frame, over the h
   if (kind === 'flower'){ const fx = (sgn ? -sgn*r*.55 : r*.72), fy = -r*.62, pr = r*.17; g.fillStyle = '#D0283A'; // a red flower tucked in the hair above the ear
     for (let i = 0; i < 6; i++){ const a = i*Math.PI/3; g.beginPath(); g.arc(fx + Math.cos(a)*pr*1.05, fy + Math.sin(a)*pr*1.05, pr, 0, Math.PI*2); g.fill(); }
     g.fillStyle = '#F2C14E'; g.beginPath(); g.arc(fx, fy, pr*.6, 0, Math.PI*2); g.fill(); g.fillStyle = '#4E7A3A'; g.beginPath(); g.ellipse(fx - r*.28, fy + r*.12, r*.16, r*.07, .6, 0, Math.PI*2); g.fill(); }
+  if (kind === 'headband'){ const cs = av.bandColors, y0 = -r*.62, h = r*.27; // a terry headband across the forehead, striped
+    const stripe = (ya, yb) => { g.beginPath(); for (let i = 0; i <= 12; i++){ const x = -wx*1.1 + wx*2.2*i/12; g.lineTo(x, ya + r*.14*(x/wx)**2); } for (let i = 12; i >= 0; i--){ const x = -wx*1.1 + wx*2.2*i/12; g.lineTo(x, yb + r*.14*(x/wx)**2); } g.closePath(); }; // dipping at the sides, as it wraps round above the ears
+    g.save(); g.beginPath(); g.ellipse(0, 0, wx*.99, r*1.0, 0, 0, Math.PI*2); g.clip(); cs.forEach((c, i) => { g.fillStyle = c; stripe(y0 + i*h/cs.length, y0 + (i + 1)*h/cs.length + .5); g.fill(); }); g.restore(); }
   if (kind === 'pumpkin'){ g.fillStyle = '#E8782A'; dome(-r*.45, -r*1.18); g.fill(); g.strokeStyle = '#C45E1C'; g.lineWidth = Math.max(1, r*.05); g.save(); dome(-r*.45, -r*1.18); g.clip();
     for (const x of [-.5, 0, .5]){ g.beginPath(); g.moveTo(x*wx, -r*.45); g.quadraticCurveTo(x*wx*1.3, -r*.85, x*wx*.5, -r*1.2); g.stroke(); } g.restore();
     g.fillStyle = '#5B7F3A'; g.beginPath(); g.moveTo(-r*.08, -r*1.12); g.quadraticCurveTo(-r*.1, -r*1.45, r*.12, -r*1.52); g.lineTo(r*.16, -r*1.42); g.quadraticCurveTo(r*.06, -r*1.35, r*.1, -r*1.12); g.closePath(); g.fill(); }
@@ -3982,6 +3986,9 @@ const OUTFITS = { // wear: the clothes it sets; the rest are the extras it draws
   pumpkin:{wear: () => ({}), base:{topColor:'#1E1D22', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1E1D22', fit:'fitted'}, hat:'pumpkin', pumpkin:true},
   tipico:{wear: av => av.figure === 'man' ? {topColor:'#F4F1EA', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#24304F', fit:'relaxed', hat:'straw', kerchief:'#C8262E', sash:'#C8262E'}
       : {topColor:'#EDE6DA', sleeves:'none', pattern:'none', bottom:'leggings', bottomColor:'#C8262E', fit:'fitted', hat:'flower', skirt:'#C8262E', ruffle:['#FAF8F3', '#2B4C9B', '#C8262E'], sash:'#2B4C9B'}, base:{}}, // Costa Rica's traje tipico, as danced: a full red skirt with ribbon bands and an off-shoulder blouse; a white shirt, red neckerchief and sash, a straw hat
+  retro:{wear: av => av.figure === 'man' ? {topColor:'#2A9D9A', sleeves:'long', pattern:'colorblock', patternColor:'#6E4AA8', bottomColor:'#1E1D22', fit:'relaxed', legStripe:'#2A9D9A', socks:{color:'#F6F3EE', stripes:['#D8443A', '#2B4C9B']}, footColor:'#F2F0EA'}
+      : {topColor:'#F6F3EE', sleeves:'short', sleeveColor:'#D8443A', pattern:'none', bottomColor:'#8FB0CF', fit:'relaxed', hat:'headband', bandColors:['#F6F3EE', '#D8443A', '#2B4C9B'], socks:{color:'#F6F3EE', stripes:['#D8443A', '#D8443A']}, footColor:'#F2F0EA'}, base:{bottom:'leggings'}}, // the 80s: a ringer tee, high-waisted jeans, a headband and tube socks; a colour-block windbreaker and track pants
+  aerobics:{wear: () => ({topColor:'#F06BAA', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1E1D22', fit:'fitted', hat:'headband', bandColors:['#F06BAA', '#F6F3EE', '#F06BAA'], socks:{color:'#F06BAA', stripes:[], warm:true}}), base:{}, bulk:1.08}, // a slouchy sweatshirt, leggings, leg warmers and a sweatband
   vampire:{wear: () => ({}), base:{topColor:'#24222B', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1D1B22', fit:'fitted', footColor:'#1A191E', hairColor:'#17151A'}, cape:true, front:'vampire'},
 };
 function outfitParts(parts, R, sil, av, O){ // the extras that are shapes of their own, each with its place in the drawing order
@@ -4065,7 +4072,17 @@ function outfitDraw(g, p, R, sil, av, O){ // the extras that are prints over a p
   if (p.part === 'cuff'){ g.fillStyle = '#EDE6DA'; p(g); g.fill(); return true; }
   return false;
 }
-function outfitOver(g, p, R, sil, av, O){ // prints over the body's own parts, clipped to them
+function outfitOver(g, p, R, sil, av, O, dim = 1){ // prints over the body's own parts, clipped to them
+  if (av.legStripe && (p.part === 'thigh' || p.part === 'shin') && p.ks){ const K = R.kp, s = R.scale, o = p.side === 'r' ? 1 : 0, hc = {x: (K[11].x + K[12].x)/2, y: (K[11].y + K[12].y)/2}, J = [K[11 + o], K[13 + o], K[15 + o]], w = sil.thigh[1]*s*.85; // a track pant's stripe down the outside of the leg
+    g.save(); p(g); g.clip(); g.strokeStyle = av.legStripe; g.lineWidth = s*.012; g.lineJoin = 'round'; g.beginPath(); J.forEach((q, i) => { const nb = J[Math.min(i + 1, 2)], pb = J[Math.max(i - 1, 0)], dx = nb.x - pb.x, dy = nb.y - pb.y, l = Math.hypot(dx, dy) || 1; let n = {x: -dy/l, y: dx/l}; if (n.x*(q.x - hc.x) + n.y*(q.y - hc.y) < 0 && Math.abs(q.x - hc.x) > 1) n = {x: -n.x, y: -n.y}; const t = {x: q.x + n.x*w, y: q.y + n.y*w}; i ? g.lineTo(t.x, t.y) : g.moveTo(t.x, t.y); }); g.stroke(); g.restore(); }
+  if (av.socks && p.part === 'thigh' && p.side){ const K = R.kp, s = R.scale, o = p.side === 'r' ? 1 : 0, kn = K[13 + o], an = K[15 + o], L = Math.hypot(kn.x - an.x, kn.y - an.y) || 1, u = {x: (kn.x - an.x)/L, y: (kn.y - an.y)/L}, v = {x: -u.y, y: u.x}, warm = av.socks.warm; // tube socks (or leg warmers) round the lower shin, drawn once with the thigh (the last of the leg's parts), in the leg's own taper
+    const col = dim < 1 ? shade(av.socks.color, dim) : av.socks.color, top = {x: an.x + u.x*L*(warm ? .55 : .36), y: an.y + u.y*L*(warm ? .55 : .36)}, W = sil.thigh[0]*s*2, D = L*1.5, t = warm ? 1.22 : 1.03;
+    const band = gg => { gg.beginPath(); gg.moveTo(top.x + v.x*W, top.y + v.y*W); gg.lineTo(top.x - v.x*W, top.y - v.y*W); gg.lineTo(top.x - v.x*W - u.x*D, top.y - v.y*W - u.y*D); gg.lineTo(top.x + v.x*W - u.x*D, top.y + v.y*W - u.y*D); gg.closePath(); };
+    const leg = gg => taperPath(gg, kn, an, sil.shin[0]*s*t, sil.shin[1]*s*t*(warm ? 1.05 : 1));
+    const line = (b, c, lw) => { g.strokeStyle = c; g.lineWidth = lw; g.beginPath(); g.moveTo(top.x + v.x*W - u.x*b, top.y + v.y*W - u.y*b); g.lineTo(top.x - v.x*W - u.x*b, top.y - v.y*W - u.y*b); g.stroke(); };
+    g.save(); band(g); g.clip(); leg(g); g.fillStyle = col; g.fill(); leg(g); g.clip();
+    av.socks.stripes.forEach((c, i) => line(L*(.05 + i*.07), dim < 1 ? shade(c, dim) : c, s*.012)); if (warm) for (let i = 1; i < 7; i++) line(L*.08*i, shade(col, .86), s*.004); // the stripes round the top, or a leg warmer's ribbing
+    g.restore(); }
   if (!O.bones) return; g.save(); p(g); g.clip(); outfitSkeleton(g, p, R, sil); g.restore();
 }
 function drawFlatFigure(g, R, av){
@@ -4158,7 +4175,7 @@ function drawFlatFigure(g, R, av){
     if (clothed) flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, p, torsoFrame); // one direction across the whole shirt
     if (strapClip) g.restore();
     if (p.part === 'upper' && av.sleeves !== 'none' && p.ks && detailed){ // the detailed body's sleeve is the arm's own outline down to the hem, a touch looser: it can never miss the arm and show skin beside it
-      const a0 = K[p.ks[0]], b = K[p.ks[1]], dl = Math.hypot(b.x - a0.x, b.y - a0.y) || 1, d = {x: (b.x - a0.x)/dl, y: (b.y - a0.y)/dl}, n = {x: -d.y, y: d.x}, long = av.sleeves === 'long', e = {x: a0.x + d.x*dl*(long ? 9 : .58), y: a0.y + d.y*dl*(long ? 9 : .58)}, B = s*9, sc = isFar ? shade(av.topColor, farDim) : av.topColor;
+      const a0 = K[p.ks[0]], b = K[p.ks[1]], dl = Math.hypot(b.x - a0.x, b.y - a0.y) || 1, d = {x: (b.x - a0.x)/dl, y: (b.y - a0.y)/dl}, n = {x: -d.y, y: d.x}, long = av.sleeves === 'long', e = {x: a0.x + d.x*dl*(long ? 9 : .58), y: a0.y + d.y*dl*(long ? 9 : .58)}, B = s*9, sc0 = av.sleeveColor || av.topColor, sc = isFar ? shade(sc0, farDim) : sc0;
       g.save(); g.beginPath(); for (const q of [[e.x + n.x*B, e.y + n.y*B], [e.x - n.x*B, e.y - n.y*B], [e.x - n.x*B - d.x*B, e.y - n.y*B - d.y*B], [e.x + n.x*B - d.x*B, e.y + n.y*B - d.y*B]]) g.lineTo(q[0], q[1]); g.closePath(); g.clip(); // the shoulder side of the hem
       g.fillStyle = sc; g.strokeStyle = sc; g.lineWidth = sil.upper[0]*s*.22; g.lineJoin = 'round'; p(g); g.fill(); g.stroke(); if (!(R.blob > .3)) flatShade(g, p, sc, s);
       flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, p, torsoFrame); g.restore();
@@ -4173,7 +4190,7 @@ function drawFlatFigure(g, R, av){
         g.save(); g.clip(clip, 'evenodd'); flatShade(g, sleeve, sc, s); g.restore(); }
       flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, sleeve, torsoFrame);
     }
-    if (O) outfitOver(g, p, R, sil, av, O);
+    if (O) outfitOver(g, p, R, sil, av, O, isFar ? farDim : 1);
     if (unseen) g.globalAlpha /= .35;
     if (overHead) g.restore();
     if (p.hole) g.restore();
@@ -8555,7 +8572,9 @@ const COSTUMES = [
   {name:'Skeleton', look:{body:'detailed', outfit:'skeleton', mat:'#2A2930'}},
   {name:'Pumpkin', look:{body:'detailed', outfit:'pumpkin', mat:'#3A2F45'}},
   {name:'Vampire', look:{body:'detailed', outfit:'vampire', mat:'#5B3A78'}},
-  {name:'Costa Rica', look:{body:'detailed', outfit:'tipico', mat:'#2B4C9B'}}];
+  {name:'Costa Rica', look:{body:'detailed', outfit:'tipico', mat:'#2B4C9B'}},
+  {name:'Retro', look:{body:'detailed', outfit:'retro', mat:'#B5574B'}},
+  {name:'Aerobics', look:{body:'detailed', outfit:'aerobics', mat:'#E9A1C4'}}];
 // The generator: a random base hue, then a palette that holds together (an analogous, complementary or single-hue scheme),
 // muted the way the brand is: a mid-tone top, a print that contrasts with it, dark trousers and a mat that answers the top.
 function genSkin(rnd = Math.random){
