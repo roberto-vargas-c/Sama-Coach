@@ -264,6 +264,12 @@ body.practice .stage.sample #cvBg{display:block} /* full screen: the scene carri
 .arow{display:flex;flex-direction:column;gap:6px}
 .arow>span{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .arow .segs .seg{padding:6px 10px;font-size:13px}
+.skins{margin:10px 0 4px}.skhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.skhead h3{margin:0}
+.skgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}.skgrid+.skgrid{margin-top:8px}
+.skin{display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 4px 6px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.skin canvas{width:100%;aspect-ratio:92/120;border-radius:10px;display:block}
+.skin[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+#skinNew .skin{border-style:dashed}
 .alook .aonly{display:flex;flex-direction:column;gap:14px;margin-top:6px}
 .swatches{display:flex;flex-wrap:wrap;gap:8px}
 .swatches button{width:30px;height:30px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
@@ -1271,6 +1277,12 @@ Savasana, 3 min"></textarea>
         <details class="pcard fold" id="lookCard">
           <summary><span><h2>Your figure</h2><span class="hint">Skin, hair, build, clothes and mat</span></span><canvas class="foldfig" width="96" height="96" data-pose="mountain" data-size="96" aria-hidden="true"></canvas></summary>
           <p class="hint">How you look everywhere in the app: the reference, practices, the camera view and the guide.</p>
+          <div class="skins">
+            <div class="skhead"><h3>Skins</h3><button class="btn small" id="skinGen" type="button">Generate new skins</button></div>
+            <div class="skgrid" id="skinGrid"></div>
+            <div class="skgrid" id="skinNew" hidden></div>
+            <p class="hint">A skin changes your clothes and mat. Your skin tone, hair and build stay yours.</p>
+          </div>
           <div class="alook">
           <div class="aonly alook-rows">
             <div class="arow"><span>Skin</span><div class="swatches" data-k="skin"></div></div>
@@ -1279,7 +1291,7 @@ Savasana, 3 min"></textarea>
             <div class="arow"><span>Build</span><div class="segs" data-k="build"><button type="button" class="seg" data-v="slim">Slim</button><button type="button" class="seg" data-v="regular">Regular</button><button type="button" class="seg" data-v="soft">Soft</button><button type="button" class="seg" data-v="strong">Strong</button></div></div>
             <div class="arow flatonly"><span>Sleeves</span><div class="segs" data-k="sleeves"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="none">Sleeveless</button></div></div>
             <div class="arow"><span>Top colour</span><div class="swatches" data-k="topColor"></div></div>
-            <div class="arow flatonly"><span>Pattern</span><div class="segs" data-k="pattern"><button type="button" class="seg" data-v="none">Plain</button><button type="button" class="seg" data-v="dots">Dots</button><button type="button" class="seg" data-v="stripes">Stripes</button><button type="button" class="seg" data-v="zigzag">Zigzag</button><button type="button" class="seg" data-v="checks">Checks</button></div></div>
+            <div class="arow flatonly"><span>Pattern</span><div class="segs" data-k="pattern"><button type="button" class="seg" data-v="none">Plain</button><button type="button" class="seg" data-v="dots">Dots</button><button type="button" class="seg" data-v="stripes">Stripes</button><button type="button" class="seg" data-v="zigzag">Zigzag</button><button type="button" class="seg" data-v="checks">Checks</button><button type="button" class="seg" data-v="waves">Waves</button><button type="button" class="seg" data-v="leaves">Leaves</button><button type="button" class="seg" data-v="rays">Sunrise</button><button type="button" class="seg" data-v="stars">Stars</button></div></div>
             <div class="arow flatonly"><span>Pattern colour</span><div class="swatches" data-k="patternColor"></div></div>
             <div class="arow"><span>Bottom</span><div class="segs" data-k="bottom"><button type="button" class="seg" data-v="leggings">Trousers</button><button type="button" class="seg" data-v="shorts">Shorts</button></div><div class="swatches" data-k="bottomColor"></div></div>
             <div class="arow"><span>Trouser fit</span><div class="segs" data-k="fit"><button type="button" class="seg" data-v="fitted">Fitted</button><button type="button" class="seg" data-v="relaxed">Relaxed</button><button type="button" class="seg" data-v="wide">Wide</button></div></div>
@@ -3447,6 +3459,7 @@ function silFor(av){
 const shade = (hex, f) => { const n = parseInt(hex.slice(1),16); const c = [n>>16, (n>>8)&255, n&255].map(v => Math.max(0, Math.min(255, Math.round(v*f)))); return '#'+c.map(v => v.toString(16).padStart(2,'0')).join(''); };
 // ---------- illustration: flat colours, no outlines, patterned clothes, a face, a mat in perspective ----------
 // The print is pinned to the body: drawn in the frame of the part it sits on (torso or arm bone), so it moves with the figure instead of sliding under it.
+const hash2 = (a, b) => { const v = Math.sin(a*127.1 + b*311.7)*43758.5453; return v - Math.floor(v); }; // a steady scatter: the same leaves and stars in every frame
 function flatPattern(g, kind, color, s, part, frame){
   if (!kind || kind === 'none') return;
   g.save(); part(g); g.clip();
@@ -3458,6 +3471,25 @@ function flatPattern(g, kind, color, s, part, frame){
   else if (kind === 'stripes') rows((y, r) => { if (r % 1 === 0) g.fillRect(x0 - step, y*.9, 2*E + 2*step, step*.38); });
   else if (kind === 'zigzag'){ g.beginPath(); rows((y, r) => { const yy = y*1.1; g.moveTo(x0 - step, yy); for (let x = Math.floor(x0/(step*.5))*(step*.5) - step; x <= x0 + 2*E + step; x += step*.5) g.lineTo(x, yy + ((Math.round(x/(step*.5)) & 1) ? step*.3 : 0)); }); g.stroke(); }
   else if (kind === 'checks') rows((y, r) => { for (let x = Math.floor(x0/(2*step))*2*step - 2*step + (r & 1 ? step : 0); x < x0 + 2*E + step; x += step*2) g.fillRect(x, y, step, step); });
+  // the skin prints (redrawn from the AI concept sheets): rolling waves, scattered leaves, a sunrise at the waist, a starry night
+  else if (kind === 'waves'){ const w = step*3.4; g.lineWidth = Math.max(1.5, s*.018); g.lineCap = 'round'; g.beginPath();
+    for (let r = Math.floor(y0/(step*2.3)) - 1; r*step*2.3 < y0 + 2*E + step; r++){ const y = r*step*2.3, sh = r & 1 ? w/2 : 0;
+      for (let x = Math.floor(x0/w)*w - w + sh; x < x0 + 2*E + w; x += w){ // a crest that curls over at the top
+        g.moveTo(x, y); g.bezierCurveTo(x + w*.25, y - step*.9, x + w*.62, y - step*.75, x + w*.6, y - step*.3); g.moveTo(x + w*.6, y - step*.3); g.bezierCurveTo(x + w*.55, y, x + w*.4, y - step*.2, x + w*.45, y - step*.42); g.moveTo(x + w*.6, y - step*.3); g.quadraticCurveTo(x + w*.8, y + step*.1, x + w, y); } }
+    g.stroke(); }
+  else if (kind === 'leaves'){ const L = step*1.7, sp = step*2.3; g.lineCap = 'round';
+    for (let r = Math.floor(y0/sp) - 1; r*sp < y0 + 2*E + sp; r++) for (let c = Math.floor(x0/sp) - 1; c*sp < x0 + 2*E + sp; c++){
+      const h = hash2(r, c), x = c*sp + (r & 1 ? sp/2 : 0) + (h - .5)*sp*.3, y = r*sp + (hash2(c, r) - .5)*sp*.3, a = (h < .5 ? -1 : 1)*(.5 + h*.6);
+      g.save(); g.translate(x, y); g.rotate(a); const gap = Math.max(.6, s*.0035); // two halves with the shirt showing between them: the midrib
+      for (const d of [-1, 1]){ g.beginPath(); g.moveTo(d*gap, -L/2 + gap); g.quadraticCurveTo(d*L*.62, 0, d*gap, L/2); g.closePath(); g.fill(); } g.restore(); } }
+  else if (kind === 'rays'){ const cy = -s*.12, R0 = s*.075; // the sun sits on the hem, its rays fanning up the shirt (and on along the sleeves)
+    g.beginPath(); g.arc(0, cy, R0, Math.PI, 0); g.closePath(); g.fill();
+    for (let i = 0; i < 9; i++){ const a = Math.PI + (i + .5)*Math.PI/9, da = Math.PI/9*.22, r1 = R0*1.35, r2 = E*2;
+      g.beginPath(); g.moveTo(Math.cos(a - da*.5)*r1, cy + Math.sin(a - da*.5)*r1); g.lineTo(Math.cos(a - da)*r2, cy + Math.sin(a - da)*r2); g.lineTo(Math.cos(a + da)*r2, cy + Math.sin(a + da)*r2); g.lineTo(Math.cos(a + da*.5)*r1, cy + Math.sin(a + da*.5)*r1); g.closePath(); g.fill(); } }
+  else if (kind === 'stars'){ const sp = step*1.3, star = (x, y, r) => { g.beginPath(); for (let k = 0; k < 8; k++){ const a = k*Math.PI/4, q = k & 1 ? r*.32 : r; g.lineTo(x + Math.cos(a)*q, y + Math.sin(a)*q); } g.closePath(); g.fill(); };
+    for (let r = Math.floor(y0/sp) - 1; r*sp < y0 + 2*E + sp; r++) for (let c = Math.floor(x0/sp) - 1; c*sp < x0 + 2*E + sp; c++){
+      const h = hash2(r, c), x = c*sp + hash2(c, r)*sp, y = r*sp + h*sp;
+      if (h < .3) star(x, y, s*.026); else { g.beginPath(); g.arc(x, y, s*(h < .7 ? .006 : .009), 0, Math.PI*2); g.fill(); } } }
   g.restore();
 }
 function flatColor(av, part, far){
@@ -7982,6 +8014,58 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
   for (const h of hosts) h.addEventListener('click', e => { if (e.target.closest && e.target.closest('[data-k="matLen"]')) setTimeout(reRef, 0); });
   showH();
   sync(); window.__syncLook = () => { sync(); showH(); }; document.addEventListener('sama:lang', sync);
+})();
+// ---------- skins: ready-made outfits for the figure, like a game's character skins, plus a generator for new ones ----------
+// A skin changes only the clothes and the mat; skin tone, hair, build and height stay the person's own.
+// Ocean, Forest, Sunrise and Night sky are redrawn in vector from AI concept sheets (the waves, leaves, rays and stars prints).
+const SKIN_KEYS = ['topColor', 'sleeves', 'pattern', 'patternColor', 'bottom', 'bottomColor', 'fit', 'mat'];
+const SKINS = [
+  {name:'Sama', look:{...NEW_LOOK, sleeves:'short', fit:'fitted'}},
+  {name:'Ocean', look:{topColor:'#6E8FAE', sleeves:'none', pattern:'waves', patternColor:'#F3EEE2', bottom:'leggings', bottomColor:'#2B3A5C', fit:'fitted', mat:'#5F7FA0'}},
+  {name:'Forest', look:{topColor:'#6F8A55', sleeves:'short', pattern:'leaves', patternColor:'#E9E2C8', bottom:'leggings', bottomColor:'#34502F', fit:'fitted', mat:'#7B9E73'}},
+  {name:'Sunrise', look:{topColor:'#C8673E', sleeves:'none', pattern:'rays', patternColor:'#F0B35A', bottom:'leggings', bottomColor:'#A9472C', fit:'fitted', mat:'#D9963A'}},
+  {name:'Night sky', look:{topColor:'#262E5A', sleeves:'short', pattern:'stars', patternColor:'#F2D58A', bottom:'leggings', bottomColor:'#1D2444', fit:'fitted', mat:'#2F3566'}},
+  {name:'Lotus', look:{topColor:'#F2C8BC', sleeves:'none', pattern:'dots', patternColor:'#9C5A3C', bottom:'leggings', bottomColor:'#6B3F6E', fit:'relaxed', mat:'#D9A5A0'}},
+  {name:'Desert', look:{topColor:'#EFE6D8', sleeves:'short', pattern:'zigzag', patternColor:'#9C5A3C', bottom:'leggings', bottomColor:'#C8B08F', fit:'wide', mat:'#D9B58E'}},
+  {name:'Citrus', look:{topColor:'#F3B21E', sleeves:'none', pattern:'checks', patternColor:'#F1E6D6', bottom:'shorts', bottomColor:'#214D4A', fit:'fitted', mat:'#E8502A'}}];
+// The generator: a random base hue, then a palette that holds together (an analogous, complementary or single-hue scheme),
+// muted the way the brand is: a mid-tone top, a print that contrasts with it, dark trousers and a mat that answers the top.
+function genSkin(rnd = Math.random){
+  const pick = a => a[Math.floor(rnd()*a.length)], span = (a, b) => a + rnd()*(b - a);
+  const hsl = (h, s, l) => { h = ((h % 360) + 360) % 360; s /= 100; l /= 100; const k = n => (n + h/30) % 12, a = s*Math.min(l, 1 - l), f = n => l - a*Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+    return '#' + [0, 8, 4].map(n => Math.round(f(n)*255).toString(16).padStart(2, '0')).join('').toUpperCase(); };
+  const h = span(0, 360), scheme = pick(['analogous', 'complementary', 'mono']), h2 = scheme === 'complementary' ? h + 180 : scheme === 'analogous' ? h + pick([-35, 35]) : h;
+  const lightTop = rnd() < .45, top = lightTop ? hsl(h, span(30, 55), span(72, 84)) : hsl(h, span(30, 55), span(38, 52));
+  const print = lightTop ? hsl(h2, span(35, 55), span(28, 40)) : rnd() < .5 ? hsl(h2, span(55, 75), span(62, 72)) : hsl(h + 10, span(25, 40), span(90, 95));
+  return {topColor:top, sleeves:pick(['none', 'short', 'short', 'long']), pattern:pick(['waves', 'leaves', 'rays', 'stars', 'dots', 'stripes', 'zigzag', 'checks', 'none']), patternColor:print,
+    bottom:rnd() < .8 ? 'leggings' : 'shorts', bottomColor:hsl(pick([h, h2, h + 15]), span(20, 40), span(16, 28)), fit:pick(['fitted', 'fitted', 'relaxed', 'wide']), mat:hsl(h2, span(25, 45), span(50, 66))};
+}
+(function(){
+  const grid = $('skinGrid'), fresh = $('skinNew'); if (!grid) return;
+  const wearing = look => SKIN_KEYS.every(k => String(look[k]) === String(avatar[k]));
+  const card = (look, name) => {
+    const b = document.createElement('button'), c = document.createElement('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1), W = 92, H = 120;
+    b.type = 'button'; b.className = 'skin'; b._look = look; c.width = W*dpr; c.height = H*dpr; b.appendChild(c);
+    if (name){ const t = document.createElement('span'); t.textContent = name; b.appendChild(t); }
+    b.setAttribute('aria-label', name || 'New skin'); return b;
+  };
+  const paint = b => drawSkin(b.querySelector('canvas'), b._look);
+  const drawSkin = (c, look, pose = 'mountain') => { // the figure (in Mountain) on its mat, cropped to the body
+    const g = c.getContext('2d'), R = refFor(pose, false, 0), av = {...avatar, ...look};
+    const top = R.head.y - flatHeadR(R)*1.9, bot = R.floor + R.S*.07, k = c.height/(bot - top), cx = R.S/2 - figShift(R);
+    g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = css('--figbg'); g.fillRect(0, 0, c.width, c.height);
+    g.setTransform(k, 0, 0, k, c.width/2 - cx*k, -top*k); g.translate(-figShift(R), 0); drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av);
+  };
+  const mark = () => { for (const b of document.querySelectorAll('.skins .skin')) b.setAttribute('aria-pressed', String(wearing(b._look))); };
+  const wear = look => { Object.assign(avatar, look); saveAvatar(); try { window.__syncLook && window.__syncLook(); } catch {} retheme(); };
+  const all = () => [...document.querySelectorAll('.skins .skin')];
+  const repaint = () => { for (const b of all()) paint(b); mark(); };
+  for (const s of SKINS) grid.appendChild(card(s.look, s.name));
+  $('skinGen').addEventListener('click', () => { fresh.replaceChildren(...Array.from({length:4}, () => card(genSkin()))); fresh.hidden = false; for (const b of fresh.children) paint(b); mark(); });
+  for (const h of [grid, fresh]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear(b._look); });
+  window.__skins = {repaint, genSkin, SKINS, drawSkin};
+  repaint(); new MutationObserver(repaint).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+  for (const h of [$('avatarBox'), $('lookCard')]) h.addEventListener('click', () => setTimeout(() => { repaint(); }, 0)); // a hand-picked colour or skin tone shows on every card
 })();
 const themeBtns = [...document.querySelectorAll('.theme button')];
 function setTheme(t, save = true){
