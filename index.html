@@ -4021,7 +4021,8 @@ function outfitParts(parts, R, sil, av, O){ // the extras that are shapes of the
   if (av.kerchief){ const k = .45 + .55*fc, base = F(0, H + rS*.75), tip = F(0, H - rS*(front ? .9 : 1.3)); // a red neckerchief: knotted at the throat, its point down the chest (down the back from behind)
     add(g => { g.beginPath(); const l = F(-nw*1.9*k, H + rS*1.0), r = F(nw*1.9*k, H + rS*1.0); g.moveTo(l.x, l.y); g.lineTo(r.x, r.y); g.lineTo(tip.x, tip.y); g.closePath(); if (front){ g.moveTo(base.x + rS*.28, base.y); g.arc(base.x, base.y, rS*.28, 0, Math.PI*2); } }, 'kerchief', 9.2, {color: av.kerchief}); }
   if (O.front) add(g => g.beginPath(), 'shirtfront', 2.55); // over the neckline's scoop
-  if (O.pumpkin){ const c = F(0, H*.36), up = F(0, H*.36 + 1), a = Math.atan2(up.y - c.y, up.x - c.x) - Math.PI/2, ry = H*.6, rx = Math.max((hw + rS*.9)*1.2, ry*.95); // round from every side
+  if (O.pumpkin){ let c = F(0, H*.36); const up = F(0, H*.36 + 1), a = Math.atan2(up.y - c.y, up.x - c.x) - Math.PI/2, ry = H*.6, rx = Math.max((hw + rS*.9)*1.2, ry*.95); // round from every side
+    { const fx = (K[25].x - K[23].x) + (K[26].x - K[24].x), fy = (K[25].y - K[23].y) + (K[26].y - K[24].y), fl = Math.hypot(fx, fy) || 1, k = (rx - fr.rH*1.05)*(1 - fc); c.x += fx/fl*k; c.y += fy/fl*k; } // turned sideways it sits on the chest: its back edge at the body's back, nothing sticking out behind
     add(g => { g.beginPath(); g.ellipse(c.x, c.y, rx, ry, a, 0, Math.PI*2); }, 'pumpkin', front ? 4.55 : 1.5, {c, a, rx, ry}); } // (from behind it is on the far side of the body) // worn over the chest: in front of the torso and arms, the hands come out beside it
   if (O.cape){ // the cape hangs from the shoulders straight down (to the floor at most), wide face-on and a narrow drop behind the back in profile
     const top = front ? H + rS*.55 : H + rS*1.0, sh = sd => F(sd*(hw + rS*(front ? .35 : .6))*(.5 + .5*fc), top), mid = F(0, top), L = H*1.75, spread = (hw + rS*1.1)*(.55 + .95*fc);
@@ -4156,7 +4157,12 @@ function drawFlatFigure(g, R, av){
     const strapClip = clothed && p.hem; if (strapClip){ const {F, H, rS} = torsoFrame3(R, sil), q = [F(-9e3, -9e3), F(9e3, -9e3), F(9e3, H - rS*.15), F(-9e3, H - rS*.15)]; g.save(); g.beginPath(); g.moveTo(q[0].x, q[0].y); q.slice(1).forEach(v => g.lineTo(v.x, v.y)); g.closePath(); g.clip(); } // the straps stay plain: a pattern's motif cut to a sliver there reads as specks
     if (clothed) flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, p, torsoFrame); // one direction across the whole shirt
     if (strapClip) g.restore();
-    if (p.part === 'upper' && av.sleeves !== 'none' && p.ks){ // a sleeve: wider than the arm at the shoulder, ending in a slight flare
+    if (p.part === 'upper' && av.sleeves !== 'none' && p.ks && detailed){ // the detailed body's sleeve is the arm's own outline down to the hem, a touch looser: it can never miss the arm and show skin beside it
+      const a0 = K[p.ks[0]], b = K[p.ks[1]], dl = Math.hypot(b.x - a0.x, b.y - a0.y) || 1, d = {x: (b.x - a0.x)/dl, y: (b.y - a0.y)/dl}, n = {x: -d.y, y: d.x}, long = av.sleeves === 'long', e = {x: a0.x + d.x*dl*(long ? 9 : .58), y: a0.y + d.y*dl*(long ? 9 : .58)}, B = s*9, sc = isFar ? shade(av.topColor, farDim) : av.topColor;
+      g.save(); g.beginPath(); for (const q of [[e.x + n.x*B, e.y + n.y*B], [e.x - n.x*B, e.y - n.y*B], [e.x - n.x*B - d.x*B, e.y - n.y*B - d.y*B], [e.x + n.x*B - d.x*B, e.y + n.y*B - d.y*B]]) g.lineTo(q[0], q[1]); g.closePath(); g.clip(); // the shoulder side of the hem
+      g.fillStyle = sc; g.strokeStyle = sc; g.lineWidth = sil.upper[0]*s*.22; g.lineJoin = 'round'; p(g); g.fill(); g.stroke(); if (!(R.blob > .3)) flatShade(g, p, sc, s);
+      flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, p, torsoFrame); g.restore();
+    } else if (p.part === 'upper' && av.sleeves !== 'none' && p.ks){ // a sleeve: wider than the arm at the shoulder, ending in a slight flare
       const K6 = K[p.ks[0] === 5 ? 6 : 5], a0 = K[p.ks[0]], b = K[p.ks[1]], a = detailed ? {x: a0.x + (K6.x - a0.x)*.13*.9 + (b.x - a0.x)*.1, y: a0.y + (K6.y - a0.y)*.13*.9 + (b.y - a0.y)*.1} : a0; // on the detailed body the arm starts a little in from the joint
       const long = av.sleeves === 'long', f = long ? 1 : .58, e = {x: a.x + (b.x - a.x)*f, y: a.y + (b.y - a.y)*f}, r = sil.upper[0]*s;
       const sleeve = gg => taperPath(gg, a, e, r*(detailed ? 1.18 : 1.42), r*(long ? 1.04 : detailed ? 1.12 : 1.3));
