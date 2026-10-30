@@ -3,7 +3,7 @@
    every text node and the placeholder, aria-label, title and alt attributes, including text the app adds later
    (a MutationObserver). Lookups go: exact text → the same text with its numbers taken out → sentence templates
    ({0}, {1} filled from the English, each piece translated too). The English original is kept, so switching back
-   is instant. The voice guide stays in English for now. */
+   is instant. The voice guide speaks Spanish too (voice/es/); in German it stays in English for now. */
 (function(){
   const LANGS = {en:'English', es:'Español', de:'Deutsch'};
   const pick = () => {

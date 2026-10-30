@@ -82,6 +82,15 @@
       ]
     },
     {
+      "source": "/voice/es/index.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/sw.js",
       "headers": [
         {
