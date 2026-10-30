@@ -3892,19 +3892,23 @@ function detailParts(parts, R, sil, av){
   return out.filter(Boolean);
 }
 // lines drawn over a filled part of the detailed body: the split and the folds of the seat seen from behind, kneecaps, toe and finger gaps
+function seatAxes(R, sil){ // the seat's own frame: down the torso (not down the legs), so its seams turn with the hips when the body tips; band is the waistband's lower edge
+  const {F, rH} = torsoFrame3(R, sil);
+  return {hc: F(0, 0), band: rH*1.05*SHAPE.rise - rH*.4, at: (u, v) => F(v, -u)};
+}
 function detailLines(g, p, R, sil, av, base){
   const K = R.kp, s = R.scale, P = i => K[i], line = shade(base, .72); g.save(); g.strokeStyle = line; g.lineCap = 'round'; g.lineWidth = Math.max(1, s*.0045);
   const fromBehind = R.face3 && R.face3[2] > .35, o = p.side === 'r' ? 1 : 0;
   if (p.part === 'glute' && p.c && (fromBehind || Math.abs(R.face3[0]) > .6)){ // a soft sheen high on the round of each glute
     const c = p.c(); g.save(); p(g); g.clip(); g.fillStyle = shade(base, 1.14); g.globalAlpha = .4; g.beginPath(); g.ellipse(c.x - Math.cos(c.a)*c.r*.1, c.y - Math.sin(c.a)*c.r*.1, c.r*.62, c.r*.5, c.a, 0, Math.PI*2); g.fill(); g.restore(); }
   if (p.part === 'seatlines' && !fromBehind && Math.abs(R.face3[0]) < .5){ // from the front: the short seam up from the crotch, as on leggings
-    const hc = {x: (P(11).x + P(12).x)/2, y: (P(11).y + P(12).y)/2}, kc = {x: (P(13).x + P(14).x)/2, y: (P(13).y + P(14).y)/2}, d = {x: kc.x - hc.x, y: kc.y - hc.y}, w = sil.thigh[0]*s*.35;
-    g.lineWidth = Math.max(1, s*.004); g.beginPath(); g.moveTo(hc.x + d.x*.05, hc.y + d.y*.05); g.lineTo(hc.x + d.x*.2, hc.y + d.y*.2); g.moveTo(hc.x + d.x*.2 - w, hc.y + d.y*.2 + w*.25); g.quadraticCurveTo(hc.x + d.x*.2, hc.y + d.y*.2 - w*.1, hc.x + d.x*.2 + w, hc.y + d.y*.2 + w*.25); g.stroke(); }
+    const {hc, band, at} = seatAxes(R, sil), L = Math.hypot((P(13).x + P(14).x)/2 - hc.x, (P(13).y + P(14).y)/2 - hc.y), w = sil.thigh[0]*s*.35, c = at(L*.2, 0), a = at(L*.2 + w*.25, -w), b = at(L*.2 + w*.25, w), q = at(L*.2 - w*.1, 0), t0 = at(-band, 0);
+    g.lineWidth = Math.max(1, s*.004); g.beginPath(); g.moveTo(t0.x, t0.y); g.lineTo(c.x, c.y); g.moveTo(a.x, a.y); g.quadraticCurveTo(q.x, q.y, b.x, b.y); g.stroke(); }
   if (p.part === 'seatlines' && fromBehind){ // the split runs from the waistband down to the crotch; under each glute a soft fold
-    const hc = {x: (P(11).x + P(12).x)/2, y: (P(11).y + P(12).y)/2}, kc = {x: (P(13).x + P(14).x)/2, y: (P(13).y + P(14).y)/2}, d = {x: kc.x - hc.x, y: kc.y - hc.y};
-    g.beginPath(); g.moveTo(hc.x - d.x*.05, hc.y - d.y*.05); g.lineTo(hc.x + d.x*.36, hc.y + d.y*.36); g.lineWidth = Math.max(1.2, s*.006); g.stroke();
-    for (const i of [11, 12]){ const h = P(i), k = P(i + 2), m = {x: h.x + (k.x - h.x)*.34, y: h.y + (k.y - h.y)*.34}, r = sil.thigh[0]*s*.75; g.lineWidth = Math.max(1.2, s*.006);
-      g.beginPath(); g.moveTo(m.x - r, m.y - r*.15); g.quadraticCurveTo(m.x, m.y + r*.35, m.x + r, m.y - r*.15); g.stroke(); } }
+    const {hc, band, at} = seatAxes(R, sil), L = Math.hypot((P(13).x + P(14).x)/2 - hc.x, (P(13).y + P(14).y)/2 - hc.y), a = at(-band, 0), b = at(L*.36, 0);
+    g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineWidth = Math.max(1.2, s*.006); g.stroke();
+    for (const i of [11, 12]){ const h = P(i), k = P(i + 2), m = {x: h.x + (k.x - h.x)*.34, y: h.y + (k.y - h.y)*.34}, r = sil.thigh[0]*s*.75, kl = Math.hypot(k.x - h.x, k.y - h.y) || 1, lt = {x: (k.x - h.x)/kl, y: (k.y - h.y)/kl}, ln = {x: -lt.y, y: lt.x}, pt = (u, v) => ({x: m.x + lt.x*u + ln.x*v, y: m.y + lt.y*u + ln.y*v}), e0 = pt(-r*.15, -r), e1 = pt(-r*.15, r), cq = pt(r*.35, 0); g.lineWidth = Math.max(1.2, s*.006);
+      g.beginPath(); g.moveTo(e0.x, e0.y); g.quadraticCurveTo(cq.x, cq.y, e1.x, e1.y); g.stroke(); } } // each fold crosses its own thigh
   if (p.part === 'shin' && av.bottom === 'shorts' && !fromBehind){ const k = P(13 + o), r = sil.shin[0]*s*.55; g.beginPath(); g.ellipse(k.x, k.y + r*.2, r*.7, r, 0, Math.PI*.15, Math.PI*.85); g.stroke(); } // the kneecap
   if (p.lines && !(p.part === 'foot' && av.footColor) && !(p.part === 'hand' && av.handColor)) p.lines(g, base); // (no toes on a boot)
   g.restore();
