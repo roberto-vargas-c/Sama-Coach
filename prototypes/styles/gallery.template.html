@@ -1,0 +1,29 @@
+<title>Sama Character Styles</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: a two-column contact sheet of the same pose in each style, so only the style changes between cards. Tokens follow the Sama app. */
+:root { --bg: #EFEBE4; --card: #F7F4EE; --ink: #23302A; --muted: #66706A; --line: #DDD6CB;
+  --f-display: "Young Serif", Georgia, serif; --f-body: "Figtree", system-ui, sans-serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #141A16; --card: #1C231F; --ink: #E7EBE3; --muted: #9AA39C; --line: #2C3530; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #141A16; --card: #1C231F; --ink: #E7EBE3; --muted: #9AA39C; --line: #2C3530; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1160px; margin: 0 auto; padding-block: 28px 56px; display: grid; gap: 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(26px, 4vw, 36px); margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 65ch; color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr)); gap: 20px; }
+figure { margin: 0; display: grid; gap: 10px; min-width: 0; }
+figure img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); background: var(--card); }
+figcaption { display: grid; gap: 2px; }
+figcaption b { font-family: var(--f-display); font-weight: 400; font-size: 19px; }
+figcaption span { font-size: 14px; color: var(--muted); }
+</style>
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <h1>One pose, seven styles</h1>
+    <p>The same Mountain pose redrawn by Krea in each style, keeping the character, colors and framing. Pick the ones worth taking further and they get the second pose and the logo melt.</p>
+  </header>
+  <div class="grid">__CARDS__</div>
+</div>
