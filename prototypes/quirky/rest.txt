@@ -1,0 +1,81 @@
+thunderbolt|Thunderbolt|side
+wristrelease|Wrist Release|side
+prayerwrists|Prayer Wrist Stretch|front
+reverseprayer|Reverse Prayer Hands|front
+wristext|Wrist Extension|side
+wristflex|Wrist Flexion|side
+lotus|Lotus|front
+cowface|Cow Face|side
+firelog|Fire Log|front
+seatedtwist|Half Lord of the Fishes|front
+headtoknee|Head to Knee|side
+wideseated|Wide-Angle Seated Fold|front
+pigeon|Pigeon|side
+sleepingpigeon|Sleeping Pigeon|side
+gate|Gate|front
+puppy|Puppy|side
+birddog|Bird Dog|side
+threadneedle|Thread the Needle|side
+rabbit|Rabbit|side
+halfboat|Half Boat|side
+tabletwist|Seated Spinal Twist|front
+kneestochest|Knees to Chest|side
+supinetwist|Supine Twist|side
+reclinedbound|Reclined Bound Angle|side
+happybaby|Happy Baby|side
+reclinedpigeon|Reclined Figure Four|side
+reclinedbigtoe|Reclined Hand to Big Toe|side
+fish|Fish|side
+supportedbridge|Supported Bridge|side
+windrelieving|Wind-Relieving|side
+supinelegsup|Supine Leg Raise|side
+threeleggeddog|Three-Legged Dog|side
+kneeplank|Knee Plank|side
+kneeschaturanga|Knees-Down Chaturanga|side
+kneetonose|Knee to Nose|side
+fallentriangle|Fallen Triangle|side
+sidebend|Standing Side Bend|front
+bigtoeside|Hand to Big Toe B|front
+sugarcane|Sugarcane|front
+toestand|Toe Stand|side
+handunderfoot|Hands Under Feet|side
+widefoldtwist|Revolved Wide-Legged Fold|front
+sideplankstar|Side Plank Star|front
+sideplanktree|Side Plank Tree|front
+crane|Crane|side
+koundinya1|Koundinya I|front
+flyingsplits|Flying Splits|side
+lsit|L-Sit|side
+tolasana|Scale|side
+peacock|Peacock|side
+scorpion|Scorpion|side
+headstandsplit|Straddle Headstand|front
+earpressure|Ear Pressure|side
+halfbow|Half Bow|side
+superman|Superman|side
+frogbackbend|Frog (prone)|side
+onelegbridge|One-Legged Bridge|side
+onelegwheel|One-Legged Wheel|side
+kingpigeon|King Pigeon|side
+kingdancer|King Dancer|side
+halflotus|Half Lotus|front
+marichi1|Marichi I|side
+marichi3|Marichi III|front
+revheadtoknee|Revolved Head to Knee|front
+compass|Compass|front
+heron|Heron|side
+halfhero|Half Hero Fold|side
+tortoise|Tortoise|side
+wideseatedside|Wide Seated Side Bend|front
+widechild|Extended Child|side
+quadlunge|Low Lunge Quad Stretch|side
+tiger|Tiger|side
+lion|Lion|side
+cradle|Baby Cradle|front
+deer|Deer|front
+frog|Frog (yin)|front
+saddle|Saddle (Reclined Hero)|side
+reclinedbigtoeside|Reclined Big Toe B|side
+tabletoplegs|Supine Tabletop|side
+legraises|Leg Raises|side
+savasana|Resting Pose|side

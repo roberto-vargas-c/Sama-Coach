@@ -1,0 +1,144 @@
+<title>Sama Pose Transition</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one stage (the app's 2D scene) with pose buttons under it, then a short note on how the transition works. Tokens follow the Sama app. */
+:root { --bg: #EFEBE4; --card: #F7F4EE; --ink: #23302A; --muted: #66706A; --line: #DDD6CB; --accent: #9C5A3C; --btn: #2F4A3D; --btn-ink: #F7F4EE;
+  --f-display: "Young Serif", Georgia, serif; --f-body: "Figtree", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #141A16; --card: #1C231F; --ink: #E7EBE3; --muted: #9AA39C; --line: #2C3530; --accent: #D39274; --btn: #D39274; --btn-ink: #141A16; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #141A16; --card: #1C231F; --ink: #E7EBE3; --muted: #9AA39C; --line: #2C3530; --accent: #D39274; --btn: #D39274; --btn-ink: #141A16; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 28px 56px; display: grid; gap: 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(26px, 4vw, 36px); margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 400; font-size: 20px; margin: 0; }
+p { margin: 0; max-width: 65ch; }
+.lede { color: var(--muted); }
+canvas { display: block; width: 100%; max-width: 100%; aspect-ratio: 1376 / 768; border-radius: 14px; background: #fff;
+  box-shadow: 0 1px 0 var(--line), 0 12px 30px -18px rgba(0,0,0,.35); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button { font: 500 15px var(--f-body); border-radius: 999px; padding: 9px 18px; cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sep { width: 1px; height: 24px; background: var(--line); }
+.status { font: 400 13px var(--f-mono); color: var(--muted); margin-left: auto; }
+.notes { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 22px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <h1>One transition for every pose</h1>
+    <p class="lede">The pose squeezes into the Sama logo, the logo rolls and settles, and the next pose pops out of it. It is drawn in code from the stills, so a new pose needs only its still, no video.</p>
+  </header>
+  <section style="display:grid;gap:14px">
+    <canvas id="stage" width="1376" height="768" aria-label="Yoga figure on a mat"></canvas>
+    <div class="controls">
+      <button type="button" id="b-mountain" data-pose="mountain" aria-pressed="true">Mountain</button>
+      <button type="button" id="b-warrior2" data-pose="warrior2" aria-pressed="false">Warrior II</button>
+      <span class="sep" aria-hidden="true"></span>
+      <button type="button" id="b-twos" aria-pressed="true">Hand-drawn timing</button>
+      <button type="button" id="b-slow" aria-pressed="false">Slow motion</button>
+      <span class="status" id="status">Mountain</span>
+    </div>
+  </section>
+  <section class="notes">
+    <h2>How it works</h2>
+    <ul>
+      <li>Each pose is one still with the figure cut out. The logo is one more still, shared by all poses.</li>
+      <li>The figure shrinks toward the logo's spot on the mat with a little squash, the logo rolls in a quarter turn like the app's Ball transition, then the same steps run backward into the next pose.</li>
+      <li>Hand-drawn timing holds each drawing for two frames (12 per second) and gives the lines a slight wobble, so the motion looks drawn rather than tweened.</li>
+    </ul>
+  </section>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="boil" x="-5%" y="-5%" width="110%" height="110%">
+    <feTurbulence id="turb" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1"/>
+    <feDisplacementMap in="SourceGraphic" scale="0" id="disp" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<script>
+const SRC = { bg: "__BG__", mountain: "__FIG_mountain__", warrior2: "__FIG_warrior2__", logo: "__FIG_logo__" };
+const POS = __POS__; // where each cut-out sits on the 1376 x 768 stage
+const NAME = { mountain: 'Mountain', warrior2: 'Warrior II' };
+const cv = document.getElementById('stage'), g = cv.getContext('2d');
+const status = document.getElementById('status'), turb = document.getElementById('turb'), disp = document.getElementById('disp');
+const img = {}; let cur = 'mountain', anim = null, twos = true, slow = false;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const L = POS.logo, ANCHOR = { x: L.x + L.w / 2, y: L.y + L.h }; // the logo stands on the mat here
+const clamp = t => Math.max(0, Math.min(1, t));
+const easeIn = t => t * t * t, easeOut = t => 1 - Math.pow(1 - t, 3);
+const back = t => { const c = 1.4; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); }; // overshoots, then settles
+
+// Draws a cut-out scaled about the anchor on the mat: s = size, sq = squash (wider, shorter), rot = turn about its own centre.
+function layer(k, s, sq = 0, rot = 0, a = 1){
+  if (a <= 0 || s <= 0) return;
+  const p = POS[k], cx = p.x + p.w / 2, cy = p.y + p.h / 2;
+  g.save(); g.globalAlpha = a;
+  g.translate(ANCHOR.x, ANCHOR.y); g.scale(s * (1 + sq), s * (1 - sq)); g.translate(-ANCHOR.x, -ANCHOR.y);
+  g.translate(cx, cy); g.rotate(rot); g.translate(-cx, -cy);
+  g.drawImage(img[k], p.x, p.y, p.w, p.h); g.restore();
+}
+// Leaving (t: 0 -> 1): the pose squeezes down into the spot where the logo stands. Arriving runs the same in reverse.
+function figureAt(k, t){
+  const pre = clamp(t / .25), go = clamp((t - .2) / .8);           // a small squash first, then the shrink
+  const s = 1 - .9 * easeIn(go), sq = .08 * Math.sin(Math.PI * pre) * (1 - go) + .25 * go;
+  layer(k, s, sq, 0, 1 - clamp((go - .75) / .25));
+}
+function logoAt(t){ // t: 0 = gone, 1 = settled
+  const s = Math.max(0, back(clamp(t))), rot = -(1 - easeOut(clamp(t))) * Math.PI / 2;
+  layer('logo', s, 0, rot, clamp(t * 3));
+}
+function puff(t, n = 7){ // short ink strokes flicking out from the logo at the swap
+  if (t <= 0 || t >= 1) return;
+  g.save(); g.strokeStyle = '#1d1d1b'; g.lineWidth = 3; g.lineCap = 'round'; g.globalAlpha = 1 - t;
+  const cx = ANCHOR.x, cy = ANCHOR.y - L.h / 2, r0 = L.h * (.55 + .35 * t), r1 = r0 + 26 * (1 - t);
+  for (let i = 0; i < n; i++){ const an = -Math.PI * (.08 + .84 * i / (n - 1));
+    g.beginPath(); g.moveTo(cx + Math.cos(an) * r0, cy + Math.sin(an) * r0); g.lineTo(cx + Math.cos(an) * r1, cy + Math.sin(an) * r1); g.stroke(); }
+  g.restore();
+}
+// Timeline in seconds: leave .55, logo settles .45, hold .2, logo leaves .3, arrive .55
+const T = { leave: .55, settle: .45, hold: .2, unsettle: .3, arrive: .55 };
+const TOTAL = Object.values(T).reduce((a, b) => a + b, 0);
+function frame(from, to, el){
+  g.clearRect(0, 0, cv.width, cv.height); g.drawImage(img.bg, 0, 0, cv.width, cv.height);
+  let t = el;
+  if (t < T.leave){ figureAt(from, t / T.leave); if (t > T.leave * .6) logoAt((t - T.leave * .6) / (T.leave * .4 + T.settle)); return; }
+  t -= T.leave;
+  if (t < T.settle){ logoAt((T.leave * .4 + t) / (T.leave * .4 + T.settle)); puff(t / T.settle); return; }
+  t -= T.settle;
+  if (t < T.hold){ logoAt(1); return; }
+  t -= T.hold;
+  if (t < T.unsettle){ const u = t / T.unsettle; layer('logo', 1 + .12 * Math.sin(Math.PI * u) - .9 * easeIn(clamp((u - .4) / .6)), -.1 * Math.sin(Math.PI * u), easeIn(u) * Math.PI / 2, 1 - clamp((u - .7) / .3));
+    if (u > .6) layer(to, .1 * (u - .6) / .4, .25); return; }
+  t -= T.unsettle;
+  const u = clamp(t / T.arrive); // the next pose pops out with a little overshoot
+  const s = .1 + .9 * back(u), sq = .25 * (1 - u) - .06 * Math.sin(Math.PI * u);
+  layer(to, s, sq);
+}
+function still(k){ g.clearRect(0, 0, cv.width, cv.height); g.drawImage(img.bg, 0, 0, cv.width, cv.height); layer(k, 1); }
+function setBoil(on, seed){ if (on){ turb.setAttribute('seed', seed); disp.setAttribute('scale', '3.5'); cv.style.filter = 'url(#boil)'; } else cv.style.filter = ''; }
+function goTo(next){
+  if (anim || next === cur) return;
+  const from = cur, t0 = performance.now(); let lastStep = -1;
+  status.textContent = NAME[from] + ' → logo → ' + NAME[next];
+  document.querySelectorAll('[data-pose]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pose === next)));
+  if (reduce){ cur = next; still(cur); status.textContent = NAME[cur]; return; }
+  const tick = now => {
+    const speed = slow ? .3 : 1, raw = (now - t0) / 1000 * speed;
+    if (raw >= TOTAL){ anim = null; cur = next; setBoil(false); still(cur); status.textContent = NAME[cur]; return; }
+    const step = twos ? Math.floor(raw * 12) : raw;           // hand-drawn timing: hold each drawing for two frames
+    if (step !== lastStep){ lastStep = step; const el = twos ? step / 12 : raw; frame(from, next, el); if (twos) setBoil(true, 1 + (step % 4)); }
+    anim = requestAnimationFrame(tick);
+  };
+  anim = requestAnimationFrame(tick);
+}
+const load = (k, s) => new Promise(r => { const i = new Image(); i.onload = () => { img[k] = i; r(); }; i.src = s; });
+Promise.all(Object.entries(SRC).map(([k, s]) => load(k, s))).then(() => still(cur));
+document.querySelectorAll('[data-pose]').forEach(b => b.addEventListener('click', () => goTo(b.dataset.pose)));
+document.getElementById('b-twos').addEventListener('click', e => { twos = !twos; e.currentTarget.setAttribute('aria-pressed', String(twos)); });
+document.getElementById('b-slow').addEventListener('click', e => { slow = !slow; e.currentTarget.setAttribute('aria-pressed', String(slow)); });
+</script>
