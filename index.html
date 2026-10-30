@@ -3389,16 +3389,23 @@ function torsoOutline(R, SIL, kind, neck = null){ // neck: {l, r} screen points 
   const fr = torsoFrame3(R, SIL), {F, H, hh, rS, rH, nw} = fr, hw = fr.hw*SHAPE.sh, side = (pts) => [...pts.map(([x, y, k]) => ({...F(-x, y), k})), ...pts.slice().reverse().map(([x, y, k]) => ({...F(x, y), k}))];
   const gi = SHAPE.girth || 1, W = (hh*SHAPE.hipJ + rH*SHAPE.waist)*gi, Hp = (hh*SHAPE.hipJ + rH*SHAPE.hip)*gi;
   const fc = Math.max(0, Math.min(1, fr.hw/(rS*2))), fk = .35 + .65*fc; // 1 face-on, 0 in profile: the neckline, straps and armholes are widths across the chest, so they close up as the body turns
+  const gx = ((SHAPE.girth || 1) - 1)*rS*2.2; // a heavier body holds its arms further out: the shoulders and armpits fill out to meet them
   const nc = Math.max(nw*1.05*SHAPE.neck, nw*1.4*SHAPE.neck*fk), tm = Math.max(hw*.66, nc + rS*.2*fk);
-  const skinTop = [[nc*.5, H + rS*.9], [nc, H + rS], [nc + (tm - nc)*.45, H + rS*.84*SHAPE.trap], [tm, H + rS*.62*SHAPE.trap], [hw + rS*.05, H + rS*.25*SHAPE.trap], [hw + rS*.32, H - rS*.35]];
+  const skinTop = [[nc*.5, H + rS*.9], [nc, H + rS], [nc + (tm - nc)*.45, H + rS*.84*SHAPE.trap], [tm, H + rS*.62*SHAPE.trap], [hw + rS*.05 + gx*.5, H + rS*.25*SHAPE.trap], [hw + rS*.32 + gx, H - rS*.35]];
   for (let i = 1; i < skinTop.length; i++) skinTop[i][0] = Math.max(skinTop[i][0], skinTop[i - 1][0] + rS*.02); // always widening from the neck to the shoulder: no wings where the neck is wider than a turned shoulder
-  if (kind === 'skin' && neck){ const body = side([...skinTop.slice(1), [hw + rS*.05, H - rS*1.0], [hw*.4, H - rS*1.4]]); return [...neck.l, ...body, ...neck.r.slice().reverse()].reverse(); } // the neck and the shoulders as one outline, so they join smoothly in any view
-  if (kind === 'skin') return side([...skinTop, [hw + rS*.05, H - rS*1.0], [hw*.4, H - rS*1.4]]).reverse();
+  if (kind === 'skin' && neck){ const body = side([...skinTop.slice(1), [hw + rS*.05 + gx, H - rS*1.0], [hw*.4, H - rS*1.4]]); return [...neck.l, ...body, ...neck.r.slice().reverse()].reverse(); } // the neck and the shoulders as one outline, so they join smoothly in any view
+  if (kind === 'skin') return side([...skinTop, [hw + rS*.05 + gx, H - rS*1.0], [hw*.4, H - rS*1.4]]).reverse();
   const a2 = [Math.max((hw - rS*.5)*SHAPE.ah2, W*(1 - fc)), H - rS*SHAPE.ah2y], w1 = [W, H*.52], bust = [(a2[0] + w1[0])/2*SHAPE.bust, (a2[1] + w1[1])/2]; // the bust: the side of the top swelling out between the armpit and the waist
   const sIn = nw*1.25*SHAPE.neckW*fk, sOut = Math.min(Math.max((nw*1.5 + rS*.3)*SHAPE.strap*fk, sIn + rS*Math.max(SHAPE.strapW, .4)*fk), Math.max(hw, W), Math.max(tm, sIn + rS*.3)), arm1 = Math.max((hw - rS*.6)*SHAPE.armhole, Math.min(sOut, W*(1 - fc)), sOut*.97); // the strap ends inside the shoulder and drops straight into the armhole: no fin over the arm
   const sk = [[0, H + rS*1.02], ...skinTop.slice(1), [hw*9, H - rS*9]];
   const onSkin = x => { let i = 0; while (i < sk.length - 2 && sk[i + 1][0] < x) i++; const [x0, y0] = sk[i], [x1, y1] = sk[i + 1]; return Math.min(H + rS*.62, y0 + (y1 - y0)*Math.max(0, Math.min(1, (x - x0)/((x1 - x0) || 1))) - rS*.07); }; // the straps lie on the shoulder's slope, just inside it, never standing up above it
-  if (kind === 'tank') return side([[sIn, onSkin(sIn), .6], [sOut, onSkin(sOut), 1], [arm1, Math.min(H - rS*SHAPE.ah1y, onSkin(sOut) - rS*.35)], a2, bust, w1, [W*.92*SHAPE.hemW, H*.36], ...(SHAPE.hemY < .45 ? [[Hp*1.06, rH*.5]] : []), [Hp*Math.max(SHAPE.hemW, 1.08), rH*SHAPE.hemY + rH*.25], [Hp*Math.max(SHAPE.hemW, 1.08), rH*SHAPE.hemY], [Hp*.3, rH*SHAPE.hemY - rH*.03]]).concat([F(0, H + rS*(SHAPE.scoop*fc + .62*(1 - fc)))]).reverse();
+  const hemX = Math.max(Hp*Math.max(SHAPE.hemW, 1.08), W*1.02); // the hem always covers the top of the trousers, belly or not
+  const hangs = pts => { // the top hangs from the armpit to the hem over the body's widest points: never curving in at the waist, only out (over the bust, a belly), and smoothly
+    const out = pts.map(q => [...q]), n = out.length - 1, [x0, y0] = out[0], [x1, y1] = out[n];
+    for (const q of out) q[0] = Math.max(q[0], x0 + (x1 - x0)*(q[1] - y0)/((y1 - y0) || -1e-9));
+    for (let it = 0; it < 8; it++) for (let i = 1; i < n; i++){ const a = out[i - 1], b = out[i + 1], f = (out[i][1] - a[1])/((b[1] - a[1]) || -1e-9); out[i][0] = Math.max(out[i][0], a[0] + (b[0] - a[0])*f); }
+    return out; };
+  if (kind === 'tank') return side([[sIn, onSkin(sIn), .6], [sOut, onSkin(sOut), 1], [arm1, Math.min(H - rS*SHAPE.ah1y, onSkin(sOut) - rS*.35)], [(arm1 + a2[0])/2 - rS*.1*fk, (Math.min(H - rS*SHAPE.ah1y, onSkin(sOut) - rS*.35) + a2[1])/2 - rS*.05], ...hangs([a2, bust, w1, [W*.92*SHAPE.hemW, H*.36], ...(SHAPE.hemY < .45 ? [[Hp*1.06, rH*.5]] : []), [hemX, rH*SHAPE.hemY + rH*.25]]), [hemX, rH*SHAPE.hemY, 1], [Hp*.3, rH*SHAPE.hemY - rH*.03]]).concat([F(0, H + rS*(SHAPE.scoop*fc + .62*(1 - fc)))]).reverse();
   return side([[nw*1.5, H + rS*.95], [hw*.55, H + rS*.75], [hw + rS*.35, H + rS*.15], [hw + rS*.3, H - rS*.7], [W*1.04, H*.55], [W*.94, H*.36], [Hp, H*.08], [Hp*.85, -rH*.25], [Hp*.3, -rH*.35]]).reverse();
 }
 function pelvisOutline(R, SIL, under = 1){ // waist (where the shirt ends) curving out over the hips and in to the crotch, in the torso frame
@@ -3545,14 +3552,20 @@ function figShift(R){ const o = R.matOff; if (!o || (!o[0] && !o[1])) return 0; 
 // The drawing as it always was is 175 cm on a 215 cm mat (MAT_DRAWN); the default is now a standard 183 cm mat.
 const HEIGHT_DEF = 175, MATLEN_DEF = 183, MAT_DRAWN = 215, BMI_REF = 22; // the drawn bodies are a BMI of about 22
 const weightDef = av => Math.round(BMI_REF*((+av.height || HEIGHT_DEF)/100)**2);
-// the detailed body for a weight: widths grow (or shrink) with the square root of the BMI; girth widens the whole trunk, waist and hips together, then thighs and arms, the face a little
-const WEIGHT_GAIN = {girth:.75, waist:.9, hip:.35, thigh0:.75, thighMid:.45, inner:.5, innerMid:.3, knee:.45, calf:.45, ankle:.3, arm:1, sh:.3, ah2:.3, neck:.35, jaw:.35, headW:.08};
+// the detailed body for a weight: widths grow (or shrink) with the square root of the BMI; girth widens the whole trunk, waist and hips together, the face a little.
+// The leg's key widths (thigh, knee, ankle) all scale together, so its curve keeps its shape (thighMid and calf are ratios of those, left alone)
+const WEIGHT_GAIN = {girth:.75, waist:.9, hip:.35, thigh0:1.05, knee:1.05, ankle:.8, inner:.9, innerMid:.9, innerKnee:.9, arm:.5, sh:.3, neck:.35, jaw:.35, headW:.08};
+const WEIGHT_LOSS = {girth:1.3, waist:1, hip:1.3, thigh0:1, knee:1, ankle:.7, inner:1, innerMid:1, innerKnee:1, arm:1, sh:.3, neck:.35, jaw:.35, headW:.08}; // slimming takes off the hips and thighs most
+const WEIGHT_GAIN_MAN = {waist:1.8, hip:.15}; // a man carries it in a belly: the waist out past the hips
 const shapeCache = new Map();
 function weightShape(base, av){
   const w = +av.weight; if (!w) return base;
   const bmi = w/(((+av.height || HEIGHT_DEF)/100)**2), d = Math.round(Math.max(-.2, Math.min(.5, Math.sqrt(bmi/BMI_REF) - 1))*100)/100; if (!d) return base;
   const key = (base === SHAPE_MAN ? 'm' : 'w') + d; let out = shapeCache.get(key);
-  if (!out){ out = {...base}; for (const [k, g] of Object.entries(WEIGHT_GAIN)) out[k] = (out[k] ?? 1)*(1 + g*d); shapeCache.set(key, out); }
+  if (!out){ out = {...base}; for (const [k, g] of Object.entries(d < 0 ? WEIGHT_LOSS : {...WEIGHT_GAIN, ...(base === SHAPE_MAN ? WEIGHT_GAIN_MAN : {})})) out[k] = (out[k] ?? 1)*(1 + g*d);
+    if (d > 0 && base === SHAPE_MAN) out.belly = d; // and it shows as a belly from the side
+    if (d < 0) out.legIn = (out.legIn || 0) - d*1.3; // a thin body: the thighs start closer together, so the hips narrow with them
+    shapeCache.set(key, out); }
   return out; }
 function matPx(S){ const h = Math.max(120, Math.min(220, +avatar.height || HEIGHT_DEF)), m = Math.max(140, Math.min(240, +avatar.matLen || MATLEN_DEF)), base = S*.84;
   const w = m >= 200 ? 66 : 61; // a standard mat is 61 cm wide, an XL one about 66
@@ -3610,9 +3623,9 @@ function drawFlatHead(g, R, av){
     const yF = sgn ? -r*.45 : -r*.2, yB = sgn ? r*.35 : -r*.2 + away*r*.82 + nod*r*.3;
     g.beginPath(); if (!sgn && av.body === 'detailed' && away < .5){ // a hairline: parted over the forehead, down the temples to the ears
       g.moveTo(-r*1.3, r*.15); g.lineTo(-r*.82, r*.15); g.quadraticCurveTo(-r*.78, -r*.38, -r*.3, -r*.5); g.quadraticCurveTo(0, -r*.56, r*.3, -r*.5); g.quadraticCurveTo(r*.78, -r*.38, r*.82, r*.15); g.lineTo(r*1.3, r*.15); g.lineTo(r*1.3, -r*1.3); g.lineTo(-r*1.3, -r*1.3); }
-    else if (sgn && av.body === 'detailed'){ // the same haircut from the side: the hairline over the brow, down the temple, round the top of the ear and down to a short nape (as short as over the ears from the front)
-      g.moveTo(sgn*r*1.3, -r*.56); g.lineTo(sgn*r*.72, -r*.54); g.quadraticCurveTo(sgn*r*.3, -r*.5, sgn*r*.24, r*.1); g.lineTo(sgn*r*.1, r*.12); g.quadraticCurveTo(-sgn*r*.06, -r*.22, -sgn*r*.24, r*.12);
-      g.quadraticCurveTo(-sgn*r*.4, r*.36, -sgn*r*.64, r*.4); g.lineTo(-sgn*r*1.3, r*.46); g.lineTo(-sgn*r*1.3, -r*1.3); g.lineTo(sgn*r*1.3, -r*1.3); }
+    else if (sgn && av.body === 'detailed'){ // the same haircut from the side: the hairline over the brow, down the temple, round the top of the ear and back at the same height as the hair over the ears from the front
+      g.moveTo(sgn*r*1.3, -r*.56); g.lineTo(sgn*r*.72, -r*.54); g.quadraticCurveTo(sgn*r*.34, -r*.48, sgn*r*.22, -r*.06); g.lineTo(sgn*r*.12, -r*.06); g.quadraticCurveTo(-sgn*r*.06, -r*.3, -sgn*r*.24, -r*.04);
+      g.quadraticCurveTo(-sgn*r*.42, r*.12, -sgn*r*.66, r*.14); g.lineTo(-sgn*r*1.3, r*.2); g.lineTo(-sgn*r*1.3, -r*1.3); g.lineTo(sgn*r*1.3, -r*1.3); }
     else if (sgn){ g.moveTo(sgn*r*1.3, yF); g.lineTo(-sgn*r*1.3, yB); g.lineTo(-sgn*r*1.3, -r*1.3); g.lineTo(sgn*r*1.3, -r*1.3); } else g.rect(-r*1.3, -r*1.3, r*2.6, r*1.3 + yB); g.closePath(); g.fill();
     if (sgn && av.body === 'detailed'){ g.fillStyle = shade(av.skin, .93); g.beginPath(); g.ellipse(-sgn*r*.07, r*.1, r*.13, r*.19, sgn*.15, 0, Math.PI*2); g.fill(); g.fillStyle = av.hairColor; } // the ear, in front of the hair
     if (av.hair === 'curly'){ for (let i = 0; i < 9; i++){ const a = -Math.PI*(.05 + .9*i/8); g.beginPath(); g.arc(Math.cos(a)*r, Math.sin(a)*r + r*.05, r*.28, 0, Math.PI*2); g.fill(); } }
@@ -3705,7 +3718,7 @@ function handFrame(w, ix, pi, tb, r, open = false){
   const spread = Math.hypot(ix.x - pi.x, ix.y - pi.y), wide = open ? 1 : Math.max(.8, Math.min(1, spread/(r*.6))); // seen edge-on, the hand narrows
   return (x, y) => ({x: w.x + dx*x*r + ux*y*r*wide, y: w.y + dy*x*r + uy*y*r*wide});
 }
-const HAND_OPEN = [[0, -.32], [.5, -.46], [.92, -.55], [1.51, -.64], [1.76, -.54], [1.59, -.36], [.99, -.25], [.95, -.28], [1, -.3], [1.77, -.34], [2.04, -.2], [1.81, -.04], [1.03, .02], [.99, -.01], [1.03, -.04], [1.86, -.01], [2.13, .15], [1.85, .3], [1, .28], [.95, .25], [.98, .22], [1.72, .32], [1.94, .49], [1.67, .61], [.93, .52], [.84, .55], [1, .6], [1.13, .66], [1.17, .73], [1.08, .78], [.82, .73], [.52, .64], [.22, .52], [0, .36]]; // an open hand, palm to us, fingers a little apart (the skin sheets' Mountain)
+const HAND_OPEN = [[-.2, -.22], [.12, -.3], [.5, -.46], [.92, -.55], [1.51, -.64], [1.76, -.54], [1.59, -.36], [.99, -.25], [.95, -.28], [1, -.3], [1.77, -.34], [2.04, -.2], [1.81, -.04], [1.03, .02], [.99, -.01], [1.03, -.04], [1.86, -.01], [2.13, .15], [1.85, .3], [1, .28], [.95, .25], [.98, .22], [1.72, .32], [1.94, .49], [1.67, .61], [.93, .52], [.84, .55], [1, .6], [1.13, .66], [1.17, .73], [1.08, .78], [.82, .73], [.52, .64], [.22, .48], [.08, .34], [-.2, .24]]; // an open hand, palm to us, fingers a little apart (the skin sheets' Mountain)
 function handOutline(w, ix, pi, tb, r, open = false){ const f = handFrame(w, ix, pi, tb, r, open); return (open ? HAND_OPEN : HAND).map(([x, y]) => f(x, y)); }
 function handLines(g, base, w, ix, pi, tb, r, s){ const f = handFrame(w, ix, pi, tb, r); g.save(); g.strokeStyle = shade(base, .8); g.lineWidth = Math.max(.7, s*.0022); g.lineCap = 'round';
   for (const y of [-.22, .06, .33]){ const a = f(1.25, y), b = f(1.75, y); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); } g.restore(); }
@@ -3729,7 +3742,7 @@ function footLines(g, base, he, ft, an, r, inner, behind, s){
 }
 // the detailed body's widths, fitted to the concept sheet by overlaying the two outlines (hips and waist in hip radii from the hip joints, the rest as factors)
 const SHAPE_WOMAN = {hipJ:1, waist:.67, hip:.7, sh:.875, strap:1.25, armhole:.94, trap:1.12, neck:1.1, thigh0:.92, thighMid:1.05, knee:.92, calf:1.08, calfAt:1.54, ankle:.78, inner:.4, innerMid:.21, innerKnee:.305, legIn:-.1, ankleIn:.11, hem:.89, ankleW:.98, footIn:.61, footOut:1.02, head:.805, headW:.94, jaw:1.15, ear:.89, headK:.9, lift:.325, foot:1, arm:1.03, armLen:1.075, neckW:1.96, ah1y:-.24, ah2:1.12, ah2y:1.16, bust:1.12, scoop:-.55, rise:1, hemW:.97, hemY:.65, armIn:.03, hand:1.21, strapW:.45}; // fitted to concept sheet 1 by overlaying the outlines (95.5% overlap, arms left out); headK: the head's size, lift: how far (in head radii) it rises on a longer neck
-const SHAPE_MAN = {hipJ:1, waist:.77, hip:.66, sh:.935, strap:1.37, armhole:1, trap:1, neck:1.27, thigh0:.8, thighMid:1.1, knee:.86, calf:1.05, calfAt:1.5, ankle:.78, inner:.5, innerMid:.15, innerKnee:.245, legIn:.08, ankleIn:.05, hem:.92, ankleW:1.1, footIn:.76, footOut:1.47, foot:.88, head:1.015, headW:.88, jaw:1.03, ear:.89, headK:.9, lift:.175, arm:1.1, armLen:1.075, neckW:2.14, ah1y:-.48, ah2:1, ah2y:1.04, bust:1.06, scoop:-.4, rise:1, hemW:1, hemY:-.25, armIn:-.01, hand:1.21, strapW:.45}; // fitted the same way to the male concept sheet (95.6%): shoulders and neck broader, waist straighter, hips narrower, legs straighter and set further apart, bigger feet and fuller arms
+const SHAPE_MAN = {hipJ:1, waist:.77, hip:.66, sh:.935, strap:1.37, armhole:1, trap:1, neck:1.27, thigh0:.8, thighMid:1.1, knee:.86, calf:1.05, calfAt:1.5, ankle:.78, inner:.5, innerMid:.15, innerKnee:.245, legIn:.08, ankleIn:.05, hem:.92, ankleW:1.1, footIn:.76, footOut:1.47, foot:.88, head:1.015, headW:.88, jaw:1.03, ear:.89, headK:.9, lift:.175, arm:1.1, armLen:1.075, neckW:2.14, ah1y:-.24, ah2:1, ah2y:1.04, bust:1.06, scoop:-.4, rise:1, hemW:.97, hemY:.65, armIn:-.01, hand:1.21, strapW:.45}; // fitted the same way to the male concept sheet (95.6%): shoulders and neck broader, waist straighter, hips narrower, legs straighter and set further apart, bigger feet and fuller arms
 let SHAPE = SHAPE_WOMAN; // the detailed body's widths in use: drawFlatFigure picks the table for the avatar's figure
 function detailParts(parts, R, sil, av){
   // the concept sheets' proportions: slimmer arms, legs that run smoothly through the knee (no round cap), bigger hands and feet
@@ -3793,8 +3806,12 @@ function detailParts(parts, R, sil, av){
     const o = sd === 'l' ? 0 : 1, an = ankleAt(o), w = sil.shin[1]*s*SHAPE.ankle*SHAPE.ankleW;
     const ankle = g => { g.beginPath(); taperSub(g, lerp(P(13 + o), an, .7), an, w, w); }; ankle.part = 'foot'; ankle.side = sd; ankle.ks = [13 + o, 15 + o]; out.push(ankle);
   }
+  if (SHAPE.belly && facing < .85 && !behind){ // a man's belly, seen from the side: a round of the top pushed out toward the toes
+    const b0 = backOf(0), b1 = backOf(1), fw = norm(-(b0.x + b1.x), -(b0.y + b1.y)), sc = lerp(P(5), P(6), .5), up = norm(sc.x - hc.x, sc.y - hc.y), k = SHAPE.belly*(1 - facing), rr = sil.hip*s*(1.1 + 1.6*SHAPE.belly);
+    if (fw.l > .2){ const L = Math.hypot(sc.x - hc.x, sc.y - hc.y), c = lerp(hc, sc, .42), rx = sil.hip*s*(.5 + 1.1*SHAPE.belly), ry = L*.36, off = sil.hip*s*(.2 + 1.3*SHAPE.belly)*k/(SHAPE.belly || 1), cx = c.x + fw.x*off, cy = c.y + fw.y*off;
+      const belly = g => { g.beginPath(); g.ellipse(cx, cy, ry, rx, Math.atan2(up.y, up.x), 0, Math.PI*2); }; belly.part = 'torso'; belly.hem = true; belly.flat = true; out.push(belly); } } // (unshaded, so it joins the top as one shape)
   for (const sd of ['l', 'r']){ // the glutes: a round under the seat on the side away from the toes, so they show from the side and go behind the hips face-on
-    const o = sd === 'l' ? 0 : 1, back = backOf(o), h = P(11 + o), kn = P(13 + o), dn = norm(kn.x - h.x, kn.y - h.y), r = sil.hip*s*.92;
+    const o = sd === 'l' ? 0 : 1, back = backOf(o), h = lerp(P(11 + o), hc, Math.max(0, SHAPE.legIn)), kn = P(13 + o), dn = norm(kn.x - h.x, kn.y - h.y), r = sil.hip*s*.92*Math.min(1, SHAPE.girth || 1); // (where the leg starts, and smaller on a thin body)
     const glute = g => { g.beginPath(); const c = {x: h.x + back.x*r*.5 + dn.x*r*.35, y: h.y + back.y*r*.5 + dn.y*r*.35}; g.moveTo(c.x + r, c.y); g.ellipse(c.x, c.y, r, r*.92, Math.atan2(dn.y, dn.x), 0, -Math.PI*2, true); g.closePath(); };
     glute.part = 'glute'; glute.side = sd; glute.ks = [11 + o, 13 + o]; glute.c = () => ({x: h.x + back.x*r*.5 + dn.x*r*.35, y: h.y + back.y*r*.5 + dn.y*r*.35, r, a: Math.atan2(dn.y, dn.x)}); out.push(glute);
   }
@@ -3906,7 +3923,7 @@ function drawFlatFigure(g, R, av){
     const overHead = faceHole && orderF(p) === 9.5; if (overHead){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.moveTo(...faceHole[0]); for (const q of faceHole.slice(1)) g.lineTo(...q); g.closePath(); g.clip('evenodd'); }
     const unseen = R.live && p.ks && p.ks.some(i => R.kp[i].s < VIS); if (unseen) g.globalAlpha *= .35; // a limb the camera did not find is only a hint
     const base = flatColor(av, p.part, isFar ? farDim : false); g.fillStyle = base; p(g); g.fill();
-    if (SHADED[p.part] && !(R.blob > .3) && !(detailed && p.part === 'foot')) flatShade(g, p, base, s); // a soft shade on the side away from the light, for volume
+    if (SHADED[p.part] && !(R.blob > .3) && !(detailed && (p.part === 'foot' || p.part === 'hand')) && !p.flat) flatShade(g, p, base, s); // a soft shade on the side away from the light, for volume
     if (detailed) detailLines(g, p, R, sil, av, base);
     const clothed = p.part === 'torso' || (p.part === 'shoulders' && !(detailed && av.sleeves === 'none')) || (p.part === 'fore' && av.sleeves === 'long');
     const K = R.kp, frameOf = q => q.ks && q.ks.length > 1 ? {x: K[q.ks[0]].x, y: K[q.ks[0]].y, a: Math.atan2(K[q.ks[1]].y - K[q.ks[0]].y, K[q.ks[1]].x - K[q.ks[0]].x) - Math.PI/2} : torsoFrame;
@@ -8270,10 +8287,10 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
   hIn.addEventListener('input', () => { avatar.height = +hIn.value; hOut.textContent = hIn.value + ' cm'; reRef(); });
   hIn.addEventListener('change', () => { saveAvatar(); retheme(); reRef(); });
   // weight: the detailed body fills out or slims down with it (for the same height)
-  const wIn = $('weightIn'), wOut = $('weightOut'), showW = () => { const w = +avatar.weight || weightDef(avatar); wIn.value = w; wOut.textContent = w + ' kg'; };
-  wIn.addEventListener('input', () => { avatar.weight = +wIn.value; wOut.textContent = wIn.value + ' kg'; render(); });
+  const wIn = $('weightIn'), wOut = $('weightOut'), bmiOf = w => Math.round(w/(((+avatar.height || HEIGHT_DEF)/100)**2)), showW = () => { const w = +avatar.weight || weightDef(avatar); wIn.value = w; wOut.textContent = w + ' kg · BMI ' + bmiOf(w); };
+  wIn.addEventListener('input', () => { avatar.weight = +wIn.value; showW(); render(); });
   wIn.addEventListener('change', () => { saveAvatar(); retheme(); render(); });
-  hIn.addEventListener('input', () => { if (!avatar.weight) showW(); });
+  hIn.addEventListener('input', () => { showW(); render(); }); // the same weight on a taller body is a lower BMI: a slimmer figure
   for (const h of hosts) h.addEventListener('click', e => { if (e.target.closest && e.target.closest('[data-k="matLen"]')) setTimeout(reRef, 0); });
   showH(); showW();
   sync(); window.__syncLook = () => { sync(); showH(); showW(); }; document.addEventListener('sama:lang', sync);
