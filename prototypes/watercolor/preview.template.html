@@ -1,0 +1,116 @@
+<title>Sama Watercolor Skin</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one painted stage (the app's 2D scene), pose buttons under it, then the frames that make it up. Tokens follow the Sama app. */
+:root {
+  --bg: #EFEBE4; --card: #F7F4EE; --ink: #23302A; --muted: #66706A; --line: #DDD6CB;
+  --accent: #9C5A3C; --sage: #B5C2AE; --btn: #2F4A3D; --btn-ink: #F7F4EE;
+  --f-display: "Young Serif", Georgia, serif; --f-body: "Figtree", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141A16; --card: #1C231F; --ink: #E7EBE3; --muted: #9AA39C; --line: #2C3530;
+  --accent: #D39274; --sage: #8FA088; --btn: #D39274; --btn-ink: #141A16; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #141A16; --card: #1C231F; --ink: #E7EBE3; --muted: #9AA39C; --line: #2C3530;
+  --accent: #D39274; --sage: #8FA088; --btn: #D39274; --btn-ink: #141A16; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px; }
+h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(26px, 4vw, 36px); margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 400; font-size: 20px; margin: 0; }
+p { margin: 0; max-width: 65ch; }
+.lede { color: var(--muted); }
+.stage { position: relative; border-radius: 14px; overflow: hidden; background: #FBF8F1; aspect-ratio: 16 / 9; max-width: 100%;
+  box-shadow: 0 1px 0 var(--line), 0 12px 30px -18px rgba(0,0,0,.35); }
+.stage video, .stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.stage .hidden { visibility: hidden; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button { font: 500 15px var(--f-body); border-radius: 999px; padding: 9px 18px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:disabled { cursor: default; opacity: .6; }
+.status { font: 400 13px var(--f-mono); color: var(--muted); margin-left: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+figure img { width: 100%; border-radius: 10px; border: 1px solid var(--line); }
+figcaption { font-size: 13px; color: var(--muted); }
+figcaption b { color: var(--ink); font-weight: 600; }
+.notes { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 22px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+.mono { font-family: var(--f-mono); font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <h1>Watercolor skin, two poses</h1>
+    <p class="lede">A test of a painted, image-based figure in a flat 2D scene. Every change of pose goes through the Sama logo: the figure melts into it, and the next pose grows back out of it.</p>
+  </header>
+
+  <section style="display:grid;gap:14px">
+    <div class="stage" id="stage">
+      <img id="still" src="__POSE_mountain__" alt="Watercolor woman in mountain pose on a teal mat">
+      <video id="v1" class="hidden" muted playsinline preload="auto"></video>
+      <video id="v2" class="hidden" muted playsinline preload="auto"></video>
+    </div>
+    <div class="controls" role="group" aria-label="Pose">
+      <button type="button" id="b-mountain" data-pose="mountain" aria-pressed="true">Mountain</button>
+      <button type="button" id="b-warrior2" data-pose="warrior2" aria-pressed="false">Warrior II</button>
+      <button type="button" id="b-slow" aria-pressed="false">Half speed</button>
+      <span class="status" id="status">Mountain</span>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:14px">
+    <h2>What it is made of</h2>
+    <div class="frames">
+      <figure><img src="__POSE_mountain__" alt="Mountain pose still"><figcaption><b>Mountain</b> · still, one image per pose</figcaption></figure>
+      <figure><img src="__LOGO__" alt="Watercolor Sama logo on the mat"><figcaption><b>Logo on the mat</b> · shared by every pose</figcaption></figure>
+      <figure><img src="__POSE_warrior2__" alt="Warrior II pose still"><figcaption><b>Warrior II</b> · still, one image per pose</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="notes">
+    <h2>How it scales</h2>
+    <ul>
+      <li>Each pose needs one still and one 4 second clip of it melting into the logo. The clip plays forward to leave the pose and backward to arrive in it.</li>
+      <li>So any pose can reach any other pose, and the cost grows with the number of poses, not with the number of pairs.</li>
+      <li>The mat and paper are part of the painting in this test. In the app they would come from the scene, and the figure would be cut out.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const CLIP = { mountain: { f: "__CLIP_mountain_f__", r: "__CLIP_mountain_r__" }, warrior2: { f: "__CLIP_warrior2_f__", r: "__CLIP_warrior2_r__" } };
+const STILL = { mountain: "__POSE_mountain__", warrior2: "__POSE_warrior2__" };
+const NAME = { mountain: "Mountain", warrior2: "Warrior II" };
+const still = document.getElementById('still'), v1 = document.getElementById('v1'), v2 = document.getElementById('v2');
+const status = document.getElementById('status'), slow = document.getElementById('b-slow');
+let cur = 'mountain', busy = false, rate = 1;
+v1.src = CLIP.mountain.f; v2.src = CLIP.warrior2.r;
+function play(v, src){
+  return new Promise(res => {
+    const go = () => { v.playbackRate = rate; v.currentTime = 0; v.classList.remove('hidden'); v.play().catch(() => res()); };
+    v.onended = () => res();
+    if (v.getAttribute('src') !== src){ v.src = src; v.oncanplay = () => { v.oncanplay = null; go(); }; v.load(); } else go();
+  });
+}
+async function goTo(next){
+  if (busy || next === cur) return;
+  busy = true; document.querySelectorAll('[data-pose]').forEach(b => b.disabled = true);
+  status.textContent = NAME[cur] + ' → logo';
+  await play(v1, CLIP[cur].f);
+  still.src = STILL[next];
+  status.textContent = 'logo → ' + NAME[next];
+  await play(v2, CLIP[next].r); v1.classList.add('hidden');
+  v2.classList.add('hidden');
+  cur = next; status.textContent = NAME[cur]; busy = false;
+  document.querySelectorAll('[data-pose]').forEach(b => { b.disabled = false; b.setAttribute('aria-pressed', String(b.dataset.pose === cur)); });
+}
+document.querySelectorAll('[data-pose]').forEach(b => b.addEventListener('click', () => goTo(b.dataset.pose)));
+slow.addEventListener('click', () => { rate = rate === 1 ? .5 : 1; slow.setAttribute('aria-pressed', String(rate !== 1)); });
+</script>
