@@ -1,0 +1,165 @@
+mountain|Standing|Mountain|front
+warrior1|Standing|Warrior I|side
+warrior2|Standing|Warrior II|front
+triangle|Standing|Triangle|front
+sideangle|Standing|Extended Side Angle|front
+highlunge|Standing|High Lunge|side
+lowlunge|Standing|Low Lunge|side
+chair|Standing|Chair|side
+goddess|Standing|Goddess|front
+forwardfold|Standing|Standing Forward Fold|side
+widefold|Standing|Wide-Legged Forward Fold|front
+tree|Balance|Tree|front
+warrior3|Balance|Warrior III|side
+halfmoon|Balance|Half Moon|front
+dancer|Balance|Dancer|side
+eagle|Balance|Eagle|front
+plank|Arm support|Plank|side
+chaturanga|Arm support|Four-Limbed Staff|side
+dog|Arm support|Downward Dog|side
+updog|Arm support|Upward Dog|side
+sideplank|Arm support|Side Plank|front
+crow|Arm support|Crow|side
+cobra|Backbends|Cobra|side
+bridge|Backbends|Bridge|side
+camel|Backbends|Camel|side
+wheel|Backbends|Wheel|side
+staff|Seated & floor|Staff|side
+seatedfold|Seated & floor|Seated Forward Fold|side
+boat|Seated & floor|Boat|side
+boundangle|Seated & floor|Bound Angle|front
+child|Seated & floor|Child’s Pose|side
+upsalute|Sun salutation|Upward Salute|front
+halflift|Sun salutation|Halfway Lift|side
+kneeschestchin|Sun salutation|Knees-Chest-Chin|side
+ragdoll|Sun salutation|Ragdoll|side
+standingbackbend|Sun salutation|Standing Backbend|side
+forearmplank|Sun salutation|Forearm Plank|side
+dolphin|Sun salutation|Dolphin|side
+tabletop|Sun salutation|Tabletop|side
+cat|Sun salutation|Cat|side
+cow|Sun salutation|Cow|side
+sphinx|Sun salutation|Sphinx|side
+locust|Sun salutation|Locust|side
+bow|Sun salutation|Bow|side
+reversewarrior|Standing|Reverse Warrior|front
+humblewarrior|Standing|Humble Warrior|side
+pyramid|Standing|Pyramid|side
+revtriangle|Standing|Revolved Triangle|side
+revsideangle|Standing|Revolved Side Angle|front
+bigtoe|Standing|Hand to Big Toe|side
+standingsplit|Standing|Standing Split|side
+skandasana|Standing|Side Lunge|front
+chairtwist|Standing|Revolved Chair|side
+garland|Standing|Garland|front
+gorilla|Standing|Gorilla|side
+crescentmoon|Standing|Crescent Moon|front
+star|Standing|Five-Pointed Star|front
+lizard|Standing|Lizard|side
+runnerslunge|Standing|Runner’s Lunge|side
+lungetwist|Standing|Low Lunge Twist|side
+halfsplits|Standing|Half Splits|side
+splits|Standing|Monkey Pose|side
+figurefour|Standing|Standing Figure Four|side
+revhalfmoon|Balance|Revolved Half Moon|side
+boundsideangle|Standing|Bound Side Angle|front
+birdofparadise|Balance|Bird of Paradise|front
+warrior3hands|Balance|Airplane|side
+kneesideplank|Arm support|Side Plank with Knee Down|front
+wildthing|Backbends|Wild Thing|side
+reversetable|Arm support|Reverse Tabletop|side
+upwardplank|Arm support|Upward Plank|side
+sidecrow|Arm support|Side Crow|side
+eightangle|Arm support|Eight-Angle Pose|side
+flyingpigeon|Arm support|Flying Pigeon|side
+firefly|Arm support|Firefly|side
+handstand|Inversions|Handstand|side
+forearmstand|Inversions|Forearm Stand|side
+tripodheadstand|Inversions|Tripod Headstand|side
+headstand|Inversions|Supported Headstand|side
+shoulderstand|Inversions|Shoulder Stand|side
+plow|Inversions|Plow|side
+legsup|Inversions|Legs Up the Wall|side
+easy|Seated & floor|Easy Pose|front
+hero|Seated & floor|Hero|front
+thunderbolt|Seated & floor|Thunderbolt|side
+wristrelease|Wrists|Wrist Release|side
+prayerwrists|Wrists|Prayer Wrist Stretch|front
+reverseprayer|Wrists|Reverse Prayer Hands|front
+wristext|Wrists|Wrist Extension|side
+wristflex|Wrists|Wrist Flexion|side
+lotus|Seated & floor|Lotus|front
+cowface|Seated & floor|Cow Face|side
+firelog|Seated & floor|Fire Log|front
+seatedtwist|Seated & floor|Half Lord of the Fishes|front
+headtoknee|Seated & floor|Head to Knee|side
+wideseated|Seated & floor|Wide-Angle Seated Fold|front
+pigeon|Seated & floor|Pigeon|side
+sleepingpigeon|Seated & floor|Sleeping Pigeon|side
+gate|Seated & floor|Gate|front
+puppy|Seated & floor|Puppy|side
+birddog|Seated & floor|Bird Dog|side
+threadneedle|Seated & floor|Thread the Needle|side
+rabbit|Seated & floor|Rabbit|side
+halfboat|Seated & floor|Half Boat|side
+tabletwist|Seated & floor|Seated Spinal Twist|front
+kneestochest|Supine|Knees to Chest|side
+supinetwist|Supine|Supine Twist|side
+reclinedbound|Supine|Reclined Bound Angle|side
+happybaby|Supine|Happy Baby|side
+reclinedpigeon|Supine|Reclined Figure Four|side
+reclinedbigtoe|Supine|Reclined Hand to Big Toe|side
+fish|Supine|Fish|side
+supportedbridge|Supine|Supported Bridge|side
+windrelieving|Supine|Wind-Relieving|side
+supinelegsup|Supine|Supine Leg Raise|side
+threeleggeddog|Sun salutation|Three-Legged Dog|side
+kneeplank|Sun salutation|Knee Plank|side
+kneeschaturanga|Sun salutation|Knees-Down Chaturanga|side
+kneetonose|Sun salutation|Knee to Nose|side
+fallentriangle|Arm support|Fallen Triangle|side
+sidebend|Standing|Standing Side Bend|front
+bigtoeside|Balance|Hand to Big Toe B|front
+sugarcane|Balance|Sugarcane|front
+toestand|Balance|Toe Stand|side
+handunderfoot|Standing|Hands Under Feet|side
+widefoldtwist|Standing|Revolved Wide-Legged Fold|front
+sideplankstar|Arm support|Side Plank Star|front
+sideplanktree|Arm support|Side Plank Tree|front
+crane|Arm support|Crane|side
+koundinya1|Arm support|Koundinya I|front
+flyingsplits|Arm support|Flying Splits|side
+lsit|Arm support|L-Sit|side
+tolasana|Arm support|Scale|side
+peacock|Arm support|Peacock|side
+scorpion|Inversions|Scorpion|side
+headstandsplit|Inversions|Straddle Headstand|front
+earpressure|Inversions|Ear Pressure|side
+halfbow|Backbends|Half Bow|side
+superman|Backbends|Superman|side
+frogbackbend|Backbends|Frog (prone)|side
+onelegbridge|Backbends|One-Legged Bridge|side
+onelegwheel|Backbends|One-Legged Wheel|side
+kingpigeon|Backbends|King Pigeon|side
+kingdancer|Backbends|King Dancer|side
+halflotus|Seated & floor|Half Lotus|front
+marichi1|Seated & floor|Marichi I|side
+marichi3|Seated & floor|Marichi III|front
+revheadtoknee|Seated & floor|Revolved Head to Knee|front
+compass|Seated & floor|Compass|front
+heron|Seated & floor|Heron|side
+halfhero|Seated & floor|Half Hero Fold|side
+tortoise|Seated & floor|Tortoise|side
+wideseatedside|Seated & floor|Wide Seated Side Bend|front
+widechild|Seated & floor|Extended Child|side
+quadlunge|Seated & floor|Low Lunge Quad Stretch|side
+tiger|Seated & floor|Tiger|side
+lion|Seated & floor|Lion|side
+cradle|Seated & floor|Baby Cradle|front
+deer|Seated & floor|Deer|front
+frog|Seated & floor|Frog (yin)|front
+saddle|Supine|Saddle (Reclined Hero)|side
+reclinedbigtoeside|Supine|Reclined Big Toe B|side
+tabletoplegs|Supine|Supine Tabletop|side
+legraises|Supine|Leg Raises|side
+savasana|Supine|Resting Pose|side
