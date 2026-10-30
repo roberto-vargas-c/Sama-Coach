@@ -3970,7 +3970,7 @@ const OUTFITS = { // wear: the clothes it sets; the rest are the extras it draws
     base:{sleeves:'long', bottom:'leggings', fit:'relaxed', bottomPattern:true}, hat:'nightcap', front:'pyjamas'},
   winter:{wear: av => av.figure === 'man' ? {topColor:'#4F8A57', patternColor:'#3E7046', bottomColor:'#4C8253', hatColor:'#4F8A57', hatTrim:'#3E7046', scarf:['#C9353A', '#F4F0E8'], handColor:'#3F7347', footColor:'#7A5233'}
       : {topColor:'#C8413A', patternColor:'#A8322D', bottomColor:'#4E6C8C', hatColor:'#4E6C8C', hatTrim:'#DCE3EA', scarf:['#4E6C8C', '#A9BCD0'], handColor:'#4E6C8C', footColor:'#3E5168'},
-    base:{sleeves:'long', pattern:'quilt', bottom:'leggings', fit:'relaxed'}, bulk:1.16, hat:'beanie', boots:true, mittens:true},
+    base:{sleeves:'long', pattern:'quilt', bottom:'leggings', fit:'relaxed'}, bulk:1.16, jacket:true, hat:'beanie', boots:true, mittens:true},
   skeleton:{wear: () => ({}), base:{topColor:'#1E1D22', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1E1D22', fit:'fitted'}, bones:true},
   pumpkin:{wear: () => ({}), base:{topColor:'#1E1D22', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1E1D22', fit:'fitted'}, hat:'pumpkin', pumpkin:true},
   vampire:{wear: () => ({}), base:{topColor:'#24222B', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1D1B22', fit:'fitted', footColor:'#1A191E', hairColor:'#17151A'}, cape:true, front:'vampire'},
@@ -3989,19 +3989,25 @@ function outfitParts(parts, R, sil, av, O){ // the extras that are shapes of the
     const ang = Math.atan2(neckTop.y - base.y, neckTop.x - base.x) + Math.PI/2;
     add(g => { g.beginPath(); g.ellipse(base.x, base.y, rw, rh, ang, 0, Math.PI*2); }, 'scarf', 9.2, {color: c1, stripes: c2});
     if (front) add(g => { const a = F(nw*.8, H + rS*.45), b = F(nw*1.1 + rS*.1, H*.4), w = rS*.36; taperPath(g, a, b, w, w*.9); }, 'scarf', 9.15, {color: c1, stripes: c2, tail: true}); }
+  if (O.jacket){ const gi = SHAPE.girth || 1, W = (fr.hh*SHAPE.hipJ + fr.rH*SHAPE.waist)*gi, Hp = (fr.hh*SHAPE.hipJ + fr.rH*SHAPE.hip)*gi, rH = fr.rH; // a jacket is long: it hangs on over the hips, so no waistband or seat shows
+    const q = [[W*1.04, H*.45], [Math.max(W, Hp)*1.12, rH*.2], [Hp*1.1, -rH*.55], [0, -rH*.62]], pts = [...q.map(([x, y]) => F(-x, y)), ...q.slice(0, 3).reverse().map(([x, y]) => F(x, y))];
+    const j = add(g => { g.beginPath(); smoothClosed(g, pts); }, 'torso', 3.67); j.jacket = true; }
   if (O.front) add(g => g.beginPath(), 'shirtfront', 2.55); // over the neckline's scoop
-  if (O.pumpkin){ const c = F(0, H*.36), up = F(0, H*.36 + 1), a = Math.atan2(up.y - c.y, up.x - c.x) - Math.PI/2, ry = H*.66, rx = Math.max((hw + rS*.9)*1.25, ry*.92); // round from every side
+  if (O.pumpkin){ const c = F(0, H*.28), up = F(0, H*.28 + 1), a = Math.atan2(up.y - c.y, up.x - c.x) - Math.PI/2, ry = H*.56, rx = Math.max((hw + rS*.6)*1.2, ry*.95); // round from every side, its top under the shoulders so the arms come out above it
     add(g => { g.beginPath(); g.ellipse(c.x, c.y, rx, ry, a, 0, Math.PI*2); }, 'pumpkin', 3.8, {c, a, rx, ry}); }
   if (O.cape){ // the cape hangs from the shoulders straight down (to the floor at most), wide face-on and a narrow drop behind the back in profile
-    const sh = sd => F(sd*(hw + rS*.35)*(.5 + .5*fc), H + rS*.55), mid = F(0, H + rS*.55), L = H*1.75, spread = (hw + rS*1.1)*(.55 + .95*fc);
+    const top = front ? H + rS*.55 : H + rS*1.0, sh = sd => F(sd*(hw + rS*(front ? .35 : .6))*(.5 + .5*fc), top), mid = F(0, top), L = H*1.75, spread = (hw + rS*1.1)*(.55 + .95*fc);
     const hemAt = (x, k) => ({x: mid.x + x, y: Math.min(mid.y + L*k, R.floor)});
     const shape = k => g => { g.beginPath(); const l = sh(-1), r = sh(1), hl = hemAt(-spread*k, 1), hr = hemAt(spread*k, 1), m = hemAt(0, 1.06);
       const ls = l.x < r.x ? l : r, rs = l.x < r.x ? r : l; g.moveTo(ls.x, ls.y); g.lineTo(rs.x, rs.y);
       g.quadraticCurveTo(rs.x + spread*.35*k, rs.y + L*.35, hr.x, hr.y); g.quadraticCurveTo(mid.x + spread*.5*k, m.y + L*.04, m.x, m.y); g.quadraticCurveTo(mid.x - spread*.5*k, m.y + L*.04, hl.x, hl.y);
       g.quadraticCurveTo(ls.x - spread*.35*k, ls.y + L*.35, ls.x, ls.y); g.closePath(); };
     add(shape(1), 'cape', front ? -2 : 3.9, {color: '#1A1820'}); if (front && fc > .55) add(shape(.82), 'cape', -1.9, {color: '#A3202B', lining: true}); // (from behind the cape hangs over the back, under the arms)
-    for (const sd of [-1, 1]) add(g => { const a = F(sd*nw*1.5, H + rS*.75), b = F(sd*(hw*.95 + rS*.2), H + rS*1.1), c = F(sd*(hw*.7 + rS*.2)*.9, H + rS*3.1), d = F(sd*nw*1.2, H + rS*2.2);
-      g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineTo(c.x, c.y); g.quadraticCurveTo(d.x, d.y, a.x, a.y); g.closePath(); }, 'collar', front ? 1.85 : 9.3, {color: front ? '#A3202B' : '#1A1820', side: null}); }
+    if (front) for (const sd of [-1, 1]) add(g => { const a = F(sd*nw*1.5, H + rS*.75), b = F(sd*(hw*.95 + rS*.2), H + rS*1.1), c = F(sd*(hw*.7 + rS*.2)*.9, H + rS*3.1), d = F(sd*nw*1.2, H + rS*2.2);
+      g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineTo(c.x, c.y); g.quadraticCurveTo(d.x, d.y, a.x, a.y); g.closePath(); }, 'collar', 1.85, {color: '#A3202B', side: null}); // the high collar's red inside, standing behind the head
+    else { const base = F(0, H + rS*.9), nk = R.neck, up = {x: (nk.x - base.x), y: (nk.y - base.y)}, w = Math.max(nw*2.4, rS*.9)*(.5 + .5*fc); // from behind: one black collar round the back of the neck, up to the hairline
+      add(g => { const ux = up.x, uy = up.y, l = Math.hypot(ux, uy) || 1, v = {x: -uy/l, y: ux/l}, at = (a, b) => ({x: base.x + v.x*a + ux*b, y: base.y + v.y*a + uy*b}), q = [at(-w, 0), at(w, 0), at(w*.85, .95), at(0, .8), at(-w*.85, .95)];
+        g.beginPath(); g.moveTo(q[0].x, q[0].y); for (const t of q.slice(1)) g.lineTo(t.x, t.y); g.closePath(); }, 'collar', 9.3, {color: '#1A1820', side: null}); } }
   return out;
 }
 function outfitDraw(g, p, R, sil, av, O){ // the extras that are prints over a part already drawn (clipped to it), and the colours of the extras' own shapes
