@@ -3912,7 +3912,7 @@ const refFor = (id, mirrored = false, angle = refAngle) => {
 // ---------- pose models ----------
 // The models' descriptions ship with the site; their weights (10 MB) come from the public repository, pinned to the commit of
 // their last change (MODEL_REV, kept up to date by tools/voice-rev.sh): jsDelivr first, GitHub's raw files next, the site last.
-const MODEL_REV = '9096879e42a77150819cbec1534d958f8e440dbf';
+const MODEL_REV = 'd66164fda68614c617f27c78a0d532c1c05e5e15';
 const MODEL_BASES = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? [''] : [
   `https://cdn.jsdelivr.net/gh/roberto-vargas-c/Sama-Coach@${MODEL_REV}/`, `https://raw.githubusercontent.com/roberto-vargas-c/Sama-Coach/${MODEL_REV}/`, ''];
 async function loadPoseModel(json, onProgress){
@@ -5506,15 +5506,16 @@ const VOICE_DIR = 'voice/'; // the lists (index, durations, sentence cuts) are s
 // The recordings themselves are not uploaded with every deploy: they come from the public repository, pinned to the commit of
 // their last change (VOICE_REV, kept up to date by tools/voice-rev.sh). jsDelivr first, GitHub's raw files if it fails, then
 // the site itself (local development, or a copy that still carries them).
-const VOICE_REV = '0cc23ad8b70d1784a914c51e16e33e0f1a433929';
+const VOICE_REV = '01de7c62b94ac80935772104abde1e827a031be9';
 const VOICE_BASES = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? ['voice/'] : [
   `https://cdn.jsdelivr.net/gh/roberto-vargas-c/Sama-Coach@${VOICE_REV}/voice/`,
   `https://raw.githubusercontent.com/roberto-vargas-c/Sama-Coach/${VOICE_REV}/voice/`, 'voice/'];
 let voiceBase = 0; // the first source that answers is kept for the rest of the visit
-const voiceUrl = id => VOICE_BASES[voiceBase] + id + '.mp3';
+const voicePath = id => (VOICE_LOCAL.has(id) ? voiceLang + '/' : '') + id + '.mp3'; // voice/es/… for a line recorded in Spanish
+const voiceUrl = id => VOICE_BASES[voiceBase] + voicePath(id);
 async function voiceFetch(id){
   for (let b = voiceBase; b < VOICE_BASES.length; b++){
-    try { const r = await fetch(VOICE_BASES[b] + id + '.mp3'); if (r.ok){ voiceBase = b; return new Blob([await r.blob()], {type: 'audio/mpeg'}); } } catch {}
+    try { const r = await fetch(VOICE_BASES[b] + voicePath(id)); if (r.ok){ voiceBase = b; return new Blob([await r.blob()], {type: 'audio/mpeg'}); } } catch {}
   }
   return null;
 }
@@ -5526,10 +5527,10 @@ const voice = {queue: [], playing: false, done: null, said: new Set()};
 // clips are fetched ahead into memory, so one follows the next without a loading pause ("…prepare for" straight into "Warrior Two")
 const VCACHE = new Map();
 function voicePrefetch(ids){
-  for (const id of ids){ if (!id || VCACHE.has(id) || (VOICE_HAVE.size && !VOICE_HAVE.has(id))) continue;
-    VCACHE.set(id, voiceFetch(id).then(b => { if (b) VCACHE.set(id, URL.createObjectURL(b)); else VCACHE.delete(id); }).catch(() => VCACHE.delete(id))); }
+  for (const id of ids){ const k = id && voicePath(id); if (!id || VCACHE.has(k) || (VOICE_HAVE.size && !VOICE_HAVE.has(id))) continue; // kept by file, so both languages can sit side by side
+    VCACHE.set(k, voiceFetch(id).then(b => { if (b) VCACHE.set(k, URL.createObjectURL(b)); else VCACHE.delete(k); }).catch(() => VCACHE.delete(k))); }
 }
-const voiceSrc = id => { const c = VCACHE.get(id); return typeof c === 'string' ? c : voiceUrl(id); };
+const voiceSrc = id => { const c = VCACHE.get(voicePath(id)); return typeof c === 'string' ? c : voiceUrl(id); };
 function voicePlay(ids, done){ // play clips in order; done() runs when the last one ends (or fails)
   voice.queue = VOICE_HAVE.size ? ids.filter(id => VOICE_HAVE.has(id)) : ids.slice(); voice.done = done || null; voicePrefetch(voice.queue.slice(1)); voiceNext(); // skip clips not recorded yet
 }
@@ -5671,11 +5672,23 @@ function breathLight(){
 }
 // lead-ins before a new pose. Each ends where the pose's own script begins with its name ("…prepare for" + "Warrior Two. Step the feet…").
 // Only clips that exist (voice/index.json) are used, so a line plays as soon as its recording is added.
-let VOICE_HAVE = new Set(), VOICE_DUR = {}, VOICE_CUTS = {};
-fetch(VOICE_DIR + 'index.json').then(r => r.ok ? r.json() : []).then(a => { VOICE_HAVE = new Set(a); }).catch(() => {});
-// how long each clip is, and where each sentence of a pose's script ends ({b:[[end, next start], …], br: the last sentence is a breath line})
-fetch(VOICE_DIR + 'durations.json').then(r => r.ok ? r.json() : {}).then(d => { VOICE_DUR = d; }).catch(() => {});
-fetch(VOICE_DIR + 'cuts.json').then(r => r.ok ? r.json() : {}).then(d => { VOICE_CUTS = d; }).catch(() => {});
+// Also how long each clip is, and where each sentence of a pose's script ends ({b:[[end, next start], …], br: the last sentence is a breath line}).
+// The guide speaks the app's language where it is recorded (voice/es/ has the same lists); any line missing there, and any
+// other language, stays in English.
+const VOICE_LANGS = ['en', 'es'];
+let VOICE_HAVE = new Set(), VOICE_DUR = {}, VOICE_CUTS = {}, VOICE_LOCAL = new Set(), voiceLang = 'en';
+const voiceLists = dir => Promise.all(['index', 'durations', 'cuts'].map(n => fetch(VOICE_DIR + dir + n + '.json').then(r => r.ok ? r.json() : null).catch(() => null)));
+const VOICE_EN = voiceLists('');
+const voiceWant = () => window.SamaI18n && VOICE_LANGS.includes(SamaI18n.lang) ? SamaI18n.lang : 'en';
+function voiceLoad(){
+  const l = voiceWant();
+  Promise.all([VOICE_EN, l === 'en' ? [] : voiceLists(l + '/')]).then(([[a, d, c], [la, ld, lc]]) => {
+    if (l !== voiceWant()) return; // switched again meanwhile
+    const local = new Set(la || []), en = (o, lo) => Object.assign(Object.fromEntries(Object.entries(o || {}).filter(([k]) => !local.has(k))), lo);
+    VOICE_LOCAL = local; voiceLang = l; VOICE_HAVE = new Set([...(a || []), ...local]); VOICE_DUR = en(d, ld); VOICE_CUTS = en(c, lc);
+  });
+}
+voiceLoad(); document.addEventListener('sama:lang', voiceLoad);
 // A pose's script can be longer than the pose (a 31-second Mountain in a breath-by-breath flow). Then it is cut after the last
 // whole sentence that fits the time the pose is on screen (its prep and hold, after any movement cues), always keeping the first
 // sentence (the name and how to get in); the closing breath line is kept too when it still fits.
@@ -7839,8 +7852,8 @@ const SUPPORT = (() => {
   document.addEventListener('click', e => { if (!menu.hidden && !e.target.closest('.langpick')) close(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
   mark(); document.addEventListener('sama:lang', mark); })();
-function voiceLangNotes(){ const on = !!(window.SamaI18n && SamaI18n.lang !== 'en'); for (const el of document.querySelectorAll('.voicelang')) el.hidden = !on; }
-voiceLangNotes(); document.addEventListener('sama:lang', voiceLangNotes);
+function voiceLangNotes(){ const on = !!(window.SamaI18n && !VOICE_LANGS.includes(SamaI18n.lang)); for (const el of document.querySelectorAll('.voicelang')) el.hidden = !on; }
+voiceLangNotes(); document.addEventListener('sama:lang', voiceLangNotes); // the note shows only where the guide is not recorded yet
 // "Did you know?" tips: one small card at a time, never during a practice, the camera, the tour or the welcome, at most
 // once a day; each tip shows once and only while it is still news (the setting untouched, the cycle not set up, ...)
 const DYK = (() => {

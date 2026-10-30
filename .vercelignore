@@ -3,5 +3,6 @@ android/
 tools/
 # the voice recordings are served from the public repository (see VOICE_REV in index.html); only their lists ship here
 voice/*.mp3
+voice/es/*.mp3
 # the pose models' weights too (see MODEL_REV in index.html); their small .json descriptions ship here
 *-weights.wasm
