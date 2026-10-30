@@ -1281,7 +1281,7 @@ Savasana, 3 min"></textarea>
             <div class="skhead"><h3>Skins</h3><button class="btn small" id="skinGen" type="button">Generate new skins</button></div>
             <div class="skgrid" id="skinGrid"></div>
             <div class="skgrid" id="skinNew" hidden></div>
-            <p class="hint">A skin changes your whole figure: a more detailed body with fingers and toes, the clothes and the mat. Marble, Bronze and Jade turn you into a statue. Your build and height stay yours.</p>
+            <p class="hint">A skin changes your whole figure: a more detailed body with fingers and toes, the clothes and the mat. Your build and height stay yours.</p>
           </div>
           <div class="alook">
           <div class="aonly alook-rows">
@@ -3393,8 +3393,16 @@ function torsoOutline(R, SIL, kind, neck = null){ // neck: {l, r} screen points 
   const nc = Math.max(nw*1.05*SHAPE.neck, nw*1.4*SHAPE.neck*fk), tm = Math.max(hw*.66, nc + rS*.2*fk);
   const skinTop = [[nc*.5, H + rS*.9], [nc, H + rS], [nc + (tm - nc)*.45, H + rS*.84*SHAPE.trap], [tm, H + rS*.62*SHAPE.trap], [hw + rS*.05 + gx*.5, H + rS*.25*SHAPE.trap], [hw + rS*.32 + gx, H - rS*.35]];
   for (let i = 1; i < skinTop.length; i++) skinTop[i][0] = Math.max(skinTop[i][0], skinTop[i - 1][0] + rS*.02); // always widening from the neck to the shoulder: no wings where the neck is wider than a turned shoulder
-  if (kind === 'skin' && neck){ const body = side([...skinTop.slice(1), [hw + rS*.05 + gx, H - rS*1.0], [hw*.4, H - rS*1.4]]); return [...neck.l, ...body, ...neck.r.slice().reverse()].reverse(); } // the neck and the shoulders as one outline, so they join smoothly in any view
-  if (kind === 'skin') return side([...skinTop, [hw + rS*.05 + gx, H - rS*1.0], [hw*.4, H - rS*1.4]]).reverse();
+  if (kind === 'skin'){ // a raised arm grows out of the shoulder: the slope from the neck runs on along the top of the arm, and under it the outline curves down into the side of the chest (no round shoulder hanging below the arm)
+    const o0 = F(0, 0), ex = F(1, 0), ey = F(0, 1), ax = ex.x - o0.x, ay = ex.y - o0.y, ux = ey.x - o0.x, uy = ey.y - o0.y, det = ax*uy - ay*ux || 1, loc = q => [((q.x - o0.x)*uy - (q.y - o0.y)*ux)/det, (ax*(q.y - o0.y) - ay*(q.x - o0.x))/det];
+    const U = SIL.upper[0]*R.scale*SHAPE.arm, rest = skinTop.slice(0, 4), tail = [[hw + rS*.05 + gx*.5, H + rS*.25*SHAPE.trap], [hw + rS*.32 + gx, H - rS*.35], [hw + rS*.05 + gx, H - rS*1.0]];
+    const half = sgn => { const [sI, eI] = loc(R.ls)[0]*sgn > 0 ? [5, 7] : [6, 8], [jx, jy] = loc(R.kp[sI]), [kx, ky] = loc(R.kp[eI]), J = [Math.abs(jx) + gx, jy], dl = Math.hypot(kx - jx, ky - jy) || 1, d = [(kx - jx)*sgn/dl, (ky - jy)/dl];
+      const t = Math.max(0, Math.min(1, (d[1] + .65)/.55))*Math.max(0, Math.min(1, (fc - .35)/.3)), n = [-d[1], d[0]], at = (f, w) => [J[0] + d[0]*rS*f + n[0]*w, J[1] + d[1]*rS*f + n[1]*w];
+      const arm = [at(.45, U*.93), at(.55, -U*.85), [Math.min(hw - rS*.4, J[0] - rS*.5) + gx*.5, Math.min(H - rS*.9, J[1] - U - rS*.15)]];
+      return t > 0 ? tail.map((q, i) => [q[0] + (arm[i][0] - q[0])*t, q[1] + (arm[i][1] - q[1])*t]) : tail; };
+    const sideLR = (pL, pR) => [...pL.map(([x, y, k]) => ({...F(-x, y), k})), ...pR.slice().reverse().map(([x, y, k]) => ({...F(x, y), k}))];
+    const body = sideLR([...rest.slice(neck ? 1 : 0), ...half(-1), [hw*.4, H - rS*1.4]], [...rest.slice(neck ? 1 : 0), ...half(1), [hw*.4, H - rS*1.4]]);
+    return neck ? [...neck.l, ...body, ...neck.r.slice().reverse()].reverse() : body.reverse(); } // the neck and the shoulders as one outline, so they join smoothly in any view
   const a2 = [Math.max((hw - rS*.5)*SHAPE.ah2, W*(1 - fc)), H - rS*SHAPE.ah2y], w1 = [W, H*.52], bust = [(a2[0] + w1[0])/2*SHAPE.bust, (a2[1] + w1[1])/2]; // the bust: the side of the top swelling out between the armpit and the waist
   const sIn = nw*1.25*SHAPE.neckW*fk, sOut = Math.min(Math.max((nw*1.5 + rS*.3)*SHAPE.strap*fk, sIn + rS*Math.max(SHAPE.strapW, .4)*fk), Math.max(hw, W), Math.max(tm, sIn + rS*.3)), arm1 = Math.max((hw - rS*.6)*SHAPE.armhole, Math.min(sOut, W*(1 - fc)), sOut*.97); // the strap ends inside the shoulder and drops straight into the armhole: no fin over the arm
   const sk = [[0, H + rS*1.02], ...skinTop.slice(1), [hw*9, H - rS*9]];
@@ -3619,7 +3627,7 @@ function drawFlatHead(g, R, av){
   if (!(R.blob > .3)){ g.save(); g.clip(); g.rotate(-F.rot); const dt = av.body === 'detailed'; g.fillStyle = dt ? 'rgba(20, 16, 12, .07)' : 'rgba(20, 16, 12, .11)'; g.beginPath(); g.arc(0, 0, r*1.2, 0, Math.PI*2); g.arc(dt ? -r*.1 : -r*.16, dt ? -r*.06 : -r*.18, r*(dt ? 1.06 : 1.02), 0, Math.PI*2, true); g.fill('evenodd'); g.restore(); }
   g.globalAlpha = a0*fade;
   if (av.hair !== 'none' && fade > 0){ // the hair fades out of the blob (no dark half-moon on it)
-    g.save(); shapeHead(1.06); g.clip(); g.fillStyle = av.hairColor;
+    g.save(); shapeHead(av.body === 'detailed' && !sgn ? 1.0 : 1.06); g.clip(); g.fillStyle = av.hairColor; // (the detailed face-on hair lies on the head: a rim past it ends in points at the temples)
     const yF = sgn ? -r*.45 : -r*.2, yB = sgn ? r*.35 : -r*.2 + away*r*.82 + nod*r*.3;
     g.beginPath(); if (!sgn && av.body === 'detailed' && away < .5){ // a hairline: parted over the forehead, down the temples to the ears
       g.moveTo(-r*1.3, r*.15); g.lineTo(-r*.82, r*.15); g.quadraticCurveTo(-r*.78, -r*.38, -r*.3, -r*.5); g.quadraticCurveTo(0, -r*.56, r*.3, -r*.5); g.quadraticCurveTo(r*.78, -r*.38, r*.82, r*.15); g.lineTo(r*1.3, r*.15); g.lineTo(r*1.3, -r*1.3); g.lineTo(-r*1.3, -r*1.3); }
@@ -3694,7 +3702,8 @@ function smoothClosed(g, pts){
 // widths: [[s, w], ...] along the chain (s counts segments: 0 at the first joint, 1 at the second, ...), eased between keys;
 // `back` (the side away from the toes) gets a little more of each swell, for the calf and the hamstring
 function chainPath(g, J, widths, back, backK = 0, inward = null){ // inward: {dir, k(s)} adds width on the side facing dir (the inner thigh)
-  const W = sv => { let i = 0; while (i < widths.length - 2 && widths[i + 1][0] < sv) i++; const [s0, w0] = widths[i], [s1, w1] = widths[i + 1], f = Math.max(0, Math.min(1, (sv - s0)/((s1 - s0) || 1))); return w0 + (w1 - w0)*(.5 - .5*Math.cos(Math.PI*f)); };
+  const n = widths.length, sl = widths.slice(0, -1).map((q, i) => (widths[i + 1][1] - q[1])/((widths[i + 1][0] - q[0]) || 1)), tg = widths.map((q, i) => i === 0 || i === n - 1 || sl[i - 1]*sl[i] <= 0 ? 0 : 2/(1/sl[i - 1] + 1/sl[i])); // the width runs through its keys as one smooth curve (a monotone spline: no flat steps at each key, no overshoot)
+  const W = sv => { let i = 0; while (i < n - 2 && widths[i + 1][0] < sv) i++; const [s0, w0] = widths[i], [s1, w1] = widths[i + 1], h = (s1 - s0) || 1, f = Math.max(0, Math.min(1, (sv - s0)/h)), f2 = f*f, f3 = f2*f; return w0*(2*f3 - 3*f2 + 1) + tg[i]*h*(f3 - 2*f2 + f) + w1*(3*f2 - 2*f3) + tg[i + 1]*h*(f3 - f2); };
   const segs = J.length - 1, N = 10, dirs = []; for (let k = 0; k < segs; k++){ const dx = J[k + 1].x - J[k].x, dy = J[k + 1].y - J[k].y, l = Math.hypot(dx, dy) || 1; dirs.push({x: dx/l, y: dy/l}); }
   const L = [], Rr = [];
   for (let k = 0; k < segs; k++) for (let i = (k ? 1 : 0); i <= N; i++){
@@ -3779,18 +3788,22 @@ function detailParts(parts, R, sil, av){
     if (p.outline){ const torso = g => silTorsoShaped(g, R, sil, av.sleeves === 'none'); torso.part = 'torso'; torso.hem = av.sleeves === 'none'; return torso; } // an hourglass torso: chest, a waist pulled in, the hips flaring out
     if (!p.ks || !p.side) return p; const o = p.side === 'l' ? 0 : 1, back = backOf(o);
     // one smooth outline per limb: hip to ankle, shoulder to wrist, with the width easing between key widths (no caps, no seams)
-    const toMid = norm(hc.x - P(11 + o).x, hc.y - P(11 + o).y), inThigh = {dir: toMid, k: sv => sv < .5 ? SHAPE.inner + (SHAPE.innerMid - SHAPE.inner)*sv*2 : sv < 1 ? SHAPE.innerMid + (SHAPE.innerKnee - SHAPE.innerMid)*(sv - .5)*2 : sv < 1.4 ? SHAPE.innerKnee*(1.4 - sv)/.4 : 0};
+    const toMid = norm(hc.x - P(11 + o).x, hc.y - P(11 + o).y), inThigh = {dir: toMid, k: sv => sv < .5 ? SHAPE.inner + (SHAPE.innerMid - SHAPE.inner)*sv*2 : sv < 1 ? SHAPE.innerMid + (SHAPE.innerKnee - SHAPE.innerMid)*(sv - .5)*2 : sv < 1.6 ? SHAPE.innerKnee*(.5 + .5*Math.cos(Math.PI*(sv - 1)/.6)) : 0};
     const kn = P(13 + o);
     const leg = g => { const T0 = sil.thigh[0]*s*SHAPE.thigh0, K = sil.thigh[1]*s*SHAPE.knee, A = sil.shin[1]*s*SHAPE.ankle; g.beginPath();
-      chainPath(g, [lerp(P(11 + o), hc, SHAPE.legIn), kn, lerp(kn, ankleAt(o), SHAPE.hem)], [[0, T0], [.4, T0*SHAPE.thighMid], [.82, K*1.12], [1, K], [SHAPE.calfAt, K*SHAPE.calf], [1.78, A*1.25], [2, A]], back, .5, inThigh); };
+      chainPath(g, [lerp(P(11 + o), hc, SHAPE.legIn), kn, lerp(kn, ankleAt(o), SHAPE.hem)], [[0, T0], [.4, T0*SHAPE.thighMid], [.82, K*1.1], [1, K*1.01], [SHAPE.calfAt - .1, K*SHAPE.calf], [1.82, A*1.16], [2, A]], back, .5, inThigh); }; // the calf eases down into the ankle over the whole lower shin (no corner under the calf)
     const thighOnly = g => { const T0 = sil.thigh[0]*s, K = sil.thigh[1]*s; g.beginPath(); chainPath(g, [P(11 + o), P(13 + o)], [[0, T0], [.3, T0*1.02], [1, K]], back, .5, inThigh); };
     const shinOnly = g => { const K = sil.shin[0]*s*.9, A = sil.shin[1]*s*.9; g.beginPath(); chainPath(g, [P(13 + o), P(15 + o)], [[0, K], [.28, K*1.13], [.6, A*1.25], [1, A]], back, .5); };
     if (p.part === 'thigh' && !loose) return tag(av.bottom !== 'shorts' ? leg : thighOnly, p); // in leggings the whole leg is one shape, so nothing shows at the knee
     if (p.part === 'shin' && p.ks[1] === 15 + o && !loose && av.bottom !== 'shorts') return null;
     if (p.part === 'shin' && p.ks[1] === 15 + o && !loose) return tag(shinOnly, p);
-    if (p.part === 'upper') return tag(g => { const U = sil.upper[0]*s*SHAPE.arm, E = sil.upper[1]*s*.92*SHAPE.arm, W = sil.fore[1]*s*.78*SHAPE.arm; g.beginPath();
+    if (p.part === 'upper'){ const e0 = A(7 + o), s0 = A(5 + o), q = tag(g => { const U = sil.upper[0]*s*SHAPE.arm, E = sil.upper[1]*s*.92*SHAPE.arm, W = sil.fore[1]*s*.78*SHAPE.arm; g.beginPath();
       const sh0 = lerp(A(5 + o), A(6 - o), SHAPE.armIn), el = A(7 + o), hang = Math.max(0, Math.min(1, (el.y - sh0.y)/(Math.hypot(el.x - sh0.x, el.y - sh0.y) || 1))); // a hanging arm starts a little down the arm (its cap is the shoulder's); a raised one right at the joint, so it never floats off the shoulder
-      chainPath(g, [lerp(sh0, el, .2*hang*hang), el, A(9 + o)], [[0, U*1.0], [.45, U*.95], [1, E], [1.25, E*1.1], [2, W]], null, .5); }, p); // the whole arm, starting a little in from the joint (the overlay: our shoulders ran ~15% wide)
+      chainPath(g, [hang < .45 && av.sleeves === 'none' ? lerp(sh0, A(6 - o), .2) : lerp(sh0, el, .2*hang*hang), el, A(9 + o)], [[0, U*(hang < .45 && av.sleeves === 'none' ? .93 : 1)], [.45, U*.95], [1, E], [1.25, E*1.1], [2, W]], null, .5); }, p); // the whole arm, starting a little in from the joint (the overlay: our shoulders ran ~15% wide)
+      q.lifted = av.sleeves === 'none' && (e0.y - s0.y) < .45*Math.hypot(e0.x - s0.x, e0.y - s0.y);
+      if (q.lifted){ const {F, rS} = torsoFrame3(R, sil), c = F(0, 0), ex = F(1, 0), ux = F(0, 1).x - c.x, uy = F(0, 1).y - c.y, ax = ex.x - c.x, ay = ex.y - c.y, jx = ((s0.x - c.x)*uy - (s0.y - c.y)*ux)/(ax*uy - ay*ux || 1), xc = jx - Math.sign(jx)*rS*1.1;
+        q.cut = [F(xc, -9e3), F(jx*9e3, -9e3), F(jx*9e3, 9e3), F(xc, 9e3)]; } // its round start stays under the shirt: cut off where the strap runs, the shoulder's skin carries on from there
+      return q; } // a lifted arm lies over the shoulder's skin, which fills in under it into the armpit
     if (p.part === 'fore') return null;
     if (p.part === 'hand' && pressed){ if (o) return null; // palms pressed together (prayer, overhead or at the heart): one pair of hands, side by side, fingers up
       const q = tag(g => { g.beginPath(); smoothClosed(g, pressed.pts); }, p); q.lines = (g, base) => { g.save(); g.strokeStyle = shade(base, .8); g.lineWidth = Math.max(.7, s*.0022); g.lineCap = 'round'; g.beginPath(); g.moveTo(pressed.seam[0].x, pressed.seam[0].y); g.lineTo(pressed.seam[1].x, pressed.seam[1].y); g.stroke(); g.restore(); }; return q; }
@@ -3845,7 +3858,6 @@ function detailLines(g, p, R, sil, av, base){
   g.restore();
 }
 function drawFlatFigure(g, R, av){
-  if (av.tone) av = {...av, skin: av.tone, hairColor: av.hairTone || av.hairColor}; // a full-body skin can recolour the body itself (marble, bronze); the person's own tone stays saved
   const sil = silFor(av); for (const k of ['thigh','shin','upper','fore']) sil[k] = sil[k].map(v => v*1.22); sil.hand *= 1.15; sil.foot *= 1.1; sil.neck *= 1.3;
   // trouser fit: fuller legs, the feet untouched (shorts only widen the thigh)
   const FIT = {fitted:[[1, 1], [1, 1]], relaxed:[[1.16, 1.22], [1.22, 1.28]], wide:[[1.3, 1.45], [1.5, 1.75]]}[av.fit] || [[1, 1], [1, 1]];
@@ -3884,7 +3896,7 @@ function drawFlatFigure(g, R, av){
   // back to front: far limbs; the near upper arm (its shoulder end hides behind the shirt); the shirt; the trousers over it
   // (shin under thigh, so the knee reads as the end of the thigh); the near arm again minus its shoulder; the head
   const SUB = {foot:.05, shin:.1, thigh:.3, upper:.4, fore:.5, hand:.6}; // feet first, so the trouser hems fall over them
-  const order = p => p.under ? 1.95 : p.part==='head' || p.part==='neck' ? 9 : p.hem ? 3.7 : p.part==='glute' ? (R.face3 && R.face3[2] > .35 ? 3.6 : 3.45) : p.part==='seatlines' ? 3.65 : p.part==='band' ? 3.62 : p.part==='neckline' ? 2.5 : p.bare ? 1.9 : p.front ? 4 : (p.side && p.side===far) ? SUB[p.part] || 0
+  const order = p => p.under || (p.lifted && p.side !== far) ? 1.95 : p.part==='head' || p.part==='neck' ? 9 : p.hem ? 3.7 : p.part==='glute' ? (R.face3 && R.face3[2] > .35 ? 3.6 : 3.45) : p.part==='seatlines' ? 3.65 : p.part==='band' ? 3.62 : p.part==='neckline' ? 2.5 : p.bare ? 1.9 : p.front ? 4 : (p.side && p.side===far) ? SUB[p.part] || 0
     : p.part==='upper' ? 1 : p.part==='torso' || p.part==='shoulders' ? 2 : p.part==='shin' || p.part==='foot' || p.part==='thigh' ? 3 + SUB[p.part] : p.part==='hips' || p.part==='seat' ? 3.5 : 4 + (SUB[p.part] || 0);
   const Kw = R.kp, hz = Kw[0] && Kw[0].w ? Kw[0].w[2] : null, nearSide = far === 'l' ? 'r' : far === 'r' ? 'l' : null;
   // an arm reaching up past the ear (Low Lunge, Chair, Warrior I) is the near one, so it lies over the side of the head as well
@@ -3898,7 +3910,7 @@ function drawFlatFigure(g, R, av){
   // the arm passes the side of the head, never across the face: keep a window around the face clear of it
   const faceHole = null; // the nearer arm simply lies over the head, as it does from the side
   const orderF = p => (armFront || (armUp && !(R.blob > 0))) && p.side === nearSide && (p.part === 'upper' || p.part === 'fore' || p.part === 'hand') ? 9.5 : order0(p);
-  for (const p of [...parts]) if (p.part === 'upper' && !(p.side && p.side === far)){ // second pass of the near upper arm, with a hole where the shoulder joint is
+  for (const p of [...parts]) if (p.part === 'upper' && !(p.side && p.side === far) && !p.lifted){ // second pass of the near upper arm, with a hole where the shoulder joint is
     const K = R.kp, sh = K[p.ks[0]], rr = sil.shoulder*R.scale*1.25;
     const again = gg => p(gg); again.part = 'upper'; again.side = p.side; again.ks = p.ks; again.front = true; again.hole = {x: sh.x, y: sh.y, r: rr}; parts.push(again);
   }
@@ -3919,6 +3931,7 @@ function drawFlatFigure(g, R, av){
   for (const p of [...parts].sort((a,b) => orderF(a)-orderF(b))){
     if (p.part === 'head'){ headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); }); headDone = true; continue; }
     const isFar = !!(p.side && p.side === far);
+    if (p.cut){ g.save(); g.beginPath(); g.moveTo(p.cut[0].x, p.cut[0].y); p.cut.slice(1).forEach(v => g.lineTo(v.x, v.y)); g.closePath(); g.clip(); }
     if (p.hole){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.arc(p.hole.x, p.hole.y, p.hole.r, 0, Math.PI*2, true); g.clip(); }
     const overHead = faceHole && orderF(p) === 9.5; if (overHead){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.moveTo(...faceHole[0]); for (const q of faceHole.slice(1)) g.lineTo(...q); g.closePath(); g.clip('evenodd'); }
     const unseen = R.live && p.ks && p.ks.some(i => R.kp[i].s < VIS); if (unseen) g.globalAlpha *= .35; // a limb the camera did not find is only a hint
@@ -3944,6 +3957,7 @@ function drawFlatFigure(g, R, av){
     if (unseen) g.globalAlpha /= .35;
     if (overHead) g.restore();
     if (p.hole) g.restore();
+    if (p.cut) g.restore();
   }
   if (!headDone) headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); });
   if (clipBlob) g.restore();
@@ -8298,8 +8312,8 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
 // ---------- skins: ready-made outfits for the figure, like a game's character skins, plus a generator for new ones ----------
 // A skin changes only the clothes and the mat; skin tone, hair, build and height stay the person's own.
 // Ocean, Forest, Sunrise and Night sky are redrawn in vector from AI concept sheets (the waves, leaves, rays and stars prints).
-const SKIN_KEYS = ['body', 'tone', 'hairTone', 'topColor', 'sleeves', 'pattern', 'patternColor', 'bottom', 'bottomColor', 'fit', 'mat'];
-const skinOf = (look, body = 'detailed') => ({body, tone:null, hairTone:null, ...look}); // every skin but the classic one brings the detailed body
+const SKIN_KEYS = ['body', 'topColor', 'sleeves', 'pattern', 'patternColor', 'bottom', 'bottomColor', 'fit', 'mat'];
+const skinOf = (look, body = 'detailed') => ({body, ...look}); // every skin but the classic one brings the detailed body
 const SKINS = [
   {name:'Sama', look:skinOf({...NEW_LOOK, sleeves:'short', fit:'fitted'}, 'simple')},
   {name:'Ocean', look:skinOf({topColor:'#6E8FAE', sleeves:'none', pattern:'waves', patternColor:'#F3EEE2', bottom:'leggings', bottomColor:'#2B3A5C', fit:'fitted', mat:'#5F7FA0'})},
@@ -8308,11 +8322,7 @@ const SKINS = [
   {name:'Night sky', look:skinOf({topColor:'#262E5A', sleeves:'short', pattern:'stars', patternColor:'#F2D58A', bottom:'leggings', bottomColor:'#1D2444', fit:'fitted', mat:'#2F3566'})},
   {name:'Lotus', look:skinOf({topColor:'#F2C8BC', sleeves:'none', pattern:'dots', patternColor:'#9C5A3C', bottom:'shorts', bottomColor:'#6B3F6E', fit:'fitted', mat:'#D9A5A0'})},
   {name:'Desert', look:skinOf({topColor:'#EFE6D8', sleeves:'short', pattern:'zigzag', patternColor:'#9C5A3C', bottom:'leggings', bottomColor:'#C8B08F', fit:'wide', mat:'#D9B58E'})},
-  {name:'Citrus', look:skinOf({topColor:'#F3B21E', sleeves:'none', pattern:'checks', patternColor:'#F1E6D6', bottom:'shorts', bottomColor:'#214D4A', fit:'fitted', mat:'#E8502A'})},
-  // full-body masks: the whole figure turns into one material, like a statue
-  {name:'Marble', look:skinOf({tone:'#E4DFD6', hairTone:'#CFC8BC', topColor:'#EEEAE3', sleeves:'none', pattern:'none', patternColor:'#CFC8BC', bottom:'shorts', bottomColor:'#D6D0C5', fit:'fitted', mat:'#8E877C'})},
-  {name:'Bronze', look:skinOf({tone:'#A9692F', hairTone:'#6B3E1B', topColor:'#8E5524', sleeves:'none', pattern:'none', patternColor:'#C98B48', bottom:'shorts', bottomColor:'#7A4719', fit:'fitted', mat:'#3D2E22'})},
-  {name:'Jade', look:skinOf({tone:'#7FB59A', hairTone:'#2F6B55', topColor:'#5E9C82', sleeves:'none', pattern:'leaves', patternColor:'#A8D4BE', bottom:'shorts', bottomColor:'#3E7D66', fit:'fitted', mat:'#E9E2CF'})}];
+  {name:'Citrus', look:skinOf({topColor:'#F3B21E', sleeves:'none', pattern:'checks', patternColor:'#F1E6D6', bottom:'shorts', bottomColor:'#214D4A', fit:'fitted', mat:'#E8502A'})}];
 // The generator: a random base hue, then a palette that holds together (an analogous, complementary or single-hue scheme),
 // muted the way the brand is: a mid-tone top, a print that contrasts with it, dark trousers and a mat that answers the top.
 function genSkin(rnd = Math.random){
@@ -8322,7 +8332,7 @@ function genSkin(rnd = Math.random){
   const h = span(0, 360), scheme = pick(['analogous', 'complementary', 'mono']), h2 = scheme === 'complementary' ? h + 180 : scheme === 'analogous' ? h + pick([-35, 35]) : h;
   const lightTop = rnd() < .45, top = lightTop ? hsl(h, span(30, 55), span(72, 84)) : hsl(h, span(30, 55), span(38, 52));
   const print = lightTop ? hsl(h2, span(35, 55), span(28, 40)) : rnd() < .5 ? hsl(h2, span(55, 75), span(62, 72)) : hsl(h + 10, span(25, 40), span(90, 95));
-  return {body:'detailed', tone:null, hairTone:null, topColor:top, sleeves:pick(['none', 'short', 'short', 'long']), pattern:pick(['waves', 'leaves', 'rays', 'stars', 'dots', 'stripes', 'zigzag', 'checks', 'none']), patternColor:print,
+  return {body:'detailed', topColor:top, sleeves:pick(['none', 'short', 'short', 'long']), pattern:pick(['waves', 'leaves', 'rays', 'stars', 'dots', 'stripes', 'zigzag', 'checks', 'none']), patternColor:print,
     bottom:rnd() < .8 ? 'leggings' : 'shorts', bottomColor:hsl(pick([h, h2, h + 15]), span(20, 40), span(16, 28)), fit:pick(['fitted', 'fitted', 'relaxed', 'wide']), mat:hsl(h2, span(25, 45), span(50, 66))};
 }
 (function(){
