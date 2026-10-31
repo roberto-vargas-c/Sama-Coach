@@ -1059,7 +1059,7 @@ body.tv #viewProfile, body.practice #viewProfile{display:none!important}
       <button class="btn" id="refBtn" type="button" hidden>Show reference figure</button>
       <div class="notice" id="notice" hidden><b id="noticeHead"></b><p id="noticeText"></p></div>
       <span class="model" id="model">Pose models: loading…</span>
-      <p class="setmoved">Camera, scene and voice settings are under the gear at the top. <button class="hlink" type="button" id="openSettings">Open settings</button></p>
+      <p class="setmoved">Camera and voice settings are under the gear at the top. <button class="hlink" type="button" id="openSettings">Open settings</button></p>
     </section>
 
     <section class="panel">
@@ -1257,14 +1257,13 @@ Savasana, 3 min"></textarea>
   </section>
   <section id="viewSettings" class="settingsview" hidden>
         <div class="pcard setcard" id="avatarBox">
-          <h2>Settings</h2><p class="hint" id="avatarSum">Scene, voice, camera</p>
+          <h2>Settings</h2><p class="hint" id="avatarSum">Voice, camera</p>
           <div class="abody">
             <div class="arow"><span>Language</span><div class="segs" data-k="lang" translate="no"><button type="button" class="seg" data-v="en">English</button><button type="button" class="seg" data-v="es">Español</button><button type="button" class="seg" data-v="de">Deutsch</button></div></div>
             <p class="hint voicelang" hidden>The voice guide in practices speaks English for now. Everything else is in your language.</p>
             <div class="arow"><span>Pose engine</span><div class="segs" data-k="engine"><button type="button" class="seg" data-v="auto">Auto</button><button type="button" class="seg" data-v="wasm">WebAssembly</button><button type="button" class="seg" data-v="gpu">GPU</button><button type="button" class="seg" data-v="cpu">CPU</button></div></div>
             <div class="arow"><span>Transition</span><div class="segs" data-k="trans"><button type="button" class="seg" data-v="blob">Ball</button><button type="button" class="seg" data-v="moves">Movement</button></div></div>
             <div class="arow"><span>Movement</span><div class="segs" data-k="pace"><button type="button" class="seg" data-v="calm">Calm</button><button type="button" class="seg" data-v="flowing">Flowing</button><button type="button" class="seg" data-v="quick">Quick</button></div></div>
-            <div class="arow"><span>Scene</span><div class="segs" data-k="sceneset"><button type="button" class="seg" data-v="plain">Plain</button><button type="button" class="seg" data-v="studio">Studio</button><button type="button" class="seg" data-v="beach">Beach</button><button type="button" class="seg" data-v="living">Living room</button><button type="button" class="seg" data-v="park">Park</button><button type="button" class="seg" data-v="mountains">Mountains</button><button type="button" class="seg" data-v="night">Night rooftop</button></div></div>
             <div class="arow"><span>Record my moves between poses</span><div class="segs" data-k="motionset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
             <div class="arow"><span>Voice guide in practices</span><div class="segs" data-k="voiceset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
             <div class="arow"><span>Background music</span><div class="segs" data-k="musicset"><button type="button" class="seg" data-v="on">On</button><button type="button" class="seg" data-v="off">Off</button></div></div>
@@ -1304,11 +1303,23 @@ Savasana, 3 min"></textarea>
             </div>
             <p class="hint">A skin changes your whole figure: a more detailed body with fingers and toes, the clothes and the mat. Your build and height stay yours.</p>
             <div class="skhead skcost"><h3>Characters</h3></div>
-            <div class="skgrid" id="charGrid"></div>
+            <div class="skdrop" id="charDrop">
+              <button class="skcur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="charMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname"></span></button>
+              <div class="skmenu" id="charMenu" role="listbox" aria-label="Characters" hidden><div id="charGrid"></div></div>
+            </div>
             <p class="hint">A character changes who the figure is: body, skin tone and hair. Your clothes stay as they are.</p>
             <div class="skhead skcost"><h3>Costumes</h3></div>
-            <div class="skgrid" id="costumeGrid"></div>
-            <p class="hint">A costume goes on over your body and your own clothes, for fun: pick any skin to take it off.</p>
+            <div class="skdrop" id="costumeDrop">
+              <button class="skcur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="costumeMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname"></span></button>
+              <div class="skmenu" id="costumeMenu" role="listbox" aria-label="Costumes" hidden><div id="costumeGrid"></div></div>
+            </div>
+            <p class="hint">A costume goes on over your body and your own clothes, for fun: pick No costume or any skin to take it off.</p>
+            <div class="skhead skcost"><h3>Backgrounds</h3></div>
+            <div class="skdrop" id="sceneDrop">
+              <button class="skcur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="sceneMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname"></span></button>
+              <div class="skmenu" id="sceneMenu" role="listbox" aria-label="Backgrounds" hidden><div id="sceneGrid"></div></div>
+            </div>
+            <p class="hint">Where your mat is: in practices, on the camera view and behind the reference.</p>
           </div>
           <div class="alook">
           <div class="aonly alook-rows">
@@ -8723,8 +8734,8 @@ const DYK = (() => {
       text:'Use the turn button on the picture to see a pose from the front, the side or in between, and the side button for the other leg.',
       go:() => { switchView('check'); return $('rotBtn'); }},
     {id:'scene', title:'Practise somewhere else',
-      text:'Scene in Settings puts your mat in a studio, a living room, a park, on a beach, in the mountains or on a night rooftop.',
-      go:() => settingsRow('sceneset')},
+      text:'Backgrounds, under Your figure in your profile, put your mat in a studio, a living room, a park, on a beach, in the mountains or on a night rooftop.',
+      go:() => { switchView('profile'); const c = $('lookCard'); if (c) c.open = true; return $('sceneDrop') || c; }},
     {id:'roadmap', title:'Your coach can map the way to a dream pose',
       text:'In Coach, Roadmap lays out the weeks and the poses that build toward a pose you want, like Crow or a headstand.',
       go:() => { switchView('coach'); try { setCoachMode('roadmap'); } catch {} return document.querySelector('[data-cm="roadmap"]'); }},
@@ -8791,7 +8802,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
   const sync = () => {
     for (const grp of box.querySelectorAll('[data-k]')){ const k = grp.dataset.k; const cur = k==='lang' ? (window.SamaI18n ? SamaI18n.lang : 'en') : k==='pace' ? pace : k==='engine' ? engine : k==='trans' ? transStyle : k==='overlay' ? (showOverlay ? 'on' : 'off') : k==='inset' ? (showInset ? 'on' : 'off') : k==='matset' ? (matOn ? 'on' : 'off') : k==='camview' ? camView : k==='camat' ? camAt : k==='sceneset' ? scene : k==='motionset' ? (motionOn ? 'on' : 'off') : k==='voiceset' ? (voiceOn ? 'on' : 'off') : k==='musicset' ? (musicOn ? 'on' : 'off') : avatar[k]; for (const b of grp.querySelectorAll('button[data-v]')) b.setAttribute('aria-pressed', String(b.dataset.v===String(cur))); }
     only.hidden = false;
-    $('avatarSum').textContent = 'Scene, voice, camera';
+    $('avatarSum').textContent = 'Voice, camera';
   };
   const onClick = e => {
     const b = e.target.closest('button[data-v]'); if (!b) return; const k = b.closest('[data-k]').dataset.k;
@@ -8885,7 +8896,7 @@ function genSkin(rnd = Math.random){
 }
 (function(){
   const grid = $('skinGrid'), fresh = $('skinNew'); if (!grid) return;
-  const wearing = look => look.style === 'line' ? lineOn() : !lineOn() && (look.outfit ? ['outfit'] : look.hair ? CHAR_KEYS : SKIN_KEYS).every(k => String(look[k] ?? '') === String(avatar[k] ?? (k === 'body' ? 'simple' : '')));
+  const wearing = look => look.outfit === null && !look.body ? !lineOn() && !avatar.outfit : look.style === 'line' ? lineOn() : !lineOn() && (look.outfit ? ['outfit'] : look.hair ? CHAR_KEYS : SKIN_KEYS).every(k => String(look[k] ?? '') === String(avatar[k] ?? (k === 'body' ? 'simple' : '')));
   const card = (look, name) => {
     const b = document.createElement('button'), c = document.createElement('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1), W = 92, H = 120;
     b.type = 'button'; b.className = 'skin'; b._look = look; c.width = W*dpr; c.height = H*dpr; b.appendChild(c);
@@ -8900,38 +8911,66 @@ function genSkin(rnd = Math.random){
     g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = css('--figbg'); g.fillRect(0, 0, c.width, c.height);
     g.setTransform(k, 0, 0, k, c.width/2 - cx*k, -top*k); g.translate(-figShift(R), 0); drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av);
   };
-  // the skins sit in a dropdown: the button shows the figure as it is now and the skin's name; the menu lists every skin
-  const cur = $('skinCur'), menu = $('skinMenu'), curC = cur.querySelector('canvas'), dpr0 = Math.min(2, window.devicePixelRatio || 1);
-  curC.width = 92*dpr0; curC.height = 120*dpr0;
-  const opts = () => [...menu.querySelectorAll('.skin')].filter(b => !(fresh.hidden && fresh.contains(b))); // the generated ones only once there are some
+  // Skins, Characters, Costumes and Backgrounds each sit in a dropdown: the button shows how it is now with the pick's name; the menu lists every option
+  const dpr0 = Math.min(2, window.devicePixelRatio || 1), DROPS = [];
+  const dropdown = (root, getOpts) => {
+    const cur = root.querySelector('.skcur'), menu = root.querySelector('.skmenu'), c = cur.querySelector('canvas');
+    c.width = 92*dpr0; c.height = 120*dpr0;
+    const opts = getOpts || (() => [...menu.querySelectorAll('.skin')]);
+    const on = () => opts().find(b => b.getAttribute('aria-pressed') === 'true');
+    const show = (open, focus) => {
+      if (open) for (const d of DROPS) if (d.menu !== menu && !d.menu.hidden) d.show(false);
+      menu.hidden = !open; cur.setAttribute('aria-expanded', String(open));
+      if (open && focus){ const o = opts(); (on() || o[0]).focus(); }
+      if (open){ const sel = on(); if (sel) sel.scrollIntoView({block:'nearest'}); menu.scrollIntoView({block:'nearest', behavior:'smooth'}); } // the whole menu on screen, clear of the tab bar
+    };
+    cur.addEventListener('click', () => show(menu.hidden, false));
+    cur.addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); show(true, true); } });
+    menu.addEventListener('keydown', e => {
+      const o = opts(), i = o.indexOf(document.activeElement);
+      if (e.key === 'Escape'){ e.preventDefault(); show(false); cur.focus(); }
+      else if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); o[Math.max(0, Math.min(o.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))].focus(); }
+      else if (e.key === 'Home' || e.key === 'End'){ e.preventDefault(); o[e.key === 'Home' ? 0 : o.length - 1].focus(); }
+      else if (e.key === 'Tab') show(false);
+    });
+    menu.addEventListener('click', e => { if (e.target.closest('.skin')){ show(false); cur.focus(); } });
+    document.addEventListener('click', e => { if (!menu.hidden && !root.contains(e.target) && e.target.id !== 'skinGen') show(false); });
+    const d = {root, cur, menu, c, opts, on, show, set:name => { cur.querySelector('.skcurname').textContent = name; }};
+    DROPS.push(d); return d;
+  };
+  const skinD = dropdown($('skinDrop'), () => [...$('skinMenu').querySelectorAll('.skin')].filter(b => !(fresh.hidden && fresh.contains(b)))); // the generated ones only once there are some
+  const charD = dropdown($('charDrop')), costD = dropdown($('costumeDrop')), sceneD = dropdown($('sceneDrop'));
+  // a background's preview: the scene with your figure standing on its mat, cropped to the card like the costume cards
+  const drawBg = (c, kind) => {
+    const g = c.getContext('2d'), W = c.width, H = c.height;
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
+    if (lineOn()){ lineDraw(g, W, H, {id:'mountain'}, {scene:kind}); return; }
+    const R = refFor(avatar.figure === 'man' ? 'x_skin_m' : 'x_skin', false, 0), top = R.head.y - flatHeadR(R)*4, bot = R.floor + R.S*.12, k = H/(bot - top), cx = R.S/2 - figShift(R);
+    g.fillStyle = css('--figbg'); g.fillRect(0, 0, W, H);
+    g.setTransform(k, 0, 0, k, W/2 - cx*k, -top*k); g.translate(-figShift(R), 0); drawEnvironment(g, kind, R.floor); drawFlatMat(g, R, avatar.mat); drawFlatFigure(g, R, avatar);
+  };
+  const look0 = () => lineOn() ? {style:'line'} : {};
   const mark = () => {
-    for (const b of document.querySelectorAll('.skins .skin')){ const on = wearing(b._look); b.setAttribute('aria-pressed', String(on)); if (b.getAttribute('role') === 'option') b.setAttribute('aria-selected', String(on)); }
-    const now = opts().find(b => b.getAttribute('aria-pressed') === 'true') || [...$('costumeGrid').children].find(b => b.getAttribute('aria-pressed') === 'true'); // a costume over the clothes: its name
-    $('skinCurName').textContent = now ? now._name : 'Custom'; drawSkin(curC, lineOn() ? {style:'line'} : {});
+    for (const b of document.querySelectorAll('.skins .skin')){ const on = b._scene ? b._scene === scene : wearing(b._look); b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-selected', String(on)); }
+    const now = skinD.on() || costD.opts().find(b => !b._none && b.getAttribute('aria-pressed') === 'true'); // a costume over the clothes: its name
+    skinD.set(now ? now._name : 'Custom'); drawSkin(skinD.c, look0());
+    charD.set(charD.on()?._name || 'Your own'); drawSkin(charD.c, look0());
+    costD.set(costD.on()?._name || 'No costume'); drawSkin(costD.c, look0());
+    sceneD.set(SCENES[scene]); drawBg(sceneD.c, scene);
   };
-  const show = (open, focus) => {
-    menu.hidden = !open; cur.setAttribute('aria-expanded', String(open));
-    if (open && focus){ const o = opts(); (o.find(b => b.getAttribute('aria-pressed') === 'true') || o[0]).focus(); }
-    if (open){ const sel = opts().find(b => b.getAttribute('aria-pressed') === 'true'); if (sel) sel.scrollIntoView({block:'nearest'}); menu.scrollIntoView({block:'nearest', behavior:'smooth'}); } // the whole menu on screen, clear of the tab bar
-  };
-  cur.addEventListener('click', () => show(menu.hidden, false));
-  cur.addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); show(true, true); } });
-  menu.addEventListener('keydown', e => {
-    const o = opts(), i = o.indexOf(document.activeElement);
-    if (e.key === 'Escape'){ e.preventDefault(); show(false); cur.focus(); }
-    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); o[Math.max(0, Math.min(o.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))].focus(); }
-    else if (e.key === 'Home' || e.key === 'End'){ e.preventDefault(); o[e.key === 'Home' ? 0 : o.length - 1].focus(); }
-    else if (e.key === 'Tab') show(false);
-  });
-  document.addEventListener('click', e => { if (!menu.hidden && !e.target.closest('#skinDrop') && e.target.id !== 'skinGen') show(false); });
   const wear = look => { Object.assign(avatar, {style:''}, look); saveAvatar(); try { window.__syncLook && window.__syncLook(); } catch {} retheme(); };
   const all = () => [...document.querySelectorAll('.skins .skin')];
-  const repaint = () => { for (const b of all()) paint(b); mark(); };
-  for (const s of SKINS){ const b = card(s.look, s.name); b.setAttribute('role', 'option'); grid.appendChild(b); }
-  const cgrid = $('costumeGrid'); for (const s of COSTUMES) cgrid.appendChild(card(s.look, s.name));
-  const hgrid = $('charGrid'); for (const s of CHARACTERS) hgrid.appendChild(card(s.look, s.name));
-  $('skinGen').addEventListener('click', () => { fresh.replaceChildren(...Array.from({length:4}, (_, i) => { const b = card(genSkin(), `New skin ${i + 1}`); b.setAttribute('role', 'option'); return b; })); fresh.hidden = false; for (const b of fresh.children) paint(b); mark(); show(true); fresh.scrollIntoView({block:'nearest'}); });
-  for (const h of [grid, fresh, cgrid, hgrid]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (!b) return; wear(b._look); if (menu.contains(b)){ show(false); cur.focus(); } });
+  const paintAny = b => b._scene ? drawBg(b.querySelector('canvas'), b._scene) : paint(b);
+  const repaint = () => { for (const b of all()) paintAny(b); mark(); };
+  const opt = b => { b.setAttribute('role', 'option'); return b; };
+  for (const s of SKINS) grid.appendChild(opt(card(s.look, s.name)));
+  const cgrid = $('costumeGrid'), noCost = opt(card({outfit:null}, 'No costume')); noCost._none = true; cgrid.appendChild(noCost);
+  for (const s of COSTUMES) cgrid.appendChild(opt(card(s.look, s.name)));
+  const hgrid = $('charGrid'); for (const s of CHARACTERS) hgrid.appendChild(opt(card(s.look, s.name)));
+  const sgrid = $('sceneGrid'); for (const [k, name] of Object.entries(SCENES)){ const b = opt(card(null, name)); b._scene = k; sgrid.appendChild(b); }
+  $('skinGen').addEventListener('click', () => { fresh.replaceChildren(...Array.from({length:4}, (_, i) => opt(card(genSkin(), `New skin ${i + 1}`)))); fresh.hidden = false; for (const b of fresh.children) paint(b); mark(); skinD.show(true); fresh.scrollIntoView({block:'nearest'}); });
+  for (const h of [grid, fresh, cgrid, hgrid]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear(b._look); });
+  sgrid.addEventListener('click', e => { const b = e.target.closest('.skin'); if (!b) return; scene = b._scene; try { localStorage.setItem('sama.scene', scene); } catch {} mark(); try { render(); } catch {} });
   window.__shapes = {woman: SHAPE_WOMAN, man: SHAPE_MAN}; window.__torso = (R, fig, kind) => { SHAPE = fig === 'man' ? SHAPE_MAN : SHAPE_WOMAN; return {pts: torsoOutline(R, SIL_BASE, kind), fr: torsoFrame3(R, SIL_BASE)}; }; window.__setSkinArms = (la, ra, id = 'x_skin') => { MOTION_SPECS[id].la = la; MOTION_SPECS[id].ra = ra; for (const k of Object.keys(P3)) if (k.startsWith('x_skin')) delete P3[k]; }; window.__skins = {repaint, genSkin, SKINS, drawSkin, drawFig(g, R, look, noMat){ g.save(); g.translate(-figShift(R), 0); const av = {...avatar, ...look}; if (!noMat) drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av); g.restore(); }};
   LINE.subs.add(repaint); repaint(); new MutationObserver(repaint).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
   for (const h of [$('avatarBox'), $('lookCard')]) h.addEventListener('click', () => setTimeout(() => { repaint(); }, 0)); // a hand-picked colour or skin tone shows on every card
