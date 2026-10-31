@@ -4214,6 +4214,12 @@ function drawFlatFigure(g, R, av){
   const armUp = nearSide && along > .9 && (Kw[nearSide === 'l' ? 9 : 10].y < Kw[nearSide === 'l' ? 5 : 6].y - R.scale*.15 || reachPast); // reaching past the ear
   const armFront = !(R.blob > 0) && !armUp && hz != null && nearSide && [nearSide === 'l' ? 7 : 8, nearSide === 'l' ? 9 : 10].some(i => Kw[i].w && Kw[i].w[2] < hz - .04);
   const order0 = order;
+  const tuckLeg = (() => { if (R.blob > 0) return null; const K = R.kp, hx = (K[11].x + K[12].x)/2, hy = (K[11].y + K[12].y)/2, tx = (K[5].x + K[6].x)/2 - hx, ty = (K[5].y + K[6].y)/2 - hy, tl = Math.hypot(tx, ty) || 1;
+    if (Math.abs(ty)/tl > .5) return null; // only a torso tipped sideways, near level (triangle, half moon)
+    const straight = (h, k, a) => { const ux = K[h].x - K[k].x, uy = K[h].y - K[k].y, wx = K[a].x - K[k].x, wy = K[a].y - K[k].y; return (ux*wx + uy*wy)/((Math.hypot(ux, uy)*Math.hypot(wx, wy)) || 1) < -.85; };
+    for (const [sd, h, k, a] of [['l', 11, 13, 15], ['r', 12, 14, 16]]){ const dx = K[k].x - K[h].x, dy = K[k].y - K[h].y; if ((dx*tx + dy*ty)/((Math.hypot(dx, dy) || 1)*tl) > .2 && dy > 0 && straight(h, k, a)) return sd; }
+    return null; })(); // the straight leg reaching out under the tipped torso stands behind it: the shirt hangs over its thigh, as in a photo of triangle
+  if (tuckLeg) for (const p of parts) if (p.side === tuckLeg && SUB[p.part] != null && ['thigh', 'shin', 'foot'].includes(p.part) && p.z == null && !p.zf) p.z = 1.9 + SUB[p.part]*.1;
   // the arm passes the side of the head, never across the face: keep a window around the face clear of it
   const faceHole = null; // the nearer arm simply lies over the head, as it does from the side
   const orderF = p => p.lifted ? (armUp && !(R.blob > 0) && p.side === nearSide ? 9.5 : 3.72) : (armFront || (armUp && !(R.blob > 0))) && p.side === nearSide && (p.part === 'upper' || p.part === 'fore' || p.part === 'hand') ? 9.5 : order0(p);
