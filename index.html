@@ -2459,7 +2459,7 @@ const REF_SPECS = {
  warrior1:   {face:[180,0], torso:[0,90], la:[[180,88],[180,88]], ra:[[180,88],[180,88]], rl:[[180,0],[180,-90],[180,0]], ll:[[0,-45],[0,-45],[-135,0]]},
  warrior2:   {face:[-90,0], torso:[0,90], la:[[0,0],[0,0]], ra:[[180,0],[180,0]], rl:[[180,-12],[180,-90],[180,0]], ll:[[0,-36],[0,-36],[-100,0]]},
  triangle:   {face:[-90,0], pelvis:[0,65], torso:[180,10], la:[[0,90],[0,90]], ra:[[0,-90],[0,-90]], rl:[[180,-46],[180,-46],[180,0]], ll:[[0,-68],[0,-68],[-105,0]]},
- sideangle:  {face:[-90,0], torso:[180,36], la:[[180,36],[180,36]], ra:[[0,-90],[0,-90]], rl:[[180,-12],[180,-90],[180,0]], ll:[[0,-36],[0,-36],[-100,0]]},
+ sideangle:  {face:[-90,0], pelvis:[0,30], torso:[180,36], la:[[180,36],[180,36]], ra:[[0,-90],[0,-90]], rl:[[180,-12],[180,-90],[180,0]], ll:[[0,-30],[0,-30],[-100,0]]},
  highlunge:  {face:[180,0], torso:[0,90], la:[[180,88],[180,88]], ra:[[180,88],[180,88]], rl:[[180,0],[180,-90],[180,0]], ll:[[0,-38],[0,-38],[180,-70]]},
  lowlunge:   {face:[180,0], torso:[0,90], la:[[0,72],[0,74]], ra:[[0,72],[0,74]], rl:[[0,-68],[0,0],[0,0]], ll:[[180,5],[180,-90],[180,0]]},
  chair:      {face:[180,0], torso:[180,60], la:[[180,60],[180,60]], ra:[[180,60],[180,60]], ll:[[180,-35],[0,-75],[180,0]], rl:[[180,-35],[0,-75],[180,0]]},
@@ -2526,7 +2526,7 @@ const REF_SPECS = {
  splits: {face:[180, 0], torso:[0, 88], la:[[0, 88], [0, 88]], ra:[[0, 88], [0, 88]], ll:[[180, -8], [180, -8], [180, 70]], rl:[[0, -8], [0, -8], [0, 0]]},
  figurefour: {face:[180, 0], torso:[180, 60], head:[180, 65], la:[[0, -60], [180, 30]], ra:[[0, -60], [180, 30]], ll:[[180, 0], [90, -45], [180, 0]], rl:[[180, -45], [0, -70], [180, 0]]},
  revhalfmoon: {face:[-90, 0], lat:[-90, 0], torso:[180, -46], head:[180, -20], la:[[0, -90], [0, -90], [180, 0]], ra:[[0, 90], [0, 90]], ll:[[0, 2], [0, 2], [0, -90]], rl:[[0, -90], [0, -90], [180, 0]]},
- boundsideangle: {face:[-90, 0], torso:[180, 30], la:[[90, -60], [180, -70]], ra:[[-90, -70], [90, -10]], ll:[[0, -36], [0, -36], [-100, 0]], rl:[[180, -12], [180, -90], [180, 0]]},
+ boundsideangle: {face:[-90, 0], pelvis:[0, 45], torso:[180, 30], la:[[90, -60], [180, -70]], ra:[[-90, -70], [90, -10]], ll:[[0, -36], [0, -36], [-100, 0]], rl:[[180, -12], [180, -90], [180, 0]]},
  birdofparadise: {face:[-90, 0], torso:[0, 88], la:[[-100, -30], [-160, -45]], ra:[[-80, -60], [-20, -15]], ll:[[-20, 60], [-20, 60], [-10, 80]], rl:[[0, -90], [0, -90], [-90, 0]]},
  warrior3hands: {face:[180, -60], torso:[180, 0], head:[180, 0], la:[[0, 20], [0, 20]], ra:[[0, 20], [0, 20]], ll:[[0, 0], [0, 0], [0, -90]], rl:[[0, -90], [0, -90], [180, 0]]},
  kneesideplank: {face:[-90, 0], lat:[0, 55], pelvis:[0, 55], hipW:0.04, torso:[180, 25], head:[180, 25], la:[[0, 90], [0, 90]], ra:[[0, -90], [0, -90], [180, 0]], ll:[[0, -20], [0, -20], [-90, 0]], rl:[[0, -60], [180, 0], [180, 0]]},
@@ -4243,7 +4243,11 @@ function drawFlatFigure(g, R, av){
   let headDone = false;
   if (detailed){ const tf = torsoFrame3(R, sil), pf = pelvisFrame(R, sil), a = tf.F(0, 0), t1 = tf.F(0, 1), p1 = pf.F(0, 1), dot = (t1.x - a.x)*(p1.x - a.x) + (t1.y - a.y)*(p1.y - a.y);
     if (dot < .985) for (const p of parts) if (p.part === 'torso' && !p.cut){ const X = pf.rH*8, y0 = -pf.rH*.5, ax = pf.F(1, 0), sc = tf.F(0, tf.H), sx = Math.sign((sc.x - a.x)*(ax.x - a.x) + (sc.y - a.y)*(ax.y - a.y)) || 1, Q = (u, y) => pf.F(sx*u, y), u0 = pf.rH*.2, uh = pf.rH*1.6;
-      p.cut = [Q(-X, X), Q(u0, X), Q(u0, y0), Q(uh, y0), Q(uh, -X), Q(-X, -X)]; } } // a torso tipped sideways off upright hips ends at the middle of the hips: nothing of it past them, nor hanging into the gap between the legs
+      p.cut = [Q(-X, X), Q(u0, X), Q(u0, y0), Q(uh, y0), Q(uh, -X), Q(-X, -X)]; }
+    { const top = pf.rH*1.05*(SHAPE.rise || 1), X = pf.rH*2.2, o = pf.F(0, 0), u1 = pf.F(0, 1), ul = Math.hypot(u1.x - o.x, u1.y - o.y) || 1, K = R.kp, Q = (x, y) => ({...pf.F(x, y), k: 1});
+      if (Math.hypot(K[11].x - K[12].x, K[11].y - K[12].y) > pf.rH*1.4) for (const p of parts) if (p.part === 'thigh' && p.ks && !p.cut && p.z == null){ /* hips seen square on, not in profile */ const h = K[p.ks[0]], k = K[p.ks[1]], dl = Math.hypot(k.x - h.x, k.y - h.y) || 1;
+        if (((k.x - h.x)*(u1.x - o.x) + (k.y - h.y)*(u1.y - o.y))/(dl*ul) < .15) p.cut = [Q(-X, top), Q(X, top), Q(X, top + pf.rH*1.2), Q(-X, top + pf.rH*1.2)]; } } } // a thigh pointing away from the torso never pokes its round top past the waist into the shirt (half moon's legs)
+  // (above:) a torso tipped sideways off upright hips ends at the middle of the hips: nothing of it past them, nor hanging into the gap between the legs
   for (const p of [...parts].sort((a,b) => orderF(a)-orderF(b))){
     if (p.part === 'head'){ headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); if (O && (O.hat || av.hat)) outfitHat(g, R, av, O.hat || av.hat); }); headDone = true; continue; }
     const isFar = !!(p.side && p.side === far) && !p.lifted; // (a lifted arm shares its outline with the shoulder: one colour)
