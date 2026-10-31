@@ -208,3 +208,9 @@ tortoise:magnific:JNIxJj3Oq4
 seatedfold:magnific:dtUYdWeXSL
 halfhero:magnific:eISneWDdqL
 wideseated:magnific:0exR0AJTfW
+scene:magnific:studio 6ACwT6biJO
+scene:magnific:living fHiBjEZCDY
+scene:magnific:park Cq3oLQwEEy
+scene:magnific:beach kscEyxk16B
+scene:magnific:mountains nVK6804YQD
+scene:magnific:night VXLAadOMMU
