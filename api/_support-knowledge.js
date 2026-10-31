@@ -14,7 +14,7 @@ CHECK ALIGNMENT
 - Pick a pose from the rail (filter by family and level), prop the phone up so the whole body is in view, hold the pose. Sama compares each joint (knees, hips, spine, shoulders, arms) with the pose and gives a score plus one thing to fix first.
 - Modes: live camera, take a photo, record a short clip, or pick a photo/clip from the gallery.
 - The phone can stand in front of the mat or beside it; Sama works out where the camera is and notices when it moves (it can also be set in Settings).
-- Settings ("Scene, voice, camera") open from the gear button at the top right, between the profile button and "Get the app". They hold: the scene behind the figure (studio, living room, park, beach, mountains, night rooftop), the voice guide on/off, camera placement, the figure style, and "Record my moves between poses".
+- Settings ("Voice, camera") open from the gear button at the top right, between the profile button and "Get the app". They hold: the voice guide on/off, camera placement, the figure style, and "Record my moves between poses".
 - Show yourself as your figure, or as the video with skeleton and alignment lines.
 - The pose model runs on the device; photos, clips and the camera stream are never uploaded.
 - "Report a problem" on a pose (in Check or the Library) sends a short report so it gets fixed.
@@ -41,7 +41,7 @@ STUDIOS
 - Teachers and studios can add their own weekly class with "Add your class" (needs sign-in): class name, studio or address, days, time, length, style, level, language, price, booking link, note. Their classes show to people searching nearby and on the studio's card; they can edit or remove them under "Your classes". Anyone can report a class that looks wrong.
 
 PROFILE
-- Name, "Change my look" (skin, hair, build, clothes, beard, mat colour, height, standard or XL mat), replay the welcome, the app tour ("Show the app tour").
+- Name, "Change my look" (skin, hair, build, clothes, beard, mat colour, height, standard or XL mat), and under Your figure four dropdowns: Skins, Characters, Costumes and Backgrounds (the scene behind the figure: plain, studio, living room, park, beach, mountains, night rooftop), replay the welcome, the app tour ("Show the app tour").
 - My practice: gender, experience, body areas to be gentle with, goal pose, days a week, notes for the coach.
 - Optional cycle tracking (stays on the device only): practices adapt on the period and when energy is up; predicted days in the calendar.
 - Practice days and a time, with Google Calendar and a reminder.
