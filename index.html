@@ -3448,7 +3448,7 @@ function pelvisFrame(R, SIL){ // the torso frame, turned halfway back toward upr
 }
 function pelvisOutline(R, SIL, under = 1){ // waist (where the shirt ends) curving out over the hips and in to the crotch, upright on the hips (tipped hips round over at the waist, so no corner stands up past the torso)
   const {F, H, hh, rH, tilt} = pelvisFrame(R, SIL), gi = SHAPE.girth || 1, W = (hh*SHAPE.hipJ + rH*SHAPE.waist)*gi, Hp = (hh*SHAPE.hipJ + rH*SHAPE.hip)*gi, top = rH*1.05*SHAPE.rise;
-  const side = [...(tilt ? [[W*.72*under, top], [W*.97*under, top*.72]] : [[W*.98*under, top]]), [Hp*.99*under, top*.45], [Hp, 0], [Hp*.93, -rH*.7], [Hp*.55, -rH*1.15]];
+  const side = [...(tilt ? [[Hp*.5*under, top], [Hp*.82*under, top*.7], [Hp*.97*under, top*.4], [Hp, 0]] : [[W*.98*under, top], [Hp*.99*under, top*.45], [Hp, 0]]), [Hp*.93, -rH*.7], [Hp*.55, -rH*1.15]];
   return [...side.map(([x, y]) => F(-x, y)), F(0, -rH*1.25), ...side.slice().reverse().map(([x, y]) => F(x, y))].reverse();
 }
 function silTorsoShaped(g, R, SIL = SIL_BASE, tank = false){ g.beginPath(); smoothClosed(g, torsoOutline(R, SIL, tank ? 'tank' : 'shirt')); }
@@ -3932,8 +3932,8 @@ function detailParts(parts, R, sil, av){
     neck.part = 'neckline'; } // (the neckline is now part of the neck's own shape) // (a tank top has its neckline in its outline)
   { // the waistband: a deeper band across the top of the trousers, inside the pelvis outline so it never sticks out past the waist
     const {F, hh, rH, tilt} = pelvisFrame(R, sil), W = (hh*SHAPE.hipJ + rH*SHAPE.waist)*.97*(SHAPE.girth || 1), Hp = (hh*SHAPE.hipJ + rH*SHAPE.hip)*.98*(SHAPE.girth || 1), top = rH*1.05*SHAPE.rise, yb = top - rH*.4, xb = W + (Hp - W)*Math.min(1, (top - yb)/(top*.55))*.8;
-    const band = g => { g.beginPath(); const wt = tilt ? W*.74 : W; for (const q of [F(-wt, top), F(wt, top), F(xb, yb), F(-xb, yb)]) g.lineTo(q.x, q.y); g.closePath(); };
-    band.part = 'band'; if (av.sleeves !== 'none') out.push(band); } // (a tank top hangs over the waistband)
+    const band = g => { g.beginPath(); const wt = W; for (const q of [F(-wt, top), F(wt, top), F(xb, yb), F(-xb, yb)]) g.lineTo(q.x, q.y); g.closePath(); };
+    band.part = 'band'; if (av.sleeves !== 'none' && !tilt) out.push(band); } // (a tank top hangs over the waistband, and so does any top on a torso tipped sideways off the hips)
   const lines = g => g.beginPath(); lines.part = 'seatlines'; out.push(lines); // nothing to fill: a slot in the drawing order for the seat's lines
   return out.filter(Boolean);
 }
