@@ -6,3 +6,5 @@ voice/*.mp3
 voice/es/*.mp3
 # the pose models' weights too (see MODEL_REV in index.html); their small .json descriptions ship here
 *-weights.wasm
+# design prototypes and their image sets (hundreds of MB): the app ships only what tools/line_assets.py builds into line/
+prototypes/
