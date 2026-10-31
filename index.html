@@ -4870,14 +4870,17 @@ function linePlace(id, viewW, fig){
   let s = Math.min(LINE.SIZE, (viewW/2 - 14)/half); if (y0 < 10) s = Math.min(s, (ay - 10)/(ay - y0));
   return {e, src, ax, ay, s};
 }
+// Facing: the drawn figure faces the same way in every pose's standard side (the stills were drawn facing either way), so a still
+// drawn the other way round carries "flip" in index.json (listed in tools/line_flip.json) and is mirrored here. mir: the second side.
+const lineMir = (P, mir) => !!mir !== !!P.e.flip;
 // frame point -> pose layer: centred on the frame, scaled about the mat's front edge, mirrored for the second side
 function linePose(g, P, mir, k = 1, sq = 0, rot = 0, cy){
-  g.translate(LINE.CX, P.ay); g.scale(P.s*(mir ? -1 : 1), P.s); g.translate(-P.ax, -P.ay);
+  g.translate(LINE.CX, P.ay); g.scale(P.s*(lineMir(P, mir) ? -1 : 1), P.s); g.translate(-P.ax, -P.ay);
   if (k !== 1 || sq || rot){ const ty = cy ?? P.ay; g.translate(P.ax, ty); g.scale(k*(1 + sq), k*(1 - sq)); g.rotate(rot); g.translate(-P.ax, -ty); }
 }
 function lineMatPts(P, mir){
   const q = P.e.mat ? P.e.mat.q : [[460, 650], [922, 648], [989, 732], [387, 734]];
-  return q.map(([x, y]) => [LINE.CX + (mir ? -1 : 1)*(x - P.ax)*P.s, P.ay + (y - P.ay)*P.s]);
+  return q.map(([x, y]) => [LINE.CX + (lineMir(P, mir) ? -1 : 1)*(x - P.ax)*P.s, P.ay + (y - P.ay)*P.s]);
 }
 function lineDrawMat(g, pts, color){
   g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath();
@@ -4938,7 +4941,8 @@ function lineDraw(g, W, H, st, opts = {}){
   const viewW = W/k;
   const fig = opts.figure || avatar.figure, P = {...linePlace(id, viewW, fig), id};
   if (opts.fit === 'figure'){ // crop to the pose: its figure and mat fill the box
-    const pts = lineMatPts(P, false), x0 = Math.min(LINE.CX + (P.e.x - P.ax)*P.s, pts[3][0]), x1 = Math.max(LINE.CX + (P.e.x + P.e.w - P.ax)*P.s, pts[2][0]);
+    const pts = lineMatPts(P, st.mir), fx = [P.e.x, P.e.x + P.e.w].map(x => LINE.CX + (lineMir(P, st.mir) ? -1 : 1)*(x - P.ax)*P.s);
+    const x0 = Math.min(...fx, pts[3][0], pts[2][0]), x1 = Math.max(...fx, pts[2][0], pts[3][0]);
     const y0 = P.ay + (P.e.y - P.ay)*P.s, y1 = Math.max(pts[2][1], pts[3][1]) + 6, f = Math.min(W/(x1 - x0), H/(y1 - y0))*.92;
     k = f; tx = W/2 - (x0 + x1)/2*f; ty = H/2 - (y0 + y1)/2*f;
   }
@@ -7625,12 +7629,13 @@ function figureAnimator(cv){
   raf = requestAnimationFrame(frame);
   return {
     setPose(id, mirrored = false){ if (!REF_SPECS[id]) id = 'mountain'; const to = refFor(id, mirrored, 0);
-      { const prev = lst; lst = {id, mir:mirrored}; if (prev && !reduce && (prev.id !== id || prev.mir !== mirrored)) lst = {...lst, from:prev.id, fromMir:prev.mir, t0:performance.now()}; }
-      if (reduce){ cur = to; anim = null; return; }
+      // the line-style still faces the way the drawn figure ends up facing: a route may land it turned round (a half turn on the mat)
+      const still = () => { const prev = lst, mir = mirrored !== !!(cur && cur.turned); lst = {id, mir}; if (prev && !reduce && (prev.id !== id || prev.mir !== mir)) lst = {...lst, from:prev.id, fromMir:prev.mir, t0:performance.now()}; };
+      if (reduce){ cur = to; anim = null; still(); return; }
       if (transStyle === 'moves' && cur && cur.poseId && !anim){ // the figure really moves there (follows the Transition setting)
         try { const segs = routeSegments(cur, transitionPath(cur.poseId, id, !!cur.mirrored, mirrored), to, id, mirrored, false), dur = segs.reduce((a, sg) => a + sg.dur, 0);
-          if (segs.length && dur > 0){ anim = {segs, t0: performance.now(), dur}; cur = segs[segs.length - 1].to; return; } } catch (e){ console.warn('figure route', e); } }
-      anim = {from: cur, to, t0: performance.now(), dur: cur ? Math.round(1500*(PACE[pace] || 1)) : 900}; cur = to; },
+          if (segs.length && dur > 0){ anim = {segs, t0: performance.now(), dur}; cur = segs[segs.length - 1].to; still(); return; } } catch (e){ console.warn('figure route', e); } }
+      anim = {from: cur, to, t0: performance.now(), dur: cur ? Math.round(1500*(PACE[pace] || 1)) : 900}; cur = to; still(); },
     get pose(){ return cur ? cur.poseId : null; },
     get busy(){ return !!anim; },
     stop(){ cancelAnimationFrame(raf); },

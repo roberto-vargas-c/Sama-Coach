@@ -4,7 +4,8 @@
 #   line/scenes/<k>.webp  the six scene backgrounds
 #   line/logo.webp        the logo the transition rolls through
 #   line/index.json       per pose: where the cut-out sits in the 1376 x 768 frame and the corners of its mat,
-#                         so the app draws the mat in code and keeps it still while the figure changes ("man": the same for the man)
+#                         so the app draws the mat in code and keeps it still while the figure changes ("man": the same for the man);
+#                         "flip": 1 marks a still drawn facing the other way from the app's figure (tools/line_flip.json)
 # Run: python3 tools/line_assets.py   (needs opencv-python-headless, scipy, pillow)
 import json, pathlib, sys
 import cv2, numpy as np
@@ -105,6 +106,11 @@ def main(only=None):
             if s.stem == 'preview': continue
             Image.open(s).convert('RGB').save(OUT / 'scenes' / f'{s.stem}.webp', 'WEBP', quality=80, method=6)
         lg = Image.open(SRC / 'fig-logo.png').convert('RGBA'); Image.fromarray(np.asarray(lg)).save(OUT / 'logo.webp', 'WEBP', quality=85, method=6)
+    flip = json.loads((ROOT / 'tools' / 'line_flip.json').read_text())  # stills drawn facing the other way from the app's figure
+    for d, f in ((idx, 'woman'), (man, 'man')):
+        for k, e in d.items():
+            e.pop('flip', None)
+            if k in flip[f]: e['flip'] = 1
     path.write_text(json.dumps({'frame': [1376, 768], 'logo': {'w': 301, 'h': 297}, 'poses': dict(sorted(idx.items())), 'man': dict(sorted(man.items()))}, separators=(',', ':')))
 
 if __name__ == '__main__':
