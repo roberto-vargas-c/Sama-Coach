@@ -1282,6 +1282,9 @@ Savasana, 3 min"></textarea>
             <div class="skgrid" id="skinGrid"></div>
             <div class="skgrid" id="skinNew" hidden></div>
             <p class="hint">A skin changes your whole figure: a more detailed body with fingers and toes, the clothes and the mat. Your build and height stay yours.</p>
+            <div class="skhead skcost"><h3>Characters</h3></div>
+            <div class="skgrid" id="charGrid"></div>
+            <p class="hint">A character changes who the figure is: body, skin tone and hair. Your clothes stay as they are.</p>
             <div class="skhead skcost"><h3>Costumes</h3></div>
             <div class="skgrid" id="costumeGrid"></div>
             <p class="hint">A costume goes on over your body and your own clothes, for fun: pick any skin to take it off.</p>
@@ -1289,7 +1292,7 @@ Savasana, 3 min"></textarea>
           <div class="alook">
           <div class="aonly alook-rows">
             <div class="arow"><span>Skin</span><div class="swatches" data-k="skin"></div></div>
-            <div class="arow"><span>Hair</span><div class="segs" data-k="hair"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="bun">Bun</button><button type="button" class="seg" data-v="ponytail">Ponytail</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="curly">Curly</button><button type="button" class="seg" data-v="none">None</button></div></div>
+            <div class="arow"><span>Hair</span><div class="segs" data-k="hair"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="bun">Bun</button><button type="button" class="seg" data-v="ponytail">Ponytail</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="curly">Curly</button><button type="button" class="seg" data-v="afro">Afro puffs</button><button type="button" class="seg" data-v="bob">Bob</button><button type="button" class="seg" data-v="manbun">Man bun</button><button type="button" class="seg" data-v="none">None</button></div></div>
             <div class="arow"><span>Hair colour</span><div class="swatches" data-k="hairColor"></div></div>
             <div class="arow"><span>Build</span><div class="segs" data-k="build"><button type="button" class="seg" data-v="slim">Slim</button><button type="button" class="seg" data-v="regular">Regular</button><button type="button" class="seg" data-v="soft">Soft</button><button type="button" class="seg" data-v="strong">Strong</button></div></div>
             <div class="arow"><span>Body</span><div class="segs" data-k="figure"><button type="button" class="seg" data-v="woman">Woman</button><button type="button" class="seg" data-v="man">Man</button></div></div>
@@ -2455,8 +2458,8 @@ const REF_SPECS = {
  mountain:   {face:[-90,0], torso:[0,90], la:[[0,-85],[0,-87]], ra:[[180,-85],[180,-87]], ll:[[0,-90],[0,-90],[-90,0]], rl:[[0,-90],[0,-90],[-90,0]]},
  warrior1:   {face:[180,0], torso:[0,90], la:[[180,88],[180,88]], ra:[[180,88],[180,88]], rl:[[180,0],[180,-90],[180,0]], ll:[[0,-45],[0,-45],[-135,0]]},
  warrior2:   {face:[-90,0], torso:[0,90], la:[[0,0],[0,0]], ra:[[180,0],[180,0]], rl:[[180,-12],[180,-90],[180,0]], ll:[[0,-36],[0,-36],[-100,0]]},
- triangle:   {face:[-90,0], torso:[180,10], la:[[0,90],[0,90]], ra:[[0,-90],[0,-90]], rl:[[180,-60],[180,-60],[180,0]], ll:[[0,-60],[0,-60],[-105,0]]},
- sideangle:  {face:[-90,0], torso:[180,36], la:[[180,36],[180,36]], ra:[[0,-90],[0,-90]], rl:[[180,-12],[180,-90],[180,0]], ll:[[0,-36],[0,-36],[-100,0]]},
+ triangle:   {face:[-90,0], pelvis:[0,65], torso:[180,10], la:[[0,90],[0,90]], ra:[[0,-90],[0,-90]], rl:[[180,-46],[180,-46],[180,0]], ll:[[0,-68],[0,-68],[-105,0]]},
+ sideangle:  {face:[-90,0], pelvis:[0,30], torso:[180,36], la:[[180,36],[180,36]], ra:[[0,-90],[0,-90]], rl:[[180,-12],[180,-90],[180,0]], ll:[[0,-30],[0,-30],[-100,0]]},
  highlunge:  {face:[180,0], torso:[0,90], la:[[180,88],[180,88]], ra:[[180,88],[180,88]], rl:[[180,0],[180,-90],[180,0]], ll:[[0,-38],[0,-38],[180,-70]]},
  lowlunge:   {face:[180,0], torso:[0,90], la:[[0,72],[0,74]], ra:[[0,72],[0,74]], rl:[[0,-68],[0,0],[0,0]], ll:[[180,5],[180,-90],[180,0]]},
  chair:      {face:[180,0], torso:[180,60], la:[[180,60],[180,60]], ra:[[180,60],[180,60]], ll:[[180,-35],[0,-75],[180,0]], rl:[[180,-35],[0,-75],[180,0]]},
@@ -2523,7 +2526,7 @@ const REF_SPECS = {
  splits: {face:[180, 0], torso:[0, 88], la:[[0, 88], [0, 88]], ra:[[0, 88], [0, 88]], ll:[[180, -8], [180, -8], [180, 70]], rl:[[0, -8], [0, -8], [0, 0]]},
  figurefour: {face:[180, 0], torso:[180, 60], head:[180, 65], la:[[0, -60], [180, 30]], ra:[[0, -60], [180, 30]], ll:[[180, 0], [90, -45], [180, 0]], rl:[[180, -45], [0, -70], [180, 0]]},
  revhalfmoon: {face:[-90, 0], lat:[-90, 0], torso:[180, -46], head:[180, -20], la:[[0, -90], [0, -90], [180, 0]], ra:[[0, 90], [0, 90]], ll:[[0, 2], [0, 2], [0, -90]], rl:[[0, -90], [0, -90], [180, 0]]},
- boundsideangle: {face:[-90, 0], torso:[180, 30], la:[[90, -60], [180, -70]], ra:[[-90, -70], [90, -10]], ll:[[0, -36], [0, -36], [-100, 0]], rl:[[180, -12], [180, -90], [180, 0]]},
+ boundsideangle: {face:[-90, 0], pelvis:[0, 45], torso:[180, 30], la:[[90, -60], [180, -70]], ra:[[-90, -70], [90, -10]], ll:[[0, -36], [0, -36], [-100, 0]], rl:[[180, -12], [180, -90], [180, 0]]},
  birdofparadise: {face:[-90, 0], torso:[0, 88], la:[[-100, -30], [-160, -45]], ra:[[-80, -60], [-20, -15]], ll:[[-20, 60], [-20, 60], [-10, 80]], rl:[[0, -90], [0, -90], [-90, 0]]},
  warrior3hands: {face:[180, -60], torso:[180, 0], head:[180, 0], la:[[0, 20], [0, 20]], ra:[[0, 20], [0, 20]], ll:[[0, 0], [0, 0], [0, -90]], rl:[[0, -90], [0, -90], [180, 0]]},
  kneesideplank: {face:[-90, 0], lat:[0, 55], pelvis:[0, 55], hipW:0.04, torso:[180, 25], head:[180, 25], la:[[0, 90], [0, 90]], ra:[[0, -90], [0, -90], [180, 0]], ll:[[0, -20], [0, -20], [-90, 0]], rl:[[0, -60], [180, 0], [180, 0]]},
@@ -3445,7 +3448,7 @@ function pelvisFrame(R, SIL){ // the torso frame, but upright on the hips: when 
 }
 function pelvisOutline(R, SIL, under = 1){ // waist (where the shirt ends) curving out over the hips and in to the crotch, upright on the hips
   const {F, H, hh, rH} = pelvisFrame(R, SIL), gi = SHAPE.girth || 1, W = (hh*SHAPE.hipJ + rH*SHAPE.waist)*gi, Hp = (hh*SHAPE.hipJ + rH*SHAPE.hip)*gi, top = rH*1.05*SHAPE.rise;
-  const side = [[W*.98*under, top], [Hp*.99*under, top*.45], [Hp, 0], [Hp*.93, -rH*.7], [Hp*.55, -rH*1.15]];
+  const side = [[Math.min(W, Hp*.96)*.98*under, top], [Hp*.99*under, top*.45], [Hp, 0], [Hp*.93, -rH*.7], [Hp*.55, -rH*1.15]];
   return [...side.map(([x, y]) => F(-x, y)), F(0, -rH*1.25), ...side.slice().reverse().map(([x, y]) => F(x, y))].reverse();
 }
 function silTorsoShaped(g, R, SIL = SIL_BASE, tank = false){ g.beginPath(); smoothClosed(g, torsoOutline(R, SIL, tank ? 'tank' : 'shirt')); }
@@ -3666,8 +3669,19 @@ function drawFlatBackHair(g, R, av){
     taperPath(g, {x: ax, y: ay}, {x: ax + sx*r*.1, y: ay + r*(av.hair === 'long' ? 1.7 : 1.4)}, r*(av.hair === 'long' ? .4 : .28), r*.22); g.fill();
   }
 }
+function drawHairBehind(g, r, sgn, av){ // in the head's frame, before the head is filled
+  g.fillStyle = av.hairColor;
+  if (av.hair === 'afro'){ const puff = (x, y, rr) => { g.beginPath(); g.arc(x, y, rr, 0, Math.PI*2); g.fill(); for (let i = 0; i < 11; i++){ const a = i/11*Math.PI*2; g.beginPath(); g.arc(x + Math.cos(a)*rr*.9, y + Math.sin(a)*rr*.9, rr*.24, 0, Math.PI*2); g.fill(); } }; // a soft, bumpy round
+    if (sgn) puff(-sgn*r*.32, -r*1.08, r*.5); else for (const sx of [-1, 1]) puff(sx*r*.66, -r*.9, r*.44); } // two puffs high on the head; in profile they line up as one
+  if (av.hair === 'manbun'){ const x = sgn ? -sgn*r*.58 : 0, y = sgn ? -r*.92 : -r*1.0; g.beginPath(); g.ellipse(x, y, r*.27, r*.24, 0, 0, Math.PI*2); g.fill(); // a small knot at the crown, a band round its base
+    g.strokeStyle = shade(av.hairColor, .7); g.lineWidth = r*.06; g.beginPath(); if (sgn) g.arc(x, y, r*.2, sgn > 0 ? -.4 : Math.PI - 1.2, sgn > 0 ? 1.2 : Math.PI + .4); else g.arc(x, y + r*.32, r*.24, Math.PI*1.25, Math.PI*1.75); g.stroke(); }
+  if (av.hair === 'bob'){ g.beginPath(); // the hair falls straight from the crown and turns under at the jaw
+    if (sgn){ const b = -sgn; g.moveTo(sgn*r*.3, -r*.9); g.quadraticCurveTo(b*r*.6, -r*1.25, b*r*1.02, -r*.5); g.quadraticCurveTo(b*r*1.14, r*.2, b*r*.98, r*.62); g.quadraticCurveTo(b*r*.5, r*.74, sgn*r*.02, r*.66); g.lineTo(sgn*r*.1, -r*.2); }
+    else { g.moveTo(-r*1.0, r*.66); g.quadraticCurveTo(-r*1.12, 0, -r*.98, -r*.6); g.quadraticCurveTo(-r*.7, -r*1.14, 0, -r*1.12); g.quadraticCurveTo(r*.7, -r*1.14, r*.98, -r*.6); g.quadraticCurveTo(r*1.12, 0, r*1.0, r*.66); g.quadraticCurveTo(0, r*.74, -r*1.0, r*.66); }
+    g.closePath(); g.fill(); }
+}
 function drawEars(g, R, av){ // ears beside the head, seen from the front or back (in profile the hair covers them)
-  const F = faceFrame(R), r = flatHeadR(R); if (Math.abs(F.lx) > .35 || R.blob > 0) return;
+  const F = faceFrame(R), r = flatHeadR(R); if (Math.abs(F.lx) > .35 || R.blob > 0 || av.hair === 'bob') return;
   g.save(); g.translate(F.h.x, F.h.y); g.rotate(F.rot); g.fillStyle = shade(av.skin, .93);
   for (const sx of [-1, 1]){ g.beginPath(); g.ellipse(sx*r*.79*SHAPE.ear, r*.1, r*.12, r*.2, sx*.15, 0, Math.PI*2); g.fill(); }
   g.restore();
@@ -3686,20 +3700,24 @@ function drawFlatHead(g, R, av){
   g.save(); g.translate(h.x, h.y); g.rotate(F.rot);
   const fade = R.blob > 0 ? Math.max(0, 1 - R.blob/.3) : 1, a0 = g.globalAlpha; g.globalAlpha = a0*fade;
   if (av.hair === 'bun' && fade > 0){ g.fillStyle = av.hairColor; g.beginPath(); g.arc(-sgn*r*.35, -r*1.05, r*.42, 0, Math.PI*2); g.fill(); }
+  if (fade > 0) drawHairBehind(g, r, sgn, av); // afro puffs, a man bun, the fall of a bob: behind the head
   const shapeHead = k => { g.beginPath(); if (av.body === 'detailed') smoothClosed(g, headOutline(r*k, sgn)); else g.ellipse(0, 0, r*.92*k, r*k, 0, 0, Math.PI*2); };
   g.globalAlpha = a0; g.fillStyle = av.skin; shapeHead(1); g.fill();
   if (!(R.blob > .3)){ g.save(); g.clip(); g.rotate(-F.rot); const dt = av.body === 'detailed'; g.fillStyle = dt ? 'rgba(20, 16, 12, .07)' : 'rgba(20, 16, 12, .11)'; g.beginPath(); g.arc(0, 0, r*1.2, 0, Math.PI*2); g.arc(dt ? -r*.1 : -r*.16, dt ? -r*.06 : -r*.18, r*(dt ? 1.06 : 1.02), 0, Math.PI*2, true); g.fill('evenodd'); g.restore(); }
   g.globalAlpha = a0*fade;
   if (av.hair !== 'none' && fade > 0){ // the hair fades out of the blob (no dark half-moon on it)
-    g.save(); shapeHead(av.body === 'detailed' && !sgn ? 1.0 : 1.06); g.clip(); g.fillStyle = av.hairColor; // (the detailed face-on hair lies on the head: a rim past it ends in points at the temples)
-    const yF = sgn ? -r*.45 : -r*.2, yB = sgn ? r*.35 : -r*.2 + away*r*.82 + nod*r*.3;
-    g.beginPath(); if (!sgn && av.body === 'detailed' && away < .5){ // a hairline: parted over the forehead, down the temples to the ears
+    g.save(); shapeHead(av.body === 'detailed' && !sgn && av.hair !== 'bob' ? 1.0 : 1.06); g.clip(); g.fillStyle = av.hairColor; // (the detailed face-on hair lies on the head: a rim past it ends in points at the temples)
+    const yF = sgn ? -r*.45 : -r*.2, yB = sgn ? r*.35 : -r*.2 + away*r*(av.hair === 'bob' ? 1.2 : .82) + nod*r*.3; // (a bob covers the nape from behind)
+    g.beginPath(); if (av.hair === 'bob' && away < .5){ // a bob: a straight fringe across the brow, the sides down past the cheeks to the jaw
+      if (!sgn){ g.moveTo(-r*1.3, r*.62); g.lineTo(-r*.7, r*.62); g.lineTo(-r*.66, -r*.14); g.quadraticCurveTo(-r*.6, -r*.32, -r*.3, -r*.33); g.lineTo(r*.3, -r*.33); g.quadraticCurveTo(r*.6, -r*.32, r*.66, -r*.14); g.lineTo(r*.7, r*.62); g.lineTo(r*1.3, r*.62); g.lineTo(r*1.3, -r*1.3); g.lineTo(-r*1.3, -r*1.3); }
+      else { g.moveTo(sgn*r*1.3, -r*.3); g.lineTo(sgn*r*.5, -r*.3); g.quadraticCurveTo(sgn*r*.1, -r*.28, sgn*r*.02, r*.08); g.quadraticCurveTo(-sgn*r*.02, r*.5, -sgn*r*.1, r*.64); g.lineTo(-sgn*r*1.3, r*.64); g.lineTo(-sgn*r*1.3, -r*1.3); g.lineTo(sgn*r*1.3, -r*1.3); } }
+    else if (!sgn && av.body === 'detailed' && away < .5){ // a hairline: parted over the forehead, down the temples to the ears
       g.moveTo(-r*1.3, r*.15); g.lineTo(-r*.82, r*.15); g.quadraticCurveTo(-r*.78, -r*.38, -r*.3, -r*.5); g.quadraticCurveTo(0, -r*.56, r*.3, -r*.5); g.quadraticCurveTo(r*.78, -r*.38, r*.82, r*.15); g.lineTo(r*1.3, r*.15); g.lineTo(r*1.3, -r*1.3); g.lineTo(-r*1.3, -r*1.3); }
     else if (sgn && av.body === 'detailed'){ // the same haircut from the side: the hairline over the brow, down the temple, round the top of the ear and back at the same height as the hair over the ears from the front
       g.moveTo(sgn*r*1.3, -r*.56); g.lineTo(sgn*r*.72, -r*.54); g.quadraticCurveTo(sgn*r*.34, -r*.48, sgn*r*.22, -r*.06); g.lineTo(sgn*r*.12, -r*.06); g.quadraticCurveTo(-sgn*r*.06, -r*.3, -sgn*r*.24, -r*.04);
       g.quadraticCurveTo(-sgn*r*.42, r*.12, -sgn*r*.66, r*.14); g.lineTo(-sgn*r*1.3, r*.2); g.lineTo(-sgn*r*1.3, -r*1.3); g.lineTo(sgn*r*1.3, -r*1.3); }
     else if (sgn){ g.moveTo(sgn*r*1.3, yF); g.lineTo(-sgn*r*1.3, yB); g.lineTo(-sgn*r*1.3, -r*1.3); g.lineTo(sgn*r*1.3, -r*1.3); } else g.rect(-r*1.3, -r*1.3, r*2.6, r*1.3 + yB); g.closePath(); g.fill();
-    if (sgn && av.body === 'detailed'){ g.fillStyle = shade(av.skin, .93); g.beginPath(); g.ellipse(-sgn*r*.07, r*.1, r*.13, r*.19, sgn*.15, 0, Math.PI*2); g.fill(); g.fillStyle = av.hairColor; } // the ear, in front of the hair
+    if (sgn && av.body === 'detailed' && av.hair !== 'bob'){ g.fillStyle = shade(av.skin, .93); g.beginPath(); g.ellipse(-sgn*r*.07, r*.1, r*.13, r*.19, sgn*.15, 0, Math.PI*2); g.fill(); g.fillStyle = av.hairColor; } // the ear, in front of the hair
     if (av.hair === 'curly'){ for (let i = 0; i < 9; i++){ const a = -Math.PI*(.05 + .9*i/8); g.beginPath(); g.arc(Math.cos(a)*r, Math.sin(a)*r + r*.05, r*.28, 0, Math.PI*2); g.fill(); } }
     g.restore();
   }
@@ -3915,7 +3933,7 @@ function detailParts(parts, R, sil, av){
   { // the waistband: a deeper band across the top of the trousers, inside the pelvis outline so it never sticks out past the waist
     const {F, hh, rH} = pelvisFrame(R, sil), W = (hh*SHAPE.hipJ + rH*SHAPE.waist)*.97*(SHAPE.girth || 1), Hp = (hh*SHAPE.hipJ + rH*SHAPE.hip)*.98*(SHAPE.girth || 1), top = rH*1.05*SHAPE.rise, yb = top - rH*.4, xb = W + (Hp - W)*Math.min(1, (top - yb)/(top*.55))*.8;
     const band = g => { g.beginPath(); for (const q of [F(-W, top), F(W, top), F(xb, yb), F(-xb, yb)]) g.lineTo(q.x, q.y); g.closePath(); };
-    band.part = 'band'; if (av.sleeves !== 'none') out.push(band); } // (a tank top hangs over the waistband)
+    band.part = 'band'; band.within = () => pelvisOutline(R, sil); if (av.sleeves !== 'none') out.push(band); } // (a tank top hangs over the waistband; the band never pokes out past the hips' round outline)
   const lines = g => g.beginPath(); lines.part = 'seatlines'; out.push(lines); // nothing to fill: a slot in the drawing order for the seat's lines
   return out.filter(Boolean);
 }
@@ -4145,7 +4163,7 @@ function outfitOver(g, p, R, sil, av, O, dim = 1){ // prints over the body's own
   if (!O.bones) return; g.save(); p(g); g.clip(); outfitSkeleton(g, p, R, sil); g.restore();
 }
 function drawFlatFigure(g, R, av){
-  const O = av.outfit && OUTFITS[av.outfit]; if (O){ av = {...av, body:'detailed', ...O.base, ...O.wear(av)}; if ((O.hat || av.hat) && av.hair === 'bun' && (O.hat || av.hat) !== 'flower') av.hair = 'short'; } // an outfit dresses the body: its clothes over the person's own
+  const O = av.outfit && OUTFITS[av.outfit]; if (O){ av = {...av, body:'detailed', ...O.base, ...O.wear(av)}; if ((O.hat || av.hat) && ['bun', 'afro', 'manbun'].includes(av.hair) && (O.hat || av.hat) !== 'flower') av.hair = 'short'; } // an outfit dresses the body: its clothes over the person's own
   const sil = silFor(av); for (const k of ['thigh','shin','upper','fore']) sil[k] = sil[k].map(v => v*1.22); sil.hand *= 1.15; sil.foot *= 1.1; sil.neck *= 1.3;
   if (O && O.bulk) for (const k of ['upper', 'fore']) sil[k] = sil[k].map(v => v*O.bulk); // a padded jacket: fuller sleeves
   // trouser fit: fuller legs, the feet untouched (shorts only widen the thigh)
@@ -4196,6 +4214,12 @@ function drawFlatFigure(g, R, av){
   const armUp = nearSide && along > .9 && (Kw[nearSide === 'l' ? 9 : 10].y < Kw[nearSide === 'l' ? 5 : 6].y - R.scale*.15 || reachPast); // reaching past the ear
   const armFront = !(R.blob > 0) && !armUp && hz != null && nearSide && [nearSide === 'l' ? 7 : 8, nearSide === 'l' ? 9 : 10].some(i => Kw[i].w && Kw[i].w[2] < hz - .04);
   const order0 = order;
+  const tuckLeg = (() => { if (R.blob > 0) return null; const K = R.kp, hx = (K[11].x + K[12].x)/2, hy = (K[11].y + K[12].y)/2, tx = (K[5].x + K[6].x)/2 - hx, ty = (K[5].y + K[6].y)/2 - hy, tl = Math.hypot(tx, ty) || 1;
+    if (Math.abs(ty)/tl > .5) return null; // only a torso tipped sideways, near level (triangle, half moon)
+    const straight = (h, k, a) => { const ux = K[h].x - K[k].x, uy = K[h].y - K[k].y, wx = K[a].x - K[k].x, wy = K[a].y - K[k].y; return (ux*wx + uy*wy)/((Math.hypot(ux, uy)*Math.hypot(wx, wy)) || 1) < -.85; };
+    for (const [sd, h, k, a] of [['l', 11, 13, 15], ['r', 12, 14, 16]]){ const dx = K[k].x - K[h].x, dy = K[k].y - K[h].y; if ((dx*tx + dy*ty)/((Math.hypot(dx, dy) || 1)*tl) > .2 && dy > 0 && straight(h, k, a)) return sd; }
+    return null; })(); // the straight leg reaching out under the tipped torso stands behind it: the shirt hangs over its thigh, as in a photo of triangle
+  if (tuckLeg) for (const p of parts) if (p.side === tuckLeg && SUB[p.part] != null && ['thigh', 'shin', 'foot'].includes(p.part) && p.z == null && !p.zf) p.z = 1.9 + SUB[p.part]*.1;
   // the arm passes the side of the head, never across the face: keep a window around the face clear of it
   const faceHole = null; // the nearer arm simply lies over the head, as it does from the side
   const orderF = p => p.lifted ? (armUp && !(R.blob > 0) && p.side === nearSide ? 9.5 : 3.72) : (armFront || (armUp && !(R.blob > 0))) && p.side === nearSide && (p.part === 'upper' || p.part === 'fore' || p.part === 'hand') ? 9.5 : order0(p);
@@ -4219,12 +4243,17 @@ function drawFlatFigure(g, R, av){
   let headDone = false;
   if (detailed){ const tf = torsoFrame3(R, sil), pf = pelvisFrame(R, sil), a = tf.F(0, 0), t1 = tf.F(0, 1), p1 = pf.F(0, 1), dot = (t1.x - a.x)*(p1.x - a.x) + (t1.y - a.y)*(p1.y - a.y);
     if (dot < .985) for (const p of parts) if (p.part === 'torso' && !p.cut){ const X = pf.rH*8, y0 = -pf.rH*.5, ax = pf.F(1, 0), sc = tf.F(0, tf.H), sx = Math.sign((sc.x - a.x)*(ax.x - a.x) + (sc.y - a.y)*(ax.y - a.y)) || 1, Q = (u, y) => pf.F(sx*u, y), u0 = pf.rH*.2, uh = pf.rH*1.6;
-      p.cut = [Q(-X, X), Q(u0, X), Q(u0, y0), Q(uh, y0), Q(uh, -X), Q(-X, -X)]; } } // a torso tipped sideways off upright hips ends at the middle of the hips: nothing of it past them, nor hanging into the gap between the legs
+      p.cut = [Q(-X, X), Q(u0, X), Q(u0, y0), Q(uh, y0), Q(uh, -X), Q(-X, -X)]; }
+    { const top = pf.rH*1.05*(SHAPE.rise || 1), X = pf.rH*2.2, o = pf.F(0, 0), u1 = pf.F(0, 1), ul = Math.hypot(u1.x - o.x, u1.y - o.y) || 1, K = R.kp, Q = (x, y) => ({...pf.F(x, y), k: 1});
+      if (Math.hypot(K[11].x - K[12].x, K[11].y - K[12].y) > pf.rH*1.4) for (const p of parts) if (p.part === 'thigh' && p.ks && !p.cut && p.z == null){ /* hips seen square on, not in profile */ const h = K[p.ks[0]], k = K[p.ks[1]], dl = Math.hypot(k.x - h.x, k.y - h.y) || 1;
+        if (((k.x - h.x)*(u1.x - o.x) + (k.y - h.y)*(u1.y - o.y))/(dl*ul) < .15) p.cut = [Q(-X, top), Q(X, top), Q(X, top + pf.rH*1.2), Q(-X, top + pf.rH*1.2)]; } } } // a thigh pointing away from the torso never pokes its round top past the waist into the shirt (half moon's legs)
+  // (above:) a torso tipped sideways off upright hips ends at the middle of the hips: nothing of it past them, nor hanging into the gap between the legs
   for (const p of [...parts].sort((a,b) => orderF(a)-orderF(b))){
     if (p.part === 'head'){ headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); if (O && (O.hat || av.hat)) outfitHat(g, R, av, O.hat || av.hat); }); headDone = true; continue; }
     const isFar = !!(p.side && p.side === far) && !p.lifted; // (a lifted arm shares its outline with the shoulder: one colour)
     if (O && outfitDraw(g, p, R, sil, av, O)) continue;
     if (p.cut){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); smoothClosed(g, p.cut); g.clip('evenodd'); }
+    if (p.within){ g.save(); g.beginPath(); smoothClosed(g, p.within()); g.clip(); }
     if (p.hole){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.arc(p.hole.x, p.hole.y, p.hole.r, 0, Math.PI*2, true); g.clip(); }
     const overHead = faceHole && orderF(p) === 9.5; if (overHead){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.moveTo(...faceHole[0]); for (const q of faceHole.slice(1)) g.lineTo(...q); g.closePath(); g.clip('evenodd'); }
     const unseen = R.live && p.ks && p.ks.some(i => R.kp[i].s < VIS); if (unseen) g.globalAlpha *= .35; // a limb the camera did not find is only a hint
@@ -4264,6 +4293,7 @@ function drawFlatFigure(g, R, av){
     if (unseen) g.globalAlpha /= .35;
     if (overHead) g.restore();
     if (p.hole) g.restore();
+    if (p.within) g.restore();
     if (p.cut) g.restore();
   }
   if (!headDone) headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); if (O && (O.hat || av.hat)) outfitHat(g, R, av, O.hat || av.hat); });
@@ -4773,23 +4803,144 @@ const stageBg = $('cvBg'); let stageBgKey = '';
 function drawStageBg(){
   if (!stageBg || !document.body.classList.contains('practice') || mode !== 'sample') return;
   const st = cv.parentNode, dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(st.clientWidth*dpr), H = Math.round(st.clientHeight*dpr);
-  const key = [W, H, scene, document.documentElement.dataset.theme || '', css('--figbg'), avatar.skin].join('|'); if (!W || !H || key === stageBgKey) return; stageBgKey = key;
+  const key = [W, H, scene, document.documentElement.dataset.theme || '', css('--figbg'), avatar.skin, avatar.style].join('|'); if (!W || !H || key === stageBgKey) return; stageBgKey = key;
   stageBg.width = W; stageBg.height = H; const g = stageBg.getContext('2d'), side = Math.min(W, H);
   g.fillStyle = css('--figbg'); g.fillRect(0, 0, W, H);
-  g.setTransform(side/REF_S, 0, 0, side/REF_S, (W - side)/2, (H - side)/2); drawEnvironment(g, scene); g.setTransform(1, 0, 0, 1, 0, 0);
+  if (lineOn()) lineScene(g, W, H, scene, {side, x:(W - side)/2, y:(H - side)/2});
+  else { g.setTransform(side/REF_S, 0, 0, side/REF_S, (W - side)/2, (H - side)/2); drawEnvironment(g, scene); g.setTransform(1, 0, 0, 1, 0, 0); }
 }
 function fitPracticeStage(){ // the stage runs from under the practice bar to the bottom of the screen, whatever the bar's height
   const st = cv.parentNode; if (!document.body.classList.contains('practice')){ st.style.height = ''; return; }
   st.style.height = Math.max(240, Math.round(window.innerHeight - st.getBoundingClientRect().top - 12)) + 'px';
 }
 window.addEventListener('resize', () => { fitPracticeStage(); stageBgKey = ''; drawStageBg(); });
-function drawSampleScene(){ if (!curRef) return; drawStageBg(); if (drawEnvironment(ctx, scene)) drawFigureScene(ctx, curRef, 'transparent', css('--fig'), css('--mat')); else drawScene(ctx, curRef); }
+// ---------- line style: the hand-drawn stills in line/ stand in for the drawn figure, on the matching line-style scenes ----------
+// Each pose is one still with the figure cut out (line/poses/<id>.webp) laid out on a 1376 x 768 frame; its mat is drawn here from
+// the corners in line/index.json, so the mat stays put while the figure changes. Between poses the figure squeezes into the
+// Sama logo on the mat, the logo rolls, and the next pose pops out of it, held on twos like a hand-drawn cartoon.
+// The live camera view ("Me as my figure") and the small pose icons keep the drawn figure, which follows the body.
+const LINE = {idx:null, wait:null, img:{}, subs:new Set(), FW:1376, FH:768, CX:688, PAPER:'#FBF9F4', INK:'#1D1D1B', SIZE:.86}; // SIZE: the stills a little smaller than drawn, so more of the scene shows round them
+const lineOn = () => avatar.style === 'line';
+function lineLoad(){
+  if (!LINE.wait) LINE.wait = fetch('/line/index.json').then(r => r.json()).then(j => { LINE.idx = j; lineReady(); }).catch(() => { LINE.wait = null; });
+  return LINE.wait;
+}
+function lineReady(){ for (const f of LINE.subs) try { f(); } catch {} }
+function lineImg(src){ // loads once; whoever drew while it was loading is redrawn when it arrives
+  let im = LINE.img[src];
+  if (!im){ im = LINE.img[src] = new Image(); im.decoding = 'async'; im.onload = lineReady; im.src = src; }
+  return im.complete && im.naturalWidth ? im : null;
+}
+const lineHas = id => !!(LINE.idx && LINE.idx.poses[id]);
+// where a pose sits on the frame: its mat's front edge centred on the frame, scaled down if the frame shown can't hold it
+function linePlace(id, viewW){
+  const e = LINE.idx.poses[id], m = e.mat ? e.mat.q : [[460, 650], [922, 648], [989, 732], [387, 734]];
+  const ax = (m[2][0] + m[3][0])/2, ay = (m[2][1] + m[3][1])/2;
+  const x0 = Math.min(e.x, m[0][0], m[3][0]), x1 = Math.max(e.x + e.w, m[1][0], m[2][0]), y0 = Math.min(e.y, m[0][1]);
+  const half = Math.max(LINE.CX - (LINE.CX + x0 - ax), (LINE.CX + x1 - ax) - LINE.CX);
+  let s = Math.min(LINE.SIZE, (viewW/2 - 14)/half); if (y0 < 10) s = Math.min(s, (ay - 10)/(ay - y0));
+  return {e, ax, ay, s};
+}
+// frame point -> pose layer: centred on the frame, scaled about the mat's front edge, mirrored for the second side
+function linePose(g, P, mir, k = 1, sq = 0, rot = 0, cy){
+  g.translate(LINE.CX, P.ay); g.scale(P.s*(mir ? -1 : 1), P.s); g.translate(-P.ax, -P.ay);
+  if (k !== 1 || sq || rot){ const ty = cy ?? P.ay; g.translate(P.ax, ty); g.scale(k*(1 + sq), k*(1 - sq)); g.rotate(rot); g.translate(-P.ax, -ty); }
+}
+function lineMatPts(P, mir){
+  const q = P.e.mat ? P.e.mat.q : [[460, 650], [922, 648], [989, 732], [387, 734]];
+  return q.map(([x, y]) => [LINE.CX + (mir ? -1 : 1)*(x - P.ax)*P.s, P.ay + (y - P.ay)*P.s]);
+}
+function lineDrawMat(g, pts, color){
+  g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath();
+  g.fillStyle = color || '#7FA9A0'; g.fill(); g.lineJoin = 'round'; g.lineWidth = 2.6; g.strokeStyle = LINE.INK; g.stroke();
+}
+function lineFigure(g, P, mir, k = 1, sq = 0, alpha = 1){
+  const im = lineImg(`/line/poses/${P.id}.webp`); if (!im || k <= 0 || alpha <= 0) return;
+  g.save(); g.globalAlpha *= alpha; linePose(g, P, mir, k, sq); g.drawImage(im, P.e.x, P.e.y, P.e.w, P.e.h); g.restore();
+}
+function lineLogo(g, P, k, rot, alpha = 1){ // the logo stands on the middle of the mat
+  const im = lineImg('/line/logo.webp'); if (!im || k <= 0 || alpha <= 0) return;
+  const pts = lineMatPts(P, false), cy = (pts[0][1] + pts[3][1])/2, w = 301*P.s, h = 297*P.s;
+  g.save(); g.globalAlpha *= alpha; g.translate(LINE.CX, cy); g.scale(k, k); g.translate(0, -h/2); g.rotate(rot); g.drawImage(im, -w/2, -h/2, w, h); g.restore();
+}
+function lineInk(g, P, t, n = 7){ // short ink strokes flicking out from the logo as it lands
+  if (t <= 0 || t >= 1) return;
+  const pts = lineMatPts(P, false), cy = (pts[0][1] + pts[3][1])/2 - 297*P.s/2, r0 = 297*P.s*(.55 + .35*t), r1 = r0 + 26*P.s*(1 - t);
+  g.save(); g.strokeStyle = LINE.INK; g.lineWidth = 3; g.lineCap = 'round'; g.globalAlpha *= 1 - t;
+  for (let i = 0; i < n; i++){ const an = -Math.PI*(.08 + .84*i/(n - 1)); g.beginPath(); g.moveTo(LINE.CX + Math.cos(an)*r0, cy + Math.sin(an)*r0); g.lineTo(LINE.CX + Math.cos(an)*r1, cy + Math.sin(an)*r1); g.stroke(); }
+  g.restore();
+}
+const LINE_SCENES = {studio:1, living:1, park:1, beach:1, mountains:1, night:1};
+// The scene fills the box: the frame's height fits the reference square (side), standing on its bottom edge and centred;
+// a box wider or taller than the drawing gets the drawing's outer edge stretched out to it, so no gap ever shows.
+function lineEdge(im, y0, h){ // the average colour of a band of rows, to fill past the drawing's top or bottom edge
+  const c = document.createElement('canvas'); c.width = c.height = 1; const g = c.getContext('2d'); g.drawImage(im, 0, y0, im.naturalWidth, h, 0, 0, 1, 1);
+  const d = g.getImageData(0, 0, 1, 1).data; return `rgb(${d[0]},${d[1]},${d[2]})`;
+}
+function lineScene(g, W, H, kind, sq){
+  const side = sq ? sq.side : Math.min(W, H), ox = sq ? sq.x : (W - side)/2, oy = sq ? sq.y : H - side, k = side/LINE.FH;
+  g.save(); g.fillStyle = LINE.PAPER; g.fillRect(0, 0, W, H);
+  const im = LINE_SCENES[kind] ? lineImg(`/line/scenes/${kind}.webp`) : null;
+  if (im){
+    const dx = ox + side/2 - LINE.CX*k, dw = LINE.FW*k, dy = oy, dh = side, iw = im.naturalWidth, ih = im.naturalHeight;
+    const E = im._edge || (im._edge = {top:lineEdge(im, 0, 12), bot:lineEdge(im, ih - 40, 40)}); // (the floor below is one colour: stretched, its lines would streak)
+    if (dy > 0){ g.fillStyle = E.top; g.fillRect(0, 0, W, dy + 1); g.drawImage(im, 0, 0, iw, 2, dx, 0, dw, dy + 1); } // walls and sky carry on upwards
+    if (dy + dh < H){ g.fillStyle = E.bot; g.fillRect(0, dy + dh - 1, W, H - dy - dh + 1); }
+    g.imageSmoothingQuality = 'high'; g.drawImage(im, dx, dy, dw, dh);
+    if (dx > 0) g.drawImage(im, 0, 0, 2, ih, 0, dy, dx + 1, dh);
+    if (dx + dw < W) g.drawImage(im, iw - 2, 0, 2, ih, dx + dw - 1, dy, W - dx - dw + 1, dh);
+  }
+  g.restore();
+}
+// Draws the reference in line style into a W x H box. st = {id, mir} or, mid-change, {id, mir, from, fromMir, at} (at: seconds in).
+// opts.scene: the scene to put behind ('plain' gives paper; false draws nothing behind); opts.fit: 'figure' crops in on the pose.
+const LINE_T = {leave:.55, settle:.45, hold:.2, unsettle:.3, arrive:.55};
+const lineDur = () => Object.values(LINE_T).reduce((a, b) => a + b, 0)*Math.sqrt(PACE[pace] || 1);
+function lineDraw(g, W, H, st, opts = {}){
+  if (!LINE.idx){ lineLoad(); if (opts.scene !== false){ g.fillStyle = LINE.PAPER; g.fillRect(0, 0, W, H); } return; }
+  const id = lineHas(st.id) ? st.id : 'mountain';
+  if (opts.scene !== false) lineScene(g, W, H, opts.scene ?? scene, opts.sq);
+  const side = opts.sq ? opts.sq.side : Math.min(W, H), ox = opts.sq ? opts.sq.x : (W - side)/2, oy = opts.sq ? opts.sq.y : H - side; // standing on the bottom edge
+  let k = side/LINE.FH, tx = ox + side/2 - LINE.CX*k, ty = oy;
+  const viewW = W/k;
+  const P = {...linePlace(id, viewW), id};
+  if (opts.fit === 'figure'){ // crop to the pose: its figure and mat fill the box
+    const pts = lineMatPts(P, false), x0 = Math.min(LINE.CX + (P.e.x - P.ax)*P.s, pts[3][0]), x1 = Math.max(LINE.CX + (P.e.x + P.e.w - P.ax)*P.s, pts[2][0]);
+    const y0 = P.ay + (P.e.y - P.ay)*P.s, y1 = Math.max(pts[2][1], pts[3][1]) + 6, f = Math.min(W/(x1 - x0), H/(y1 - y0))*.92;
+    k = f; tx = W/2 - (x0 + x1)/2*f; ty = H/2 - (y0 + y1)/2*f;
+  }
+  const base = g.getTransform();
+  g.save(); g.transform(k, 0, 0, k, tx, ty);
+  const moving = st.from && st.at != null && st.at < lineDur() && lineHas(st.from);
+  if (!moving){ lineDrawMat(g, lineMatPts(P, st.mir), P.e.mat && P.e.mat.c); lineFigure(g, P, st.mir); g.restore(); g.setTransform(base); return; }
+  const Q = {...linePlace(st.from, viewW), id:st.from}, f = 1/Math.sqrt(PACE[pace] || 1), T = {}; for (const [a, b] of Object.entries(LINE_T)) T[a] = b/f;
+  const clamp = t => Math.max(0, Math.min(1, t)), easeIn = t => t*t*t, easeOut = t => 1 - Math.pow(1 - t, 3);
+  const back = t => { const c = 1.4; return 1 + (c + 1)*Math.pow(t - 1, 3) + c*Math.pow(t - 1, 2); };
+  const at = Math.floor(st.at*12)/12; // on twos: each drawing held for two frames
+  const m = clamp(at/(T.leave + T.settle + T.hold + T.unsettle + T.arrive)), mz = m*m*(3 - 2*m);
+  const pa = lineMatPts(Q, st.fromMir), pb = lineMatPts(P, st.mir); // the mat glides from one pose's place to the next
+  lineDrawMat(g, pa.map((p, i) => [p[0] + (pb[i][0] - p[0])*mz, p[1] + (pb[i][1] - p[1])*mz]), P.e.mat && P.e.mat.c);
+  const logo = (t, L = Q) => { const s = Math.max(0, back(clamp(t))); lineLogo(g, L, s, -(1 - easeOut(clamp(t)))*Math.PI/2, clamp(t*3)); };
+  let t = at;
+  if (t < T.leave){ const u = t/T.leave, pre = clamp(u/.25), go = clamp((u - .2)/.8); // squash a little, then shrink into the logo's spot
+    lineFigure(g, Q, st.fromMir, 1 - .9*easeIn(go), .08*Math.sin(Math.PI*pre)*(1 - go) + .25*go, 1 - clamp((go - .75)/.25));
+    if (t > T.leave*.6) logo((t - T.leave*.6)/(T.leave*.4 + T.settle));
+  } else if ((t -= T.leave) < T.settle){ logo((T.leave*.4 + t)/(T.leave*.4 + T.settle)); lineInk(g, Q, t/T.settle); }
+  else if ((t -= T.settle) < T.hold) logo(1);
+  else if ((t -= T.hold) < T.unsettle){ const u = t/T.unsettle;
+    lineLogo(g, P, 1 + .12*Math.sin(Math.PI*u) - .9*easeIn(clamp((u - .4)/.6)), easeIn(u)*Math.PI/2, 1 - clamp((u - .7)/.3));
+    if (u > .6) lineFigure(g, P, st.mir, .1*(u - .6)/.4, .25);
+  } else { const u = clamp((t - T.unsettle)/T.arrive); lineFigure(g, P, st.mir, .1 + .9*back(u), .25*(1 - u) - .06*Math.sin(Math.PI*u)); }
+  g.restore(); g.setTransform(base);
+}
+LINE.subs.add(() => { stageBgKey = ''; if (mode === 'sample' && lineOn() && curRef){ drawStageBg(); render(); } });
+function drawSampleScene(){ if (!curRef) return; drawStageBg(); if (lineOn()){ lineDraw(ctx, cv.width, cv.height, LINE.st || {id:pose.id, mir:refMirror}); return; } if (drawEnvironment(ctx, scene)) drawFigureScene(ctx, curRef, 'transparent', css('--fig'), css('--mat')); else drawScene(ctx, curRef); }
 // the reference figure as a small inset while the stage shows you (camera, photo or clip)
 function drawInset(){
   if (!showInset || !pose) return;
   const R = refFor(pose.id, refMirror, mode === 'sample' ? refAngle : placeAngle(pose.id, refMirror, effectivePlace())), size = Math.round(Math.min(cv.width, cv.height)*.3), pad = Math.round(size*.06), x = cv.width - size - pad, y = cv.height - size - pad, r = size*.1;
   ctx.save(); ctx.translate(x, y); ctx.beginPath(); ctx.moveTo(r,0); ctx.arcTo(size,0,size,size,r); ctx.arcTo(size,size,0,size,r); ctx.arcTo(0,size,0,0,r); ctx.arcTo(0,0,size,0,r); ctx.closePath(); ctx.clip();
-  ctx.scale(size/R.S, size/R.S); drawScene(ctx, R); ctx.restore();
+  if (lineOn()) lineDraw(ctx, size, size, {id:pose.id, mir:refMirror}, {scene:'plain'}); else { ctx.scale(size/R.S, size/R.S); drawScene(ctx, R); } ctx.restore();
   ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+size,y,x+size,y+size,r); ctx.arcTo(x+size,y+size,x,y+size,r); ctx.arcTo(x,y+size,x,y,r); ctx.arcTo(x,y,x+size,y,r); ctx.closePath(); ctx.stroke(); ctx.restore();
 }
 function routeSegments(from, path, target, targetId, mirrored, guided){
@@ -4854,6 +5005,16 @@ function showReference(mirrored = refMirror){
   $('tag').textContent = 'Reference'; $('vctl').hidden = true; $('meta').hidden = true; $('refBtn').hidden = true; $('sideBtn').hidden = !pose.asym; $('rotBtn').hidden = false;
   const reduce = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; } })();
   if (tween) cancelAnimationFrame(tween.raf);
+  if (lineOn()){ // line style: the logo transition between two stills (whatever the Transition setting)
+    const prev = LINE.st, dur = lineDur(); LINE.st = {id:pose.id, mir:mirrored}; curRef = target; kp = target.kp;
+    if (from && prev && !reduce && (prev.id !== pose.id || prev.mir !== mirrored)){
+      LINE.st = {...LINE.st, from:prev.id, fromMir:prev.mir, at:0}; const t0 = performance.now(), st = LINE.st;
+      const step = now => { if (mode !== 'sample' || LINE.st !== st){ tween = null; return; } st.at = (now - t0)/1000; render();
+        if (st.at < dur) tween.raf = requestAnimationFrame(step); else { tween = null; LINE.st = {id:st.id, mir:st.mir}; refresh(); } };
+      tween = {raf:0}; refresh(); tween.raf = requestAnimationFrame(step); return;
+    }
+    refresh(); return;
+  }
   if (!from || reduce){ curRef = target; kp = target.kp; refresh(); return; }
   kp = target.kp; last = pose.checks.length ? evaluate(pose, target.kp0) : null; renderPanel();
   if (transStyle === 'blob'){
@@ -5028,7 +5189,7 @@ function render(){
   else { ctx.drawImage(media, 0, 0, cv.width, cv.height); ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(0,0,cv.width,cv.height); }
   if (mode !== 'sample'){ drawInset(); drawMat(Math.max(cv.width, cv.height)/700, true); }
   if (!kp || !last) return;
-  if (mode==='sample' && !showOverlay) return; // the figure alone, no lines or angles
+  if (mode==='sample' && (!showOverlay || lineOn())) return; // (the line drawings are stills: the lines wouldn't sit on them) // the figure alone, no lines or angles
   const u = Math.max(cv.width, cv.height)/700 * (mode==='sample' ? .75 : 1);
   ctx.save(); if (mode==='sample'){ ctx.globalAlpha = .7; if (curRef) ctx.translate(-figShift(curRef)*sc, 0); } // lines sit on the figure where it is drawn
   const mir = mirror(), K = kp.map(p => ({x: mir ? cv.width - p.x*sc : p.x*sc, y:p.y*sc, s:p.s, w:p.w}));
@@ -7383,12 +7544,16 @@ function reelFx(g, sl, el, R, now){
   document.addEventListener('keydown', e => { if ($('reel').hidden) return; if (e.key === 'Escape') closeReel(); if (e.key === 'ArrowRight') $('rNext').onclick(); if (e.key === 'ArrowLeft') reelSlide(reel.i - 1); });
 })();
 function figureAnimator(cv){
-  const g = cv.getContext('2d'); let cur = null, anim = null, raf = 0; const t0 = performance.now();
+  const g = cv.getContext('2d'); let cur = null, anim = null, raf = 0, lst = null; const t0 = performance.now();
   const ez = u => u*u*u*(u*(u*6-15)+10);
   const reduce = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; } })();
   function frame(now){
     raf = requestAnimationFrame(frame);
     if (document.hidden || !cv.getClientRects().length) return;
+    if (lineOn() && lst){ // line style: the stills, with the logo transition
+      if (lst.t0 != null){ lst.at = (now - lst.t0)/1000; if (lst.at >= lineDur()) lst = {id:lst.id, mir:lst.mir}; }
+      g.setTransform(1,0,0,1,0,0); lineDraw(g, cv.width, cv.height, lst); return;
+    }
     let R = cur;
     if (anim && anim.segs){ // Movement: the real route between the two poses, as one smooth movement (as when browsing poses)
       const u = Math.min(1, (now - anim.t0)/anim.dur), at = u*u*(3 - 2*u)*anim.dur;
@@ -7415,7 +7580,9 @@ function figureAnimator(cv){
   }
   raf = requestAnimationFrame(frame);
   return {
-    setPose(id, mirrored = false){ if (!REF_SPECS[id]) id = 'mountain'; const to = refFor(id, mirrored, 0); if (reduce){ cur = to; anim = null; return; }
+    setPose(id, mirrored = false){ if (!REF_SPECS[id]) id = 'mountain'; const to = refFor(id, mirrored, 0);
+      { const prev = lst; lst = {id, mir:mirrored}; if (prev && !reduce && (prev.id !== id || prev.mir !== mirrored)) lst = {...lst, from:prev.id, fromMir:prev.mir, t0:performance.now()}; }
+      if (reduce){ cur = to; anim = null; return; }
       if (transStyle === 'moves' && cur && cur.poseId && !anim){ // the figure really moves there (follows the Transition setting)
         try { const segs = routeSegments(cur, transitionPath(cur.poseId, id, !!cur.mirrored, mirrored), to, id, mirrored, false), dur = segs.reduce((a, sg) => a + sg.dur, 0);
           if (segs.length && dur > 0){ anim = {segs, t0: performance.now(), dur}; cur = segs[segs.length - 1].to; return; } } catch (e){ console.warn('figure route', e); } }
@@ -8597,7 +8764,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
     if (k==='musicset'){ setMusic(b.dataset.v === 'on'); sync(); return; }
     if (k==='camat'){ camAt = b.dataset.v; camVote = 0; if (camAt !== 'auto') camSeen = null; try { localStorage.setItem('sama.camAt', camAt); } catch {} sync(); renderPanel(); render(); return; }
     if (k==='camview'){ camView = b.dataset.v; try { localStorage.setItem('sama.camview', camView); } catch {} sync(); render(); return; }
-    avatar[k] = b.dataset.v; if (['top', 'topColor', 'sleeves', 'pattern', 'patternColor', 'bottom', 'bottomColor', 'fit'].includes(k)) avatar.outfit = null; // picking clothes takes a costume off
+    avatar[k] = b.dataset.v; avatar.style = ''; if (['top', 'topColor', 'sleeves', 'pattern', 'patternColor', 'bottom', 'bottomColor', 'fit'].includes(k)) avatar.outfit = null; // picking clothes takes a costume off
     saveAvatar();
     sync(); retheme();
   };
@@ -8635,6 +8802,12 @@ const SKINS = [
   {name:'Peaks', look:skinOf({topColor:'#6F7C8E', sleeves:'none', pattern:'peaks', patternColor:'#EDE6D6', bottom:'leggings', bottomColor:'#3B3F45', fit:'fitted', mat:'#6F7C8E'})},
   {name:'Mesa', look:skinOf({topColor:'#E8D2AE', sleeves:'none', pattern:'chevrons', patternColor:'#B8522F', bottom:'leggings', bottomColor:'#B5502E', fit:'fitted', mat:'#D9B98A'})},
   {name:'Aurora', look:skinOf({topColor:'#1F5B5E', sleeves:'none', pattern:'aurora', patternColor:'#A07BDC', bottom:'leggings', bottomColor:'#3C2A5C', fit:'fitted', mat:'#2E6E70'})}];
+// Characters: who the figure is (body, skin tone, hair), worn with whatever skin or clothes are on
+const CHAR_KEYS = ['figure', 'skin', 'hair', 'hairColor', 'beard'];
+const CHARACTERS = [
+  {name:'Afro puffs', look:{figure:'woman', skin:'#6E4330', hair:'afro', hairColor:'#2B1D16', beard:'no'}},
+  {name:'Bob', look:{figure:'woman', skin:'#F6D7C3', hair:'bob', hairColor:'#5A3825', beard:'no'}},
+  {name:'Man bun', look:{figure:'man', skin:'#C68B62', hair:'manbun', hairColor:'#2B1D16', beard:'yes'}}];
 // Costumes: an outfit (see OUTFITS) worn over the body and the person's own clothes, which come back when a skin is picked
 const COSTUMES = [
   {name:'Pyjamas', look:{body:'detailed', outfit:'pyjamas', mat:'#9FB4D3'}},
@@ -8652,6 +8825,8 @@ const COSTUMES = [
   {name:'Fox', look:{body:'detailed', outfit:'fox', mat:'#CFC6BC'}},
   {name:'Onesie', look:{body:'detailed', outfit:'onesie', mat:'#3D4B6A'}},
   {name:'Stripes', look:{body:'detailed', outfit:'sailor', mat:'#EDE15A'}}];
+// Line drawing: the hand-drawn stills (see LINE) in place of the drawn figure; the clothes underneath stay as they were
+SKINS.splice(1, 0, {name:'Line drawing', look:{style:'line'}});
 // The generator: a random base hue, then a palette that holds together (an analogous, complementary or single-hue scheme),
 // muted the way the brand is: a mid-tone top, a print that contrasts with it, dark trousers and a mat that answers the top.
 function genSkin(rnd = Math.random){
@@ -8666,7 +8841,7 @@ function genSkin(rnd = Math.random){
 }
 (function(){
   const grid = $('skinGrid'), fresh = $('skinNew'); if (!grid) return;
-  const wearing = look => (look.outfit ? ['outfit'] : SKIN_KEYS).every(k => String(look[k] ?? '') === String(avatar[k] ?? (k === 'body' ? 'simple' : '')));
+  const wearing = look => look.style === 'line' ? lineOn() : !lineOn() && (look.outfit ? ['outfit'] : look.hair ? CHAR_KEYS : SKIN_KEYS).every(k => String(look[k] ?? '') === String(avatar[k] ?? (k === 'body' ? 'simple' : '')));
   const card = (look, name) => {
     const b = document.createElement('button'), c = document.createElement('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1), W = 92, H = 120;
     b.type = 'button'; b.className = 'skin'; b._look = look; c.width = W*dpr; c.height = H*dpr; b.appendChild(c);
@@ -8675,21 +8850,23 @@ function genSkin(rnd = Math.random){
   };
   const paint = b => drawSkin(b.querySelector('canvas'), b._look);
   const drawSkin = (c, look, pose) => { // the figure (in Mountain, as the skin sheets draw it) on its mat, cropped to the body
+    if (look.style === 'line'){ const g = c.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = LINE.PAPER; g.fillRect(0, 0, c.width, c.height); lineDraw(g, c.width, c.height, {id:'mountain'}, {scene:false, fit:'figure'}); return; }
     const av = {...avatar, ...look}, g = c.getContext('2d'), R = refFor(pose || (av.figure === 'man' ? 'x_skin_m' : 'x_skin'), false, 0);
     const top = R.head.y - flatHeadR(R)*1.9, bot = R.floor + R.S*.07, k = c.height/(bot - top), cx = R.S/2 - figShift(R);
     g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = css('--figbg'); g.fillRect(0, 0, c.width, c.height);
     g.setTransform(k, 0, 0, k, c.width/2 - cx*k, -top*k); g.translate(-figShift(R), 0); drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av);
   };
   const mark = () => { for (const b of document.querySelectorAll('.skins .skin')) b.setAttribute('aria-pressed', String(wearing(b._look))); };
-  const wear = look => { Object.assign(avatar, look); saveAvatar(); try { window.__syncLook && window.__syncLook(); } catch {} retheme(); };
+  const wear = look => { Object.assign(avatar, {style:''}, look); saveAvatar(); try { window.__syncLook && window.__syncLook(); } catch {} retheme(); };
   const all = () => [...document.querySelectorAll('.skins .skin')];
   const repaint = () => { for (const b of all()) paint(b); mark(); };
   for (const s of SKINS) grid.appendChild(card(s.look, s.name));
   const cgrid = $('costumeGrid'); for (const s of COSTUMES) cgrid.appendChild(card(s.look, s.name));
+  const hgrid = $('charGrid'); for (const s of CHARACTERS) hgrid.appendChild(card(s.look, s.name));
   $('skinGen').addEventListener('click', () => { fresh.replaceChildren(...Array.from({length:4}, () => card(genSkin()))); fresh.hidden = false; for (const b of fresh.children) paint(b); mark(); });
-  for (const h of [grid, fresh, cgrid]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear(b._look); });
+  for (const h of [grid, fresh, cgrid, hgrid]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear(b._look); });
   window.__shapes = {woman: SHAPE_WOMAN, man: SHAPE_MAN}; window.__torso = (R, fig, kind) => { SHAPE = fig === 'man' ? SHAPE_MAN : SHAPE_WOMAN; return {pts: torsoOutline(R, SIL_BASE, kind), fr: torsoFrame3(R, SIL_BASE)}; }; window.__setSkinArms = (la, ra, id = 'x_skin') => { MOTION_SPECS[id].la = la; MOTION_SPECS[id].ra = ra; for (const k of Object.keys(P3)) if (k.startsWith('x_skin')) delete P3[k]; }; window.__skins = {repaint, genSkin, SKINS, drawSkin, drawFig(g, R, look, noMat){ g.save(); g.translate(-figShift(R), 0); const av = {...avatar, ...look}; if (!noMat) drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av); g.restore(); }};
-  repaint(); new MutationObserver(repaint).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+  LINE.subs.add(repaint); repaint(); new MutationObserver(repaint).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
   for (const h of [$('avatarBox'), $('lookCard')]) h.addEventListener('click', () => setTimeout(() => { repaint(); }, 0)); // a hand-picked colour or skin tone shows on every card
 })();
 const themeBtns = [...document.querySelectorAll('.theme button')];
