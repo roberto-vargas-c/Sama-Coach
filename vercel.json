@@ -160,5 +160,5 @@
       "permanent": false
     }
   ],
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude)android' ':(exclude)tools' ':(exclude)voice/*.mp3' ':(exclude)*-weights.wasm' ':(exclude)README.md' ':(exclude)firestore.rules' ':(exclude).github'"
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude)android' ':(exclude)tools' ':(exclude)voice/*.mp3' ':(exclude)*-weights.wasm' ':(exclude)README.md' ':(exclude)firestore.rules' ':(exclude).github' ':(exclude)prototypes'"
 }
