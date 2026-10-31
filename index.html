@@ -1282,9 +1282,6 @@ Savasana, 3 min"></textarea>
             <div class="skgrid" id="skinGrid"></div>
             <div class="skgrid" id="skinNew" hidden></div>
             <p class="hint">A skin changes your whole figure: a more detailed body with fingers and toes, the clothes and the mat. Your build and height stay yours.</p>
-            <div class="skhead skcost"><h3>Characters</h3></div>
-            <div class="skgrid" id="charGrid"></div>
-            <p class="hint">A character changes who the figure is: body, skin tone and hair. Your clothes stay as they are.</p>
             <div class="skhead skcost"><h3>Costumes</h3></div>
             <div class="skgrid" id="costumeGrid"></div>
             <p class="hint">A costume goes on over your body and your own clothes, for fun: pick any skin to take it off.</p>
@@ -1292,7 +1289,7 @@ Savasana, 3 min"></textarea>
           <div class="alook">
           <div class="aonly alook-rows">
             <div class="arow"><span>Skin</span><div class="swatches" data-k="skin"></div></div>
-            <div class="arow"><span>Hair</span><div class="segs" data-k="hair"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="bun">Bun</button><button type="button" class="seg" data-v="ponytail">Ponytail</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="curly">Curly</button><button type="button" class="seg" data-v="afro">Afro puffs</button><button type="button" class="seg" data-v="bob">Bob</button><button type="button" class="seg" data-v="manbun">Man bun</button><button type="button" class="seg" data-v="none">None</button></div></div>
+            <div class="arow"><span>Hair</span><div class="segs" data-k="hair"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="bun">Bun</button><button type="button" class="seg" data-v="ponytail">Ponytail</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="curly">Curly</button><button type="button" class="seg" data-v="none">None</button></div></div>
             <div class="arow"><span>Hair colour</span><div class="swatches" data-k="hairColor"></div></div>
             <div class="arow"><span>Build</span><div class="segs" data-k="build"><button type="button" class="seg" data-v="slim">Slim</button><button type="button" class="seg" data-v="regular">Regular</button><button type="button" class="seg" data-v="soft">Soft</button><button type="button" class="seg" data-v="strong">Strong</button></div></div>
             <div class="arow"><span>Body</span><div class="segs" data-k="figure"><button type="button" class="seg" data-v="woman">Woman</button><button type="button" class="seg" data-v="man">Man</button></div></div>
@@ -2458,8 +2455,8 @@ const REF_SPECS = {
  mountain:   {face:[-90,0], torso:[0,90], la:[[0,-85],[0,-87]], ra:[[180,-85],[180,-87]], ll:[[0,-90],[0,-90],[-90,0]], rl:[[0,-90],[0,-90],[-90,0]]},
  warrior1:   {face:[180,0], torso:[0,90], la:[[180,88],[180,88]], ra:[[180,88],[180,88]], rl:[[180,0],[180,-90],[180,0]], ll:[[0,-45],[0,-45],[-135,0]]},
  warrior2:   {face:[-90,0], torso:[0,90], la:[[0,0],[0,0]], ra:[[180,0],[180,0]], rl:[[180,-12],[180,-90],[180,0]], ll:[[0,-36],[0,-36],[-100,0]]},
- triangle:   {face:[-90,0], pelvis:[0,65], torso:[180,10], la:[[0,90],[0,90]], ra:[[0,-90],[0,-90]], rl:[[180,-46],[180,-46],[180,0]], ll:[[0,-68],[0,-68],[-105,0]]},
- sideangle:  {face:[-90,0], pelvis:[0,30], torso:[180,36], la:[[180,36],[180,36]], ra:[[0,-90],[0,-90]], rl:[[180,-12],[180,-90],[180,0]], ll:[[0,-30],[0,-30],[-100,0]]},
+ triangle:   {face:[-90,0], torso:[180,10], la:[[0,90],[0,90]], ra:[[0,-90],[0,-90]], rl:[[180,-60],[180,-60],[180,0]], ll:[[0,-60],[0,-60],[-105,0]]},
+ sideangle:  {face:[-90,0], torso:[180,36], la:[[180,36],[180,36]], ra:[[0,-90],[0,-90]], rl:[[180,-12],[180,-90],[180,0]], ll:[[0,-36],[0,-36],[-100,0]]},
  highlunge:  {face:[180,0], torso:[0,90], la:[[180,88],[180,88]], ra:[[180,88],[180,88]], rl:[[180,0],[180,-90],[180,0]], ll:[[0,-38],[0,-38],[180,-70]]},
  lowlunge:   {face:[180,0], torso:[0,90], la:[[0,72],[0,74]], ra:[[0,72],[0,74]], rl:[[0,-68],[0,0],[0,0]], ll:[[180,5],[180,-90],[180,0]]},
  chair:      {face:[180,0], torso:[180,60], la:[[180,60],[180,60]], ra:[[180,60],[180,60]], ll:[[180,-35],[0,-75],[180,0]], rl:[[180,-35],[0,-75],[180,0]]},
@@ -2526,7 +2523,7 @@ const REF_SPECS = {
  splits: {face:[180, 0], torso:[0, 88], la:[[0, 88], [0, 88]], ra:[[0, 88], [0, 88]], ll:[[180, -8], [180, -8], [180, 70]], rl:[[0, -8], [0, -8], [0, 0]]},
  figurefour: {face:[180, 0], torso:[180, 60], head:[180, 65], la:[[0, -60], [180, 30]], ra:[[0, -60], [180, 30]], ll:[[180, 0], [90, -45], [180, 0]], rl:[[180, -45], [0, -70], [180, 0]]},
  revhalfmoon: {face:[-90, 0], lat:[-90, 0], torso:[180, -46], head:[180, -20], la:[[0, -90], [0, -90], [180, 0]], ra:[[0, 90], [0, 90]], ll:[[0, 2], [0, 2], [0, -90]], rl:[[0, -90], [0, -90], [180, 0]]},
- boundsideangle: {face:[-90, 0], pelvis:[0, 45], torso:[180, 30], la:[[90, -60], [180, -70]], ra:[[-90, -70], [90, -10]], ll:[[0, -36], [0, -36], [-100, 0]], rl:[[180, -12], [180, -90], [180, 0]]},
+ boundsideangle: {face:[-90, 0], torso:[180, 30], la:[[90, -60], [180, -70]], ra:[[-90, -70], [90, -10]], ll:[[0, -36], [0, -36], [-100, 0]], rl:[[180, -12], [180, -90], [180, 0]]},
  birdofparadise: {face:[-90, 0], torso:[0, 88], la:[[-100, -30], [-160, -45]], ra:[[-80, -60], [-20, -15]], ll:[[-20, 60], [-20, 60], [-10, 80]], rl:[[0, -90], [0, -90], [-90, 0]]},
  warrior3hands: {face:[180, -60], torso:[180, 0], head:[180, 0], la:[[0, 20], [0, 20]], ra:[[0, 20], [0, 20]], ll:[[0, 0], [0, 0], [0, -90]], rl:[[0, -90], [0, -90], [180, 0]]},
  kneesideplank: {face:[-90, 0], lat:[0, 55], pelvis:[0, 55], hipW:0.04, torso:[180, 25], head:[180, 25], la:[[0, 90], [0, 90]], ra:[[0, -90], [0, -90], [180, 0]], ll:[[0, -20], [0, -20], [-90, 0]], rl:[[0, -60], [180, 0], [180, 0]]},
@@ -3448,7 +3445,7 @@ function pelvisFrame(R, SIL){ // the torso frame, but upright on the hips: when 
 }
 function pelvisOutline(R, SIL, under = 1){ // waist (where the shirt ends) curving out over the hips and in to the crotch, upright on the hips
   const {F, H, hh, rH} = pelvisFrame(R, SIL), gi = SHAPE.girth || 1, W = (hh*SHAPE.hipJ + rH*SHAPE.waist)*gi, Hp = (hh*SHAPE.hipJ + rH*SHAPE.hip)*gi, top = rH*1.05*SHAPE.rise;
-  const side = [[Math.min(W, Hp*.96)*.98*under, top], [Hp*.99*under, top*.45], [Hp, 0], [Hp*.93, -rH*.7], [Hp*.55, -rH*1.15]];
+  const side = [[W*.98*under, top], [Hp*.99*under, top*.45], [Hp, 0], [Hp*.93, -rH*.7], [Hp*.55, -rH*1.15]];
   return [...side.map(([x, y]) => F(-x, y)), F(0, -rH*1.25), ...side.slice().reverse().map(([x, y]) => F(x, y))].reverse();
 }
 function silTorsoShaped(g, R, SIL = SIL_BASE, tank = false){ g.beginPath(); smoothClosed(g, torsoOutline(R, SIL, tank ? 'tank' : 'shirt')); }
@@ -3669,19 +3666,8 @@ function drawFlatBackHair(g, R, av){
     taperPath(g, {x: ax, y: ay}, {x: ax + sx*r*.1, y: ay + r*(av.hair === 'long' ? 1.7 : 1.4)}, r*(av.hair === 'long' ? .4 : .28), r*.22); g.fill();
   }
 }
-function drawHairBehind(g, r, sgn, av){ // in the head's frame, before the head is filled
-  g.fillStyle = av.hairColor;
-  if (av.hair === 'afro'){ const puff = (x, y, rr) => { g.beginPath(); g.arc(x, y, rr, 0, Math.PI*2); g.fill(); for (let i = 0; i < 11; i++){ const a = i/11*Math.PI*2; g.beginPath(); g.arc(x + Math.cos(a)*rr*.9, y + Math.sin(a)*rr*.9, rr*.24, 0, Math.PI*2); g.fill(); } }; // a soft, bumpy round
-    if (sgn) puff(-sgn*r*.32, -r*1.08, r*.5); else for (const sx of [-1, 1]) puff(sx*r*.66, -r*.9, r*.44); } // two puffs high on the head; in profile they line up as one
-  if (av.hair === 'manbun'){ const x = sgn ? -sgn*r*.58 : 0, y = sgn ? -r*.92 : -r*1.0; g.beginPath(); g.ellipse(x, y, r*.27, r*.24, 0, 0, Math.PI*2); g.fill(); // a small knot at the crown, a band round its base
-    g.strokeStyle = shade(av.hairColor, .7); g.lineWidth = r*.06; g.beginPath(); if (sgn) g.arc(x, y, r*.2, sgn > 0 ? -.4 : Math.PI - 1.2, sgn > 0 ? 1.2 : Math.PI + .4); else g.arc(x, y + r*.32, r*.24, Math.PI*1.25, Math.PI*1.75); g.stroke(); }
-  if (av.hair === 'bob'){ g.beginPath(); // the hair falls straight from the crown and turns under at the jaw
-    if (sgn){ const b = -sgn; g.moveTo(sgn*r*.3, -r*.9); g.quadraticCurveTo(b*r*.6, -r*1.25, b*r*1.02, -r*.5); g.quadraticCurveTo(b*r*1.14, r*.2, b*r*.98, r*.62); g.quadraticCurveTo(b*r*.5, r*.74, sgn*r*.02, r*.66); g.lineTo(sgn*r*.1, -r*.2); }
-    else { g.moveTo(-r*1.0, r*.66); g.quadraticCurveTo(-r*1.12, 0, -r*.98, -r*.6); g.quadraticCurveTo(-r*.7, -r*1.14, 0, -r*1.12); g.quadraticCurveTo(r*.7, -r*1.14, r*.98, -r*.6); g.quadraticCurveTo(r*1.12, 0, r*1.0, r*.66); g.quadraticCurveTo(0, r*.74, -r*1.0, r*.66); }
-    g.closePath(); g.fill(); }
-}
 function drawEars(g, R, av){ // ears beside the head, seen from the front or back (in profile the hair covers them)
-  const F = faceFrame(R), r = flatHeadR(R); if (Math.abs(F.lx) > .35 || R.blob > 0 || av.hair === 'bob') return;
+  const F = faceFrame(R), r = flatHeadR(R); if (Math.abs(F.lx) > .35 || R.blob > 0) return;
   g.save(); g.translate(F.h.x, F.h.y); g.rotate(F.rot); g.fillStyle = shade(av.skin, .93);
   for (const sx of [-1, 1]){ g.beginPath(); g.ellipse(sx*r*.79*SHAPE.ear, r*.1, r*.12, r*.2, sx*.15, 0, Math.PI*2); g.fill(); }
   g.restore();
@@ -3700,24 +3686,20 @@ function drawFlatHead(g, R, av){
   g.save(); g.translate(h.x, h.y); g.rotate(F.rot);
   const fade = R.blob > 0 ? Math.max(0, 1 - R.blob/.3) : 1, a0 = g.globalAlpha; g.globalAlpha = a0*fade;
   if (av.hair === 'bun' && fade > 0){ g.fillStyle = av.hairColor; g.beginPath(); g.arc(-sgn*r*.35, -r*1.05, r*.42, 0, Math.PI*2); g.fill(); }
-  if (fade > 0) drawHairBehind(g, r, sgn, av); // afro puffs, a man bun, the fall of a bob: behind the head
   const shapeHead = k => { g.beginPath(); if (av.body === 'detailed') smoothClosed(g, headOutline(r*k, sgn)); else g.ellipse(0, 0, r*.92*k, r*k, 0, 0, Math.PI*2); };
   g.globalAlpha = a0; g.fillStyle = av.skin; shapeHead(1); g.fill();
   if (!(R.blob > .3)){ g.save(); g.clip(); g.rotate(-F.rot); const dt = av.body === 'detailed'; g.fillStyle = dt ? 'rgba(20, 16, 12, .07)' : 'rgba(20, 16, 12, .11)'; g.beginPath(); g.arc(0, 0, r*1.2, 0, Math.PI*2); g.arc(dt ? -r*.1 : -r*.16, dt ? -r*.06 : -r*.18, r*(dt ? 1.06 : 1.02), 0, Math.PI*2, true); g.fill('evenodd'); g.restore(); }
   g.globalAlpha = a0*fade;
   if (av.hair !== 'none' && fade > 0){ // the hair fades out of the blob (no dark half-moon on it)
-    g.save(); shapeHead(av.body === 'detailed' && !sgn && av.hair !== 'bob' ? 1.0 : 1.06); g.clip(); g.fillStyle = av.hairColor; // (the detailed face-on hair lies on the head: a rim past it ends in points at the temples)
-    const yF = sgn ? -r*.45 : -r*.2, yB = sgn ? r*.35 : -r*.2 + away*r*(av.hair === 'bob' ? 1.2 : .82) + nod*r*.3; // (a bob covers the nape from behind)
-    g.beginPath(); if (av.hair === 'bob' && away < .5){ // a bob: a straight fringe across the brow, the sides down past the cheeks to the jaw
-      if (!sgn){ g.moveTo(-r*1.3, r*.62); g.lineTo(-r*.7, r*.62); g.lineTo(-r*.66, -r*.14); g.quadraticCurveTo(-r*.6, -r*.32, -r*.3, -r*.33); g.lineTo(r*.3, -r*.33); g.quadraticCurveTo(r*.6, -r*.32, r*.66, -r*.14); g.lineTo(r*.7, r*.62); g.lineTo(r*1.3, r*.62); g.lineTo(r*1.3, -r*1.3); g.lineTo(-r*1.3, -r*1.3); }
-      else { g.moveTo(sgn*r*1.3, -r*.3); g.lineTo(sgn*r*.5, -r*.3); g.quadraticCurveTo(sgn*r*.1, -r*.28, sgn*r*.02, r*.08); g.quadraticCurveTo(-sgn*r*.02, r*.5, -sgn*r*.1, r*.64); g.lineTo(-sgn*r*1.3, r*.64); g.lineTo(-sgn*r*1.3, -r*1.3); g.lineTo(sgn*r*1.3, -r*1.3); } }
-    else if (!sgn && av.body === 'detailed' && away < .5){ // a hairline: parted over the forehead, down the temples to the ears
+    g.save(); shapeHead(av.body === 'detailed' && !sgn ? 1.0 : 1.06); g.clip(); g.fillStyle = av.hairColor; // (the detailed face-on hair lies on the head: a rim past it ends in points at the temples)
+    const yF = sgn ? -r*.45 : -r*.2, yB = sgn ? r*.35 : -r*.2 + away*r*.82 + nod*r*.3;
+    g.beginPath(); if (!sgn && av.body === 'detailed' && away < .5){ // a hairline: parted over the forehead, down the temples to the ears
       g.moveTo(-r*1.3, r*.15); g.lineTo(-r*.82, r*.15); g.quadraticCurveTo(-r*.78, -r*.38, -r*.3, -r*.5); g.quadraticCurveTo(0, -r*.56, r*.3, -r*.5); g.quadraticCurveTo(r*.78, -r*.38, r*.82, r*.15); g.lineTo(r*1.3, r*.15); g.lineTo(r*1.3, -r*1.3); g.lineTo(-r*1.3, -r*1.3); }
     else if (sgn && av.body === 'detailed'){ // the same haircut from the side: the hairline over the brow, down the temple, round the top of the ear and back at the same height as the hair over the ears from the front
       g.moveTo(sgn*r*1.3, -r*.56); g.lineTo(sgn*r*.72, -r*.54); g.quadraticCurveTo(sgn*r*.34, -r*.48, sgn*r*.22, -r*.06); g.lineTo(sgn*r*.12, -r*.06); g.quadraticCurveTo(-sgn*r*.06, -r*.3, -sgn*r*.24, -r*.04);
       g.quadraticCurveTo(-sgn*r*.42, r*.12, -sgn*r*.66, r*.14); g.lineTo(-sgn*r*1.3, r*.2); g.lineTo(-sgn*r*1.3, -r*1.3); g.lineTo(sgn*r*1.3, -r*1.3); }
     else if (sgn){ g.moveTo(sgn*r*1.3, yF); g.lineTo(-sgn*r*1.3, yB); g.lineTo(-sgn*r*1.3, -r*1.3); g.lineTo(sgn*r*1.3, -r*1.3); } else g.rect(-r*1.3, -r*1.3, r*2.6, r*1.3 + yB); g.closePath(); g.fill();
-    if (sgn && av.body === 'detailed' && av.hair !== 'bob'){ g.fillStyle = shade(av.skin, .93); g.beginPath(); g.ellipse(-sgn*r*.07, r*.1, r*.13, r*.19, sgn*.15, 0, Math.PI*2); g.fill(); g.fillStyle = av.hairColor; } // the ear, in front of the hair
+    if (sgn && av.body === 'detailed'){ g.fillStyle = shade(av.skin, .93); g.beginPath(); g.ellipse(-sgn*r*.07, r*.1, r*.13, r*.19, sgn*.15, 0, Math.PI*2); g.fill(); g.fillStyle = av.hairColor; } // the ear, in front of the hair
     if (av.hair === 'curly'){ for (let i = 0; i < 9; i++){ const a = -Math.PI*(.05 + .9*i/8); g.beginPath(); g.arc(Math.cos(a)*r, Math.sin(a)*r + r*.05, r*.28, 0, Math.PI*2); g.fill(); } }
     g.restore();
   }
@@ -3933,7 +3915,7 @@ function detailParts(parts, R, sil, av){
   { // the waistband: a deeper band across the top of the trousers, inside the pelvis outline so it never sticks out past the waist
     const {F, hh, rH} = pelvisFrame(R, sil), W = (hh*SHAPE.hipJ + rH*SHAPE.waist)*.97*(SHAPE.girth || 1), Hp = (hh*SHAPE.hipJ + rH*SHAPE.hip)*.98*(SHAPE.girth || 1), top = rH*1.05*SHAPE.rise, yb = top - rH*.4, xb = W + (Hp - W)*Math.min(1, (top - yb)/(top*.55))*.8;
     const band = g => { g.beginPath(); for (const q of [F(-W, top), F(W, top), F(xb, yb), F(-xb, yb)]) g.lineTo(q.x, q.y); g.closePath(); };
-    band.part = 'band'; band.within = () => pelvisOutline(R, sil); if (av.sleeves !== 'none') out.push(band); } // (a tank top hangs over the waistband; the band never pokes out past the hips' round outline)
+    band.part = 'band'; if (av.sleeves !== 'none') out.push(band); } // (a tank top hangs over the waistband)
   const lines = g => g.beginPath(); lines.part = 'seatlines'; out.push(lines); // nothing to fill: a slot in the drawing order for the seat's lines
   return out.filter(Boolean);
 }
@@ -4163,7 +4145,7 @@ function outfitOver(g, p, R, sil, av, O, dim = 1){ // prints over the body's own
   if (!O.bones) return; g.save(); p(g); g.clip(); outfitSkeleton(g, p, R, sil); g.restore();
 }
 function drawFlatFigure(g, R, av){
-  const O = av.outfit && OUTFITS[av.outfit]; if (O){ av = {...av, body:'detailed', ...O.base, ...O.wear(av)}; if ((O.hat || av.hat) && ['bun', 'afro', 'manbun'].includes(av.hair) && (O.hat || av.hat) !== 'flower') av.hair = 'short'; } // an outfit dresses the body: its clothes over the person's own
+  const O = av.outfit && OUTFITS[av.outfit]; if (O){ av = {...av, body:'detailed', ...O.base, ...O.wear(av)}; if ((O.hat || av.hat) && av.hair === 'bun' && (O.hat || av.hat) !== 'flower') av.hair = 'short'; } // an outfit dresses the body: its clothes over the person's own
   const sil = silFor(av); for (const k of ['thigh','shin','upper','fore']) sil[k] = sil[k].map(v => v*1.22); sil.hand *= 1.15; sil.foot *= 1.1; sil.neck *= 1.3;
   if (O && O.bulk) for (const k of ['upper', 'fore']) sil[k] = sil[k].map(v => v*O.bulk); // a padded jacket: fuller sleeves
   // trouser fit: fuller legs, the feet untouched (shorts only widen the thigh)
@@ -4214,12 +4196,6 @@ function drawFlatFigure(g, R, av){
   const armUp = nearSide && along > .9 && (Kw[nearSide === 'l' ? 9 : 10].y < Kw[nearSide === 'l' ? 5 : 6].y - R.scale*.15 || reachPast); // reaching past the ear
   const armFront = !(R.blob > 0) && !armUp && hz != null && nearSide && [nearSide === 'l' ? 7 : 8, nearSide === 'l' ? 9 : 10].some(i => Kw[i].w && Kw[i].w[2] < hz - .04);
   const order0 = order;
-  const tuckLeg = (() => { if (R.blob > 0) return null; const K = R.kp, hx = (K[11].x + K[12].x)/2, hy = (K[11].y + K[12].y)/2, tx = (K[5].x + K[6].x)/2 - hx, ty = (K[5].y + K[6].y)/2 - hy, tl = Math.hypot(tx, ty) || 1;
-    if (Math.abs(ty)/tl > .5) return null; // only a torso tipped sideways, near level (triangle, half moon)
-    const straight = (h, k, a) => { const ux = K[h].x - K[k].x, uy = K[h].y - K[k].y, wx = K[a].x - K[k].x, wy = K[a].y - K[k].y; return (ux*wx + uy*wy)/((Math.hypot(ux, uy)*Math.hypot(wx, wy)) || 1) < -.85; };
-    for (const [sd, h, k, a] of [['l', 11, 13, 15], ['r', 12, 14, 16]]){ const dx = K[k].x - K[h].x, dy = K[k].y - K[h].y; if ((dx*tx + dy*ty)/((Math.hypot(dx, dy) || 1)*tl) > .2 && dy > 0 && straight(h, k, a)) return sd; }
-    return null; })(); // the straight leg reaching out under the tipped torso stands behind it: the shirt hangs over its thigh, as in a photo of triangle
-  if (tuckLeg) for (const p of parts) if (p.side === tuckLeg && SUB[p.part] != null && ['thigh', 'shin', 'foot'].includes(p.part) && p.z == null && !p.zf) p.z = 1.9 + SUB[p.part]*.1;
   // the arm passes the side of the head, never across the face: keep a window around the face clear of it
   const faceHole = null; // the nearer arm simply lies over the head, as it does from the side
   const orderF = p => p.lifted ? (armUp && !(R.blob > 0) && p.side === nearSide ? 9.5 : 3.72) : (armFront || (armUp && !(R.blob > 0))) && p.side === nearSide && (p.part === 'upper' || p.part === 'fore' || p.part === 'hand') ? 9.5 : order0(p);
@@ -4243,17 +4219,12 @@ function drawFlatFigure(g, R, av){
   let headDone = false;
   if (detailed){ const tf = torsoFrame3(R, sil), pf = pelvisFrame(R, sil), a = tf.F(0, 0), t1 = tf.F(0, 1), p1 = pf.F(0, 1), dot = (t1.x - a.x)*(p1.x - a.x) + (t1.y - a.y)*(p1.y - a.y);
     if (dot < .985) for (const p of parts) if (p.part === 'torso' && !p.cut){ const X = pf.rH*8, y0 = -pf.rH*.5, ax = pf.F(1, 0), sc = tf.F(0, tf.H), sx = Math.sign((sc.x - a.x)*(ax.x - a.x) + (sc.y - a.y)*(ax.y - a.y)) || 1, Q = (u, y) => pf.F(sx*u, y), u0 = pf.rH*.2, uh = pf.rH*1.6;
-      p.cut = [Q(-X, X), Q(u0, X), Q(u0, y0), Q(uh, y0), Q(uh, -X), Q(-X, -X)]; }
-    { const top = pf.rH*1.05*(SHAPE.rise || 1), X = pf.rH*2.2, o = pf.F(0, 0), u1 = pf.F(0, 1), ul = Math.hypot(u1.x - o.x, u1.y - o.y) || 1, K = R.kp, Q = (x, y) => ({...pf.F(x, y), k: 1});
-      if (Math.hypot(K[11].x - K[12].x, K[11].y - K[12].y) > pf.rH*1.4) for (const p of parts) if (p.part === 'thigh' && p.ks && !p.cut && p.z == null){ /* hips seen square on, not in profile */ const h = K[p.ks[0]], k = K[p.ks[1]], dl = Math.hypot(k.x - h.x, k.y - h.y) || 1;
-        if (((k.x - h.x)*(u1.x - o.x) + (k.y - h.y)*(u1.y - o.y))/(dl*ul) < .15) p.cut = [Q(-X, top), Q(X, top), Q(X, top + pf.rH*1.2), Q(-X, top + pf.rH*1.2)]; } } } // a thigh pointing away from the torso never pokes its round top past the waist into the shirt (half moon's legs)
-  // (above:) a torso tipped sideways off upright hips ends at the middle of the hips: nothing of it past them, nor hanging into the gap between the legs
+      p.cut = [Q(-X, X), Q(u0, X), Q(u0, y0), Q(uh, y0), Q(uh, -X), Q(-X, -X)]; } } // a torso tipped sideways off upright hips ends at the middle of the hips: nothing of it past them, nor hanging into the gap between the legs
   for (const p of [...parts].sort((a,b) => orderF(a)-orderF(b))){
     if (p.part === 'head'){ headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); if (O && (O.hat || av.hat)) outfitHat(g, R, av, O.hat || av.hat); }); headDone = true; continue; }
     const isFar = !!(p.side && p.side === far) && !p.lifted; // (a lifted arm shares its outline with the shoulder: one colour)
     if (O && outfitDraw(g, p, R, sil, av, O)) continue;
     if (p.cut){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); smoothClosed(g, p.cut); g.clip('evenodd'); }
-    if (p.within){ g.save(); g.beginPath(); smoothClosed(g, p.within()); g.clip(); }
     if (p.hole){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.arc(p.hole.x, p.hole.y, p.hole.r, 0, Math.PI*2, true); g.clip(); }
     const overHead = faceHole && orderF(p) === 9.5; if (overHead){ g.save(); g.beginPath(); g.rect(-2000, -2000, 5000, 5000); g.moveTo(...faceHole[0]); for (const q of faceHole.slice(1)) g.lineTo(...q); g.closePath(); g.clip('evenodd'); }
     const unseen = R.live && p.ks && p.ks.some(i => R.kp[i].s < VIS); if (unseen) g.globalAlpha *= .35; // a limb the camera did not find is only a hint
@@ -4293,7 +4264,6 @@ function drawFlatFigure(g, R, av){
     if (unseen) g.globalAlpha /= .35;
     if (overHead) g.restore();
     if (p.hole) g.restore();
-    if (p.within) g.restore();
     if (p.cut) g.restore();
   }
   if (!headDone) headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); if (O && (O.hat || av.hat)) outfitHat(g, R, av, O.hat || av.hat); });
@@ -8665,12 +8635,6 @@ const SKINS = [
   {name:'Peaks', look:skinOf({topColor:'#6F7C8E', sleeves:'none', pattern:'peaks', patternColor:'#EDE6D6', bottom:'leggings', bottomColor:'#3B3F45', fit:'fitted', mat:'#6F7C8E'})},
   {name:'Mesa', look:skinOf({topColor:'#E8D2AE', sleeves:'none', pattern:'chevrons', patternColor:'#B8522F', bottom:'leggings', bottomColor:'#B5502E', fit:'fitted', mat:'#D9B98A'})},
   {name:'Aurora', look:skinOf({topColor:'#1F5B5E', sleeves:'none', pattern:'aurora', patternColor:'#A07BDC', bottom:'leggings', bottomColor:'#3C2A5C', fit:'fitted', mat:'#2E6E70'})}];
-// Characters: who the figure is (body, skin tone, hair), worn with whatever skin or clothes are on
-const CHAR_KEYS = ['figure', 'skin', 'hair', 'hairColor', 'beard'];
-const CHARACTERS = [
-  {name:'Afro puffs', look:{figure:'woman', skin:'#6E4330', hair:'afro', hairColor:'#2B1D16', beard:'no'}},
-  {name:'Bob', look:{figure:'woman', skin:'#F6D7C3', hair:'bob', hairColor:'#5A3825', beard:'no'}},
-  {name:'Man bun', look:{figure:'man', skin:'#C68B62', hair:'manbun', hairColor:'#2B1D16', beard:'yes'}}];
 // Costumes: an outfit (see OUTFITS) worn over the body and the person's own clothes, which come back when a skin is picked
 const COSTUMES = [
   {name:'Pyjamas', look:{body:'detailed', outfit:'pyjamas', mat:'#9FB4D3'}},
@@ -8702,7 +8666,7 @@ function genSkin(rnd = Math.random){
 }
 (function(){
   const grid = $('skinGrid'), fresh = $('skinNew'); if (!grid) return;
-  const wearing = look => (look.outfit ? ['outfit'] : look.hair ? CHAR_KEYS : SKIN_KEYS).every(k => String(look[k] ?? '') === String(avatar[k] ?? (k === 'body' ? 'simple' : '')));
+  const wearing = look => (look.outfit ? ['outfit'] : SKIN_KEYS).every(k => String(look[k] ?? '') === String(avatar[k] ?? (k === 'body' ? 'simple' : '')));
   const card = (look, name) => {
     const b = document.createElement('button'), c = document.createElement('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1), W = 92, H = 120;
     b.type = 'button'; b.className = 'skin'; b._look = look; c.width = W*dpr; c.height = H*dpr; b.appendChild(c);
@@ -8722,9 +8686,8 @@ function genSkin(rnd = Math.random){
   const repaint = () => { for (const b of all()) paint(b); mark(); };
   for (const s of SKINS) grid.appendChild(card(s.look, s.name));
   const cgrid = $('costumeGrid'); for (const s of COSTUMES) cgrid.appendChild(card(s.look, s.name));
-  const hgrid = $('charGrid'); for (const s of CHARACTERS) hgrid.appendChild(card(s.look, s.name));
   $('skinGen').addEventListener('click', () => { fresh.replaceChildren(...Array.from({length:4}, () => card(genSkin()))); fresh.hidden = false; for (const b of fresh.children) paint(b); mark(); });
-  for (const h of [grid, fresh, cgrid, hgrid]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear(b._look); });
+  for (const h of [grid, fresh, cgrid]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear(b._look); });
   window.__shapes = {woman: SHAPE_WOMAN, man: SHAPE_MAN}; window.__torso = (R, fig, kind) => { SHAPE = fig === 'man' ? SHAPE_MAN : SHAPE_WOMAN; return {pts: torsoOutline(R, SIL_BASE, kind), fr: torsoFrame3(R, SIL_BASE)}; }; window.__setSkinArms = (la, ra, id = 'x_skin') => { MOTION_SPECS[id].la = la; MOTION_SPECS[id].ra = ra; for (const k of Object.keys(P3)) if (k.startsWith('x_skin')) delete P3[k]; }; window.__skins = {repaint, genSkin, SKINS, drawSkin, drawFig(g, R, look, noMat){ g.save(); g.translate(-figShift(R), 0); const av = {...avatar, ...look}; if (!noMat) drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av); g.restore(); }};
   repaint(); new MutationObserver(repaint).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
   for (const h of [$('avatarBox'), $('lookCard')]) h.addEventListener('click', () => setTimeout(() => { repaint(); }, 0)); // a hand-picked colour or skin tone shows on every card
