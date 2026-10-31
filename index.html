@@ -270,6 +270,22 @@ body.practice .stage.sample #cvBg{display:block} /* full screen: the scene carri
 .skin canvas{width:100%;aspect-ratio:92/120;border-radius:10px;display:block}
 .skin[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 #skinNew .skin{border-style:dashed}
+.skdrop{position:relative}
+.skcur{display:flex;align-items:center;gap:12px;width:100%;padding:6px 14px 6px 6px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.skcur:hover,.skcur[aria-expanded="true"]{border-color:var(--accent)}
+.skdrop .skcur canvas{width:46px;height:auto;aspect-ratio:92/120;border-radius:8px;display:block;flex:none}
+.skcurname{flex:1;min-width:0;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.skcur::after{content:"";width:8px;height:8px;margin-right:2px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-2px) rotate(45deg);transition:transform .2s;flex:none}
+.skcur[aria-expanded="true"]::after{transform:translateY(2px) rotate(-135deg)}
+.skmenu{scroll-margin:80px 0 96px;position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:30;max-height:min(360px,60vh);overflow-y:auto;padding:6px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 18px 40px -16px rgba(0,0,0,.35)}
+.skmenu[hidden]{display:none}
+.skmenu .skin{flex-direction:row;justify-content:flex-start;gap:12px;width:100%;padding:4px 10px 4px 4px;border:1.5px solid transparent;border-radius:10px;font-size:14px;text-align:left}
+.skmenu .skin+.skin{margin-top:2px}
+.skdrop .skmenu .skin canvas{width:34px;height:auto;border-radius:6px;flex:none}
+.skmenu .skin:hover,.skmenu .skin:focus-visible{background:var(--accent-soft);outline:none}
+.skmenu .skin[aria-pressed="true"]{border-color:var(--accent);box-shadow:none}
+.skmenu .skin[aria-pressed="true"]::after{content:"";margin-left:auto;width:5px;height:10px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:translateY(-2px) rotate(45deg)}
+#skinNew{margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
 .alook .aonly{display:flex;flex-direction:column;gap:14px;margin-top:6px}
 .swatches{display:flex;flex-wrap:wrap;gap:8px}
 .swatches button{width:30px;height:30px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
@@ -1279,8 +1295,13 @@ Savasana, 3 min"></textarea>
           <p class="hint">How you look everywhere in the app: the reference, practices, the camera view and the guide.</p>
           <div class="skins">
             <div class="skhead"><h3>Skins</h3><button class="btn small" id="skinGen" type="button">Generate new skins</button></div>
-            <div class="skgrid" id="skinGrid"></div>
-            <div class="skgrid" id="skinNew" hidden></div>
+            <div class="skdrop" id="skinDrop">
+              <button class="skcur" id="skinCur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="skinMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname" id="skinCurName">Sama</span></button>
+              <div class="skmenu" id="skinMenu" role="listbox" aria-label="Skins" hidden>
+                <div id="skinGrid"></div>
+                <div id="skinNew" hidden></div>
+              </div>
+            </div>
             <p class="hint">A skin changes your whole figure: a more detailed body with fingers and toes, the clothes and the mat. Your build and height stay yours.</p>
             <div class="skhead skcost"><h3>Characters</h3></div>
             <div class="skgrid" id="charGrid"></div>
@@ -8849,7 +8870,7 @@ function genSkin(rnd = Math.random){
     const b = document.createElement('button'), c = document.createElement('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1), W = 92, H = 120;
     b.type = 'button'; b.className = 'skin'; b._look = look; c.width = W*dpr; c.height = H*dpr; b.appendChild(c);
     if (name){ const t = document.createElement('span'); t.textContent = name; b.appendChild(t); }
-    b.setAttribute('aria-label', name || 'New skin'); return b;
+    b._name = name || 'New skin'; b.setAttribute('aria-label', name || 'New skin'); return b;
   };
   const paint = b => drawSkin(b.querySelector('canvas'), b._look);
   const drawSkin = (c, look, pose) => { // the figure (in Mountain, as the skin sheets draw it) on its mat, cropped to the body
@@ -8859,15 +8880,38 @@ function genSkin(rnd = Math.random){
     g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = css('--figbg'); g.fillRect(0, 0, c.width, c.height);
     g.setTransform(k, 0, 0, k, c.width/2 - cx*k, -top*k); g.translate(-figShift(R), 0); drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av);
   };
-  const mark = () => { for (const b of document.querySelectorAll('.skins .skin')) b.setAttribute('aria-pressed', String(wearing(b._look))); };
+  // the skins sit in a dropdown: the button shows the figure as it is now and the skin's name; the menu lists every skin
+  const cur = $('skinCur'), menu = $('skinMenu'), curC = cur.querySelector('canvas'), dpr0 = Math.min(2, window.devicePixelRatio || 1);
+  curC.width = 92*dpr0; curC.height = 120*dpr0;
+  const opts = () => [...menu.querySelectorAll('.skin')].filter(b => !(fresh.hidden && fresh.contains(b))); // the generated ones only once there are some
+  const mark = () => {
+    for (const b of document.querySelectorAll('.skins .skin')){ const on = wearing(b._look); b.setAttribute('aria-pressed', String(on)); if (b.getAttribute('role') === 'option') b.setAttribute('aria-selected', String(on)); }
+    const now = opts().find(b => b.getAttribute('aria-pressed') === 'true') || [...$('costumeGrid').children].find(b => b.getAttribute('aria-pressed') === 'true'); // a costume over the clothes: its name
+    $('skinCurName').textContent = now ? now._name : 'Custom'; drawSkin(curC, lineOn() ? {style:'line'} : {});
+  };
+  const show = (open, focus) => {
+    menu.hidden = !open; cur.setAttribute('aria-expanded', String(open));
+    if (open && focus){ const o = opts(); (o.find(b => b.getAttribute('aria-pressed') === 'true') || o[0]).focus(); }
+    if (open){ const sel = opts().find(b => b.getAttribute('aria-pressed') === 'true'); if (sel) sel.scrollIntoView({block:'nearest'}); menu.scrollIntoView({block:'nearest', behavior:'smooth'}); } // the whole menu on screen, clear of the tab bar
+  };
+  cur.addEventListener('click', () => show(menu.hidden, false));
+  cur.addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); show(true, true); } });
+  menu.addEventListener('keydown', e => {
+    const o = opts(), i = o.indexOf(document.activeElement);
+    if (e.key === 'Escape'){ e.preventDefault(); show(false); cur.focus(); }
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); o[Math.max(0, Math.min(o.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))].focus(); }
+    else if (e.key === 'Home' || e.key === 'End'){ e.preventDefault(); o[e.key === 'Home' ? 0 : o.length - 1].focus(); }
+    else if (e.key === 'Tab') show(false);
+  });
+  document.addEventListener('click', e => { if (!menu.hidden && !e.target.closest('#skinDrop') && e.target.id !== 'skinGen') show(false); });
   const wear = look => { Object.assign(avatar, {style:''}, look); saveAvatar(); try { window.__syncLook && window.__syncLook(); } catch {} retheme(); };
   const all = () => [...document.querySelectorAll('.skins .skin')];
   const repaint = () => { for (const b of all()) paint(b); mark(); };
-  for (const s of SKINS) grid.appendChild(card(s.look, s.name));
+  for (const s of SKINS){ const b = card(s.look, s.name); b.setAttribute('role', 'option'); grid.appendChild(b); }
   const cgrid = $('costumeGrid'); for (const s of COSTUMES) cgrid.appendChild(card(s.look, s.name));
   const hgrid = $('charGrid'); for (const s of CHARACTERS) hgrid.appendChild(card(s.look, s.name));
-  $('skinGen').addEventListener('click', () => { fresh.replaceChildren(...Array.from({length:4}, () => card(genSkin()))); fresh.hidden = false; for (const b of fresh.children) paint(b); mark(); });
-  for (const h of [grid, fresh, cgrid, hgrid]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear(b._look); });
+  $('skinGen').addEventListener('click', () => { fresh.replaceChildren(...Array.from({length:4}, (_, i) => { const b = card(genSkin(), `New skin ${i + 1}`); b.setAttribute('role', 'option'); return b; })); fresh.hidden = false; for (const b of fresh.children) paint(b); mark(); show(true); fresh.scrollIntoView({block:'nearest'}); });
+  for (const h of [grid, fresh, cgrid, hgrid]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (!b) return; wear(b._look); if (menu.contains(b)){ show(false); cur.focus(); } });
   window.__shapes = {woman: SHAPE_WOMAN, man: SHAPE_MAN}; window.__torso = (R, fig, kind) => { SHAPE = fig === 'man' ? SHAPE_MAN : SHAPE_WOMAN; return {pts: torsoOutline(R, SIL_BASE, kind), fr: torsoFrame3(R, SIL_BASE)}; }; window.__setSkinArms = (la, ra, id = 'x_skin') => { MOTION_SPECS[id].la = la; MOTION_SPECS[id].ra = ra; for (const k of Object.keys(P3)) if (k.startsWith('x_skin')) delete P3[k]; }; window.__skins = {repaint, genSkin, SKINS, drawSkin, drawFig(g, R, look, noMat){ g.save(); g.translate(-figShift(R), 0); const av = {...avatar, ...look}; if (!noMat) drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av); g.restore(); }};
   LINE.subs.add(repaint); repaint(); new MutationObserver(repaint).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
   for (const h of [$('avatarBox'), $('lookCard')]) h.addEventListener('click', () => setTimeout(() => { repaint(); }, 0)); // a hand-picked colour or skin tone shows on every card
