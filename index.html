@@ -4854,9 +4854,11 @@ function lineDrawMat(g, pts, color){
   g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath();
   g.fillStyle = color || '#7FA9A0'; g.fill(); g.lineJoin = 'round'; g.lineWidth = 2.6; g.strokeStyle = LINE.INK; g.stroke();
 }
-function lineFigure(g, P, mir, k = 1, sq = 0, alpha = 1){
+function lineFigure(g, P, mir, k = 1, sq = 0, alpha = 1, br = 1){ // br: the idle breath, rising and settling from where the figure meets the mat
   const im = lineImg(`/line/poses/${P.id}.webp`); if (!im || k <= 0 || alpha <= 0) return;
-  g.save(); g.globalAlpha *= alpha; linePose(g, P, mir, k, sq); g.drawImage(im, P.e.x, P.e.y, P.e.w, P.e.h); g.restore();
+  g.save(); g.globalAlpha *= alpha; linePose(g, P, mir, k, sq);
+  if (br !== 1){ const fy = P.e.y + P.e.h; g.translate(0, fy); g.scale(1, br); g.translate(0, -fy); }
+  g.drawImage(im, P.e.x, P.e.y, P.e.w, P.e.h); g.restore();
 }
 function lineLogo(g, P, k, rot, alpha = 1){ // the logo stands on the middle of the mat
   const im = lineImg('/line/logo.webp'); if (!im || k <= 0 || alpha <= 0) return;
@@ -4894,6 +4896,7 @@ function lineScene(g, W, H, kind, sq){
 }
 // Draws the reference in line style into a W x H box. st = {id, mir} or, mid-change, {id, mir, from, fromMir, at} (at: seconds in).
 // opts.scene: the scene to put behind ('plain' gives paper; false draws nothing behind); opts.fit: 'figure' crops in on the pose.
+// opts.breath: the idle breath (a slight vertical scale) for a figure standing still, as the drawn figures breathe on Today.
 const LINE_T = {leave:.55, settle:.45, hold:.2, unsettle:.3, arrive:.55};
 const lineDur = () => Object.values(LINE_T).reduce((a, b) => a + b, 0)*Math.sqrt(PACE[pace] || 1);
 function lineDraw(g, W, H, st, opts = {}){
@@ -4912,7 +4915,7 @@ function lineDraw(g, W, H, st, opts = {}){
   const base = g.getTransform();
   g.save(); g.transform(k, 0, 0, k, tx, ty);
   const moving = st.from && st.at != null && st.at < lineDur() && lineHas(st.from);
-  if (!moving){ lineDrawMat(g, lineMatPts(P, st.mir), P.e.mat && P.e.mat.c); lineFigure(g, P, st.mir); g.restore(); g.setTransform(base); return; }
+  if (!moving){ lineDrawMat(g, lineMatPts(P, st.mir), P.e.mat && P.e.mat.c); lineFigure(g, P, st.mir, 1, 0, 1, opts.breath || 1); g.restore(); g.setTransform(base); return; }
   const Q = {...linePlace(st.from, viewW), id:st.from}, f = 1/Math.sqrt(PACE[pace] || 1), T = {}; for (const [a, b] of Object.entries(LINE_T)) T[a] = b/f;
   const clamp = t => Math.max(0, Math.min(1, t)), easeIn = t => t*t*t, easeOut = t => 1 - Math.pow(1 - t, 3);
   const back = t => { const c = 1.4; return 1 + (c + 1)*Math.pow(t - 1, 3) + c*Math.pow(t - 1, 2); };
@@ -7552,7 +7555,7 @@ function figureAnimator(cv){
     if (document.hidden || !cv.getClientRects().length) return;
     if (lineOn() && lst){ // line style: the stills, with the logo transition
       if (lst.t0 != null){ lst.at = (now - lst.t0)/1000; if (lst.at >= lineDur()) lst = {id:lst.id, mir:lst.mir}; }
-      g.setTransform(1,0,0,1,0,0); lineDraw(g, cv.width, cv.height, lst); return;
+      g.setTransform(1,0,0,1,0,0); lineDraw(g, cv.width, cv.height, lst, {breath: reduce ? 1 : 1 + .012*Math.sin((now - t0)/1900)}); return;
     }
     let R = cur;
     if (anim && anim.segs){ // Movement: the real route between the two poses, as one smooth movement (as when browsing poses)
