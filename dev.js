@@ -7,7 +7,7 @@ try { // minimal .env loader, no dependency
   }
 } catch {}
 const coach = require('./api/coach.js'), support = require('./api/support.js');
-const TYPES = {'.html':'text/html; charset=utf-8', '.js':'text/javascript', '.json':'application/json', '.wasm':'application/wasm', '.css':'text/css', '.png':'image/png', '.svg':'image/svg+xml', '.ico':'image/x-icon', '.webmanifest':'application/manifest+json'};
+const TYPES = {'.html':'text/html; charset=utf-8', '.js':'text/javascript', '.json':'application/json', '.wasm':'application/wasm', '.css':'text/css', '.png':'image/png', '.webp':'image/webp', '.svg':'image/svg+xml', '.ico':'image/x-icon', '.webmanifest':'application/manifest+json'};
 const port = +process.env.PORT || 3000;
 http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
