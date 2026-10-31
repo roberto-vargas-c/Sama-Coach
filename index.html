@@ -3435,20 +3435,20 @@ function torsoOutline(R, SIL, kind, neck = null){ // neck: {l, r} screen points 
   if (kind === 'tank') return side([[sIn, onSkin(sIn), .6], [sOut, onSkin(sOut), 1], ...armhole(), ...hangs([a2, bust, w1, [W*.92*SHAPE.hemW, H*.36], ...(SHAPE.hemY < .45 ? [[Hp*1.06, rH*.5]] : []), [hemX, rH*SHAPE.hemY + rH*.25]]), [hemX, rH*SHAPE.hemY, 1], [Hp*.3, rH*SHAPE.hemY - rH*.03]]).concat([F(0, H + rS*(SHAPE.scoop*fc + .62*(1 - fc)))]).reverse();
   return side([[nw*1.5, H + rS*.95], [hw*.55, H + rS*.75], [hw + rS*.35, H + rS*.15], [hw + rS*.3, H - rS*.7], [W*1.04, H*.55], [W*.94, H*.36], [Hp, H*.08], [Hp*.85, -rH*.25], [Hp*.3, -rH*.35]]).reverse();
 }
-function pelvisFrame(R, SIL){ // the torso frame, but upright on the hips: when the body bends sideways at the waist (triangle), the pelvis stays square to the hip line and the legs, not to the tipped torso
+function pelvisFrame(R, SIL){ // the torso frame, turned halfway back toward upright on the hips: when the body bends sideways at the waist (triangle), the waistband slants between the tipped torso and the hip line, as a real pelvis does
   const fr = torsoFrame3(R, SIL), {lh, rh} = R, hc = fr.F(0, 0), o = fr.F(0, 1), t = {x: o.x - hc.x, y: o.y - hc.y}, hx = rh.x - lh.x, hy = rh.y - lh.y, hl = Math.hypot(hx, hy);
   let w = Math.max(0, Math.min(1, (hl/(fr.rH*2) - .5)/.5)); if (!(w > 0)) return fr; // hips seen nearly end-on (profile): the hip line says nothing, keep the torso's frame
   const K = R.kp, kc = {x: (K[13].x + K[14].x)/2 - hc.x, y: (K[13].y + K[14].y)/2 - hc.y}; let n = {x: -hy/hl, y: hx/hl}; if (n.x*kc.x + n.y*kc.y > 0) n = {x: -n.x, y: -n.y}; // up is away from the knees
   if (n.x*t.x + n.y*t.y < -.3) return fr; // folded over the legs (the torso hangs below the hips): the torso's own frame
   const ang = k => { const vx = K[k].x - hc.x, vy = K[k].y - hc.y; return Math.acos(Math.max(-1, Math.min(1, -(vx*n.x + vy*n.y)/(Math.hypot(vx, vy) || 1)))); };
-  w *= Math.max(0, Math.min(1, 1 - (Math.abs(ang(13) - ang(14)) - .15)/.45)); if (!(w > 0)) return fr; // only when the legs stand evenly under the hips, as an A (triangle); a bent front knee (side angle) leaves the hips in line with the torso
+  w *= Math.max(0, Math.min(1, 1 - (Math.abs(ang(13) - ang(14)) - .15)/.45))*.5; if (!(w > 0)) return fr; // only when the legs stand evenly under the hips, as an A (triangle); a bent front knee (side angle) leaves the hips in line with the torso
   let ux = t.x + (n.x - t.x)*w, uy = t.y + (n.y - t.y)*w; const ul = Math.hypot(ux, uy) || 1; ux /= ul; uy /= ul;
   const x1 = fr.F(1, 0), ax0 = x1.x - hc.x, ay0 = x1.y - hc.y, sg = Math.sign(ax0*t.y - ay0*t.x) || 1, ax = uy*sg, ay = -ux*sg; // the same handedness as the torso frame
-  return {...fr, F: (x, y) => ({x: hc.x + ax*x + ux*y, y: hc.y + ay*x + uy*y})};
+  return {...fr, tilt: w, F: (x, y) => ({x: hc.x + ax*x + ux*y, y: hc.y + ay*x + uy*y})};
 }
-function pelvisOutline(R, SIL, under = 1){ // waist (where the shirt ends) curving out over the hips and in to the crotch, upright on the hips
-  const {F, H, hh, rH} = pelvisFrame(R, SIL), gi = SHAPE.girth || 1, W = (hh*SHAPE.hipJ + rH*SHAPE.waist)*gi, Hp = (hh*SHAPE.hipJ + rH*SHAPE.hip)*gi, top = rH*1.05*SHAPE.rise;
-  const side = [[W*.98*under, top], [Hp*.99*under, top*.45], [Hp, 0], [Hp*.93, -rH*.7], [Hp*.55, -rH*1.15]];
+function pelvisOutline(R, SIL, under = 1){ // waist (where the shirt ends) curving out over the hips and in to the crotch, upright on the hips (tipped hips round over at the waist, so no corner stands up past the torso)
+  const {F, H, hh, rH, tilt} = pelvisFrame(R, SIL), gi = SHAPE.girth || 1, W = (hh*SHAPE.hipJ + rH*SHAPE.waist)*gi, Hp = (hh*SHAPE.hipJ + rH*SHAPE.hip)*gi, top = rH*1.05*SHAPE.rise;
+  const side = [...(tilt ? [[W*.72*under, top], [W*.97*under, top*.72]] : [[W*.98*under, top]]), [Hp*.99*under, top*.45], [Hp, 0], [Hp*.93, -rH*.7], [Hp*.55, -rH*1.15]];
   return [...side.map(([x, y]) => F(-x, y)), F(0, -rH*1.25), ...side.slice().reverse().map(([x, y]) => F(x, y))].reverse();
 }
 function silTorsoShaped(g, R, SIL = SIL_BASE, tank = false){ g.beginPath(); smoothClosed(g, torsoOutline(R, SIL, tank ? 'tank' : 'shirt')); }
@@ -3931,8 +3931,8 @@ function detailParts(parts, R, sil, av){
     const neck = g => { g.beginPath(); const k = sil.shoulder*s*.9, c = {x: sc.x + up.x*k, y: sc.y + up.y*k}, a = Math.atan2(up.y, up.x) + Math.PI/2; g.ellipse(c.x, c.y, rx, ry, a, 0, Math.PI*2); };
     neck.part = 'neckline'; } // (the neckline is now part of the neck's own shape) // (a tank top has its neckline in its outline)
   { // the waistband: a deeper band across the top of the trousers, inside the pelvis outline so it never sticks out past the waist
-    const {F, hh, rH} = pelvisFrame(R, sil), W = (hh*SHAPE.hipJ + rH*SHAPE.waist)*.97*(SHAPE.girth || 1), Hp = (hh*SHAPE.hipJ + rH*SHAPE.hip)*.98*(SHAPE.girth || 1), top = rH*1.05*SHAPE.rise, yb = top - rH*.4, xb = W + (Hp - W)*Math.min(1, (top - yb)/(top*.55))*.8;
-    const band = g => { g.beginPath(); for (const q of [F(-W, top), F(W, top), F(xb, yb), F(-xb, yb)]) g.lineTo(q.x, q.y); g.closePath(); };
+    const {F, hh, rH, tilt} = pelvisFrame(R, sil), W = (hh*SHAPE.hipJ + rH*SHAPE.waist)*.97*(SHAPE.girth || 1), Hp = (hh*SHAPE.hipJ + rH*SHAPE.hip)*.98*(SHAPE.girth || 1), top = rH*1.05*SHAPE.rise, yb = top - rH*.4, xb = W + (Hp - W)*Math.min(1, (top - yb)/(top*.55))*.8;
+    const band = g => { g.beginPath(); const wt = tilt ? W*.74 : W; for (const q of [F(-wt, top), F(wt, top), F(xb, yb), F(-xb, yb)]) g.lineTo(q.x, q.y); g.closePath(); };
     band.part = 'band'; if (av.sleeves !== 'none') out.push(band); } // (a tank top hangs over the waistband)
   const lines = g => g.beginPath(); lines.part = 'seatlines'; out.push(lines); // nothing to fill: a slot in the drawing order for the seat's lines
   return out.filter(Boolean);
@@ -4237,7 +4237,7 @@ function drawFlatFigure(g, R, av){
   let headDone = false;
   if (detailed){ const tf = torsoFrame3(R, sil), pf = pelvisFrame(R, sil), a = tf.F(0, 0), t1 = tf.F(0, 1), p1 = pf.F(0, 1), dot = (t1.x - a.x)*(p1.x - a.x) + (t1.y - a.y)*(p1.y - a.y);
     if (dot < .985) for (const p of parts) if (p.part === 'torso' && !p.cut){ const X = pf.rH*8, y0 = -pf.rH*.5, ax = pf.F(1, 0), sc = tf.F(0, tf.H), sx = Math.sign((sc.x - a.x)*(ax.x - a.x) + (sc.y - a.y)*(ax.y - a.y)) || 1, Q = (u, y) => pf.F(sx*u, y), u0 = pf.rH*.2, uh = pf.rH*1.6;
-      p.cut = [Q(-X, X), Q(u0, X), Q(u0, y0), Q(uh, y0), Q(uh, -X), Q(-X, -X)]; } } // a torso tipped sideways off upright hips ends at the middle of the hips: nothing of it past them, nor hanging into the gap between the legs
+      p.cut = [Q(-X, y0), Q(uh, y0), Q(uh, -X), Q(-X, -X)]; } } // a torso tipped sideways off the hips must not hang down into the gap between the legs
   for (const p of [...parts].sort((a,b) => orderF(a)-orderF(b))){
     if (p.part === 'head'){ headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); if (O && (O.hat || av.hat)) outfitHat(g, R, av, O.hat || av.hat); }); headDone = true; continue; }
     const isFar = !!(p.side && p.side === far) && !p.lifted; // (a lifted arm shares its outline with the shoulder: one colour)
