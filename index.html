@@ -4818,28 +4818,36 @@ window.addEventListener('resize', () => { fitPracticeStage(); stageBgKey = ''; d
 // Each pose is one still with the figure cut out (line/poses/<id>.webp) laid out on a 1376 x 768 frame; its mat is drawn here from
 // the corners in line/index.json, so the mat stays put while the figure changes. Between poses the figure squeezes into the
 // Sama logo on the mat, the logo rolls, and the next pose pops out of it, held on twos like a hand-drawn cartoon.
-// The live camera view ("Me as my figure") and the small pose icons keep the drawn figure, which follows the body.
+// The man's stills (line/poses/man/<id>.webp, index.json "man") stand in when the body is a man; a pose he lacks falls back to hers.
+// The pose icons (library cards and the rest) show the stills too; the live camera view ("Me as my figure") keeps the drawn figure.
 const LINE = {idx:null, wait:null, img:{}, subs:new Set(), FW:1376, FH:768, CX:688, PAPER:'#FBF9F4', INK:'#1D1D1B', SIZE:.86}; // SIZE: the stills a little smaller than drawn, so more of the scene shows round them
 const lineOn = () => avatar.style === 'line';
 function lineLoad(){
   if (!LINE.wait) LINE.wait = fetch('/line/index.json').then(r => r.json()).then(j => { LINE.idx = j; lineReady(); }).catch(() => { LINE.wait = null; });
   return LINE.wait;
 }
-function lineReady(){ for (const f of LINE.subs) try { f(); } catch {} }
+function lineReady(){ // once a frame at most, however many stills arrived in it (the library loads them all at once)
+  if (!LINE.raf) LINE.raf = requestAnimationFrame(() => { LINE.raf = 0; for (const f of LINE.subs) try { f(); } catch {} });
+}
 function lineImg(src){ // loads once; whoever drew while it was loading is redrawn when it arrives
   let im = LINE.img[src];
   if (!im){ im = LINE.img[src] = new Image(); im.decoding = 'async'; im.onload = lineReady; im.src = src; }
   return im.complete && im.naturalWidth ? im : null;
 }
 const lineHas = id => !!(LINE.idx && LINE.idx.poses[id]);
+// the still for a pose and body: the man's when the body is a man and he has one, else the woman's
+function lineStill(id, fig = avatar.figure){
+  const m = fig === 'man' && LINE.idx.man && LINE.idx.man[id];
+  return m ? {e:m, src:`/line/poses/man/${id}.webp`} : {e:LINE.idx.poses[id], src:`/line/poses/${id}.webp`};
+}
 // where a pose sits on the frame: its mat's front edge centred on the frame, scaled down if the frame shown can't hold it
-function linePlace(id, viewW){
-  const e = LINE.idx.poses[id], m = e.mat ? e.mat.q : [[460, 650], [922, 648], [989, 732], [387, 734]];
+function linePlace(id, viewW, fig){
+  const {e, src} = lineStill(id, fig), m = e.mat ? e.mat.q : [[460, 650], [922, 648], [989, 732], [387, 734]];
   const ax = (m[2][0] + m[3][0])/2, ay = (m[2][1] + m[3][1])/2;
   const x0 = Math.min(e.x, m[0][0], m[3][0]), x1 = Math.max(e.x + e.w, m[1][0], m[2][0]), y0 = Math.min(e.y, m[0][1]);
   const half = Math.max(LINE.CX - (LINE.CX + x0 - ax), (LINE.CX + x1 - ax) - LINE.CX);
   let s = Math.min(LINE.SIZE, (viewW/2 - 14)/half); if (y0 < 10) s = Math.min(s, (ay - 10)/(ay - y0));
-  return {e, ax, ay, s};
+  return {e, src, ax, ay, s};
 }
 // frame point -> pose layer: centred on the frame, scaled about the mat's front edge, mirrored for the second side
 function linePose(g, P, mir, k = 1, sq = 0, rot = 0, cy){
@@ -4855,7 +4863,7 @@ function lineDrawMat(g, pts, color){
   g.fillStyle = color || '#7FA9A0'; g.fill(); g.lineJoin = 'round'; g.lineWidth = 2.6; g.strokeStyle = LINE.INK; g.stroke();
 }
 function lineFigure(g, P, mir, k = 1, sq = 0, alpha = 1){
-  const im = lineImg(`/line/poses/${P.id}.webp`); if (!im || k <= 0 || alpha <= 0) return;
+  const im = lineImg(P.src); if (!im || k <= 0 || alpha <= 0) return;
   g.save(); g.globalAlpha *= alpha; linePose(g, P, mir, k, sq); g.drawImage(im, P.e.x, P.e.y, P.e.w, P.e.h); g.restore();
 }
 function lineLogo(g, P, k, rot, alpha = 1){ // the logo stands on the middle of the mat
@@ -4893,7 +4901,8 @@ function lineScene(g, W, H, kind, sq){
   g.restore();
 }
 // Draws the reference in line style into a W x H box. st = {id, mir} or, mid-change, {id, mir, from, fromMir, at} (at: seconds in).
-// opts.scene: the scene to put behind ('plain' gives paper; false draws nothing behind); opts.fit: 'figure' crops in on the pose.
+// opts.scene: the scene to put behind ('plain' gives paper; false draws nothing behind); opts.fit: 'figure' crops in on the pose;
+// opts.figure: the body ('woman' or 'man'; the person's own by default). Returns false while the still is still loading.
 const LINE_T = {leave:.55, settle:.45, hold:.2, unsettle:.3, arrive:.55};
 const lineDur = () => Object.values(LINE_T).reduce((a, b) => a + b, 0)*Math.sqrt(PACE[pace] || 1);
 function lineDraw(g, W, H, st, opts = {}){
@@ -4903,7 +4912,7 @@ function lineDraw(g, W, H, st, opts = {}){
   const side = opts.sq ? opts.sq.side : Math.min(W, H), ox = opts.sq ? opts.sq.x : (W - side)/2, oy = opts.sq ? opts.sq.y : H - side; // standing on the bottom edge
   let k = side/LINE.FH, tx = ox + side/2 - LINE.CX*k, ty = oy;
   const viewW = W/k;
-  const P = {...linePlace(id, viewW), id};
+  const fig = opts.figure || avatar.figure, P = {...linePlace(id, viewW, fig), id};
   if (opts.fit === 'figure'){ // crop to the pose: its figure and mat fill the box
     const pts = lineMatPts(P, false), x0 = Math.min(LINE.CX + (P.e.x - P.ax)*P.s, pts[3][0]), x1 = Math.max(LINE.CX + (P.e.x + P.e.w - P.ax)*P.s, pts[2][0]);
     const y0 = P.ay + (P.e.y - P.ay)*P.s, y1 = Math.max(pts[2][1], pts[3][1]) + 6, f = Math.min(W/(x1 - x0), H/(y1 - y0))*.92;
@@ -4912,8 +4921,8 @@ function lineDraw(g, W, H, st, opts = {}){
   const base = g.getTransform();
   g.save(); g.transform(k, 0, 0, k, tx, ty);
   const moving = st.from && st.at != null && st.at < lineDur() && lineHas(st.from);
-  if (!moving){ lineDrawMat(g, lineMatPts(P, st.mir), P.e.mat && P.e.mat.c); lineFigure(g, P, st.mir); g.restore(); g.setTransform(base); return; }
-  const Q = {...linePlace(st.from, viewW), id:st.from}, f = 1/Math.sqrt(PACE[pace] || 1), T = {}; for (const [a, b] of Object.entries(LINE_T)) T[a] = b/f;
+  if (!moving){ lineDrawMat(g, lineMatPts(P, st.mir), P.e.mat && P.e.mat.c); lineFigure(g, P, st.mir); g.restore(); g.setTransform(base); return !!lineImg(P.src); }
+  const Q = {...linePlace(st.from, viewW, fig), id:st.from}, f = 1/Math.sqrt(PACE[pace] || 1), T = {}; for (const [a, b] of Object.entries(LINE_T)) T[a] = b/f;
   const clamp = t => Math.max(0, Math.min(1, t)), easeIn = t => t*t*t, easeOut = t => 1 - Math.pow(1 - t, 3);
   const back = t => { const c = 1.4; return 1 + (c + 1)*Math.pow(t - 1, 3) + c*Math.pow(t - 1, 2); };
   const at = Math.floor(st.at*12)/12; // on twos: each drawing held for two frames
@@ -4933,6 +4942,11 @@ function lineDraw(g, W, H, st, opts = {}){
   } else { const u = clamp((t - T.unsettle)/T.arrive); lineFigure(g, P, st.mir, .1 + .9*back(u), .25*(1 - u) - .06*Math.sin(Math.PI*u)); }
   g.restore(); g.setTransform(base);
 }
+// pose icons drawn before their still arrived, redrawn as stills come in
+LINE.subs.add(() => { if (!lineOn()) return;
+  for (const el of document.querySelectorAll('canvas[data-lw]')){ const c = thumb(el.dataset.pose, +el.dataset.size, !!el.dataset.mir); if (c.dataset.lw) continue; delete el.dataset.lw; const g = el.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, el.width, el.height); g.drawImage(c, 0, 0); }
+  if (lib.built && lib.pose && $('poseDlg').open) drawPd();
+});
 LINE.subs.add(() => { stageBgKey = ''; if (mode === 'sample' && lineOn() && curRef){ drawStageBg(); render(); } });
 function drawSampleScene(){ if (!curRef) return; drawStageBg(); if (lineOn()){ lineDraw(ctx, cv.width, cv.height, LINE.st || {id:pose.id, mir:refMirror}); return; } if (drawEnvironment(ctx, scene)) drawFigureScene(ctx, curRef, 'transparent', css('--fig'), css('--mat')); else drawScene(ctx, curRef); }
 // the reference figure as a small inset while the stage shows you (camera, photo or clip)
@@ -5074,11 +5088,16 @@ const THUMBS = {};
 function thumb(id, size = 64, mirrored = false){
   const key = `${id}|${size}|${mirrored}`;
   const c = THUMBS[key] || (THUMBS[key] = thumbDraw(id, size, mirrored)), d = c.cloneNode(); d.getContext('2d').drawImage(c, 0, 0);
+  if (c._wait){ delete THUMBS[key]; d.dataset.lw = '1'; } // a line-style still not loaded yet: redrawn when it arrives (lineThumbs)
   d.dataset.pose = id; d.dataset.size = size; d.dataset.mir = mirrored ? '1' : ''; d.className = c.className; return d;
 }
 function thumbDraw(id, size = 64, mirrored = false){
   const c = document.createElement('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1);
   c.width = c.height = size*dpr; c.style.width = c.style.height = size+'px';
+  if (lineOn()){ // line style: the pose's still on paper, cropped to the figure and its mat
+    const g = c.getContext('2d'); g.fillStyle = LINE.PAPER; g.fillRect(0, 0, c.width, c.height);
+    c._wait = !lineDraw(g, c.width, c.height, {id, mir:mirrored}, {scene:false, fit:'figure'}); return c;
+  }
   const R = refFor(id, mirrored, 0), g = c.getContext('2d'), sc = size*dpr / R.S;
   g.scale(sc, sc); drawScene(g, R);
   return c;
@@ -7033,6 +7052,7 @@ function renderLib(){
   $('libCount').textContent = n === POSES.length ? `${n} poses` : `${n} of ${POSES.length} poses`;
 }
 function drawPd(){
+  if (lineOn()){ const c = $('pdCv'), g = c.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = LINE.PAPER; g.fillRect(0, 0, c.width, c.height); lineDraw(g, c.width, c.height, {id:lib.pose.id, mir:lib.mir}, {scene:false, fit:'figure'}); return; }
   const c = $('pdCv'), g = c.getContext('2d'), R = refFor(lib.pose.id, lib.mir, lib.angle), sc = c.width / R.S; g.setTransform(sc,0,0,sc,0,0); drawScene(g, R);
 }
 function openPose(p){
@@ -8764,7 +8784,7 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
     if (k==='musicset'){ setMusic(b.dataset.v === 'on'); sync(); return; }
     if (k==='camat'){ camAt = b.dataset.v; camVote = 0; if (camAt !== 'auto') camSeen = null; try { localStorage.setItem('sama.camAt', camAt); } catch {} sync(); renderPanel(); render(); return; }
     if (k==='camview'){ camView = b.dataset.v; try { localStorage.setItem('sama.camview', camView); } catch {} sync(); render(); return; }
-    avatar[k] = b.dataset.v; avatar.style = ''; if (['top', 'topColor', 'sleeves', 'pattern', 'patternColor', 'bottom', 'bottomColor', 'fit'].includes(k)) avatar.outfit = null; // picking clothes takes a costume off
+    avatar[k] = b.dataset.v; if (k !== 'figure') avatar.style = ''; if (['top', 'topColor', 'sleeves', 'pattern', 'patternColor', 'bottom', 'bottomColor', 'fit'].includes(k)) avatar.outfit = null; // picking clothes takes a costume off
     saveAvatar();
     sync(); retheme();
   };
