@@ -1,9 +1,10 @@
 # Builds the app's line-style assets from prototypes/quirky:
 #   line/poses/<id>.webp  the figure alone, cut out of its still (white paper, mat and mat outline removed)
+#   line/poses/man/<id>.webp  the same for the man (prototypes/quirky/man/<id>.png, the same poses redrawn as a man)
 #   line/scenes/<k>.webp  the six scene backgrounds
 #   line/logo.webp        the logo the transition rolls through
 #   line/index.json       per pose: where the cut-out sits in the 1376 x 768 frame and the corners of its mat,
-#                         so the app draws the mat in code and keeps it still while the figure changes
+#                         so the app draws the mat in code and keeps it still while the figure changes ("man": the same for the man)
 # Run: python3 tools/line_assets.py   (needs opencv-python-headless, scipy, pillow)
 import json, pathlib, sys
 import cv2, numpy as np
@@ -13,7 +14,7 @@ from PIL import Image
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / 'prototypes' / 'quirky'
 OUT = ROOT / 'line'
-(OUT / 'poses').mkdir(parents=True, exist_ok=True); (OUT / 'scenes').mkdir(parents=True, exist_ok=True)
+(OUT / 'poses' / 'man').mkdir(parents=True, exist_ok=True); (OUT / 'scenes').mkdir(parents=True, exist_ok=True)
 
 def webp(rgba, path, q=82):
     Image.fromarray(rgba).save(path, 'WEBP', quality=q, method=6)
@@ -56,8 +57,8 @@ def mat_quad(teal):
     yt, yb = y0 - .5, y1 + .5
     return np.array([[L(yt), yt], [R(yt), yt], [R(yb), yb], [L(yb), yb]]), keep
 
-def cut(name):
-    a = np.asarray(Image.open(SRC / 'poses' / f'{name}.png').convert('RGB'))
+def cut(name, src=SRC / 'poses', out=OUT / 'poses'):
+    a = np.asarray(Image.open(src / f'{name}.png').convert('RGB'))
     H, W = a.shape[:2]
     hsv = cv2.cvtColor(a, cv2.COLOR_RGB2HSV)
     teal = (hsv[..., 0] >= 75) & (hsv[..., 0] <= 100) & (hsv[..., 1] > 35) & (hsv[..., 2] > 90)
@@ -87,22 +88,24 @@ def cut(name):
     x, y, w, h = cv2.boundingRect(keep)
     al = cv2.GaussianBlur(keep * 255, (3, 3), 0)
     rgba = np.dstack([a, al])[y:y + h, x:x + w]
-    webp(rgba, OUT / 'poses' / f'{name}.webp')
+    webp(rgba, out / f'{name}.webp')
     return {'x': int(x), 'y': int(y), 'w': int(w), 'h': int(h), **({'mat': mat} if mat else {})}
 
 def main(only=None):
     names = sorted(p.stem for p in (SRC / 'poses').glob('*.png'))
-    idx = {}
+    men = {p.stem for p in (SRC / 'man').glob('*.png')}
+    idx, man = {}, {}
     path = OUT / 'index.json'
-    if only and path.exists(): idx = json.loads(path.read_text())['poses']
+    if only and path.exists(): j = json.loads(path.read_text()); idx, man = j['poses'], j.get('man', {})
     for nm in (only or names):
         idx[nm] = cut(nm); print(nm, idx[nm].get('mat', {}).get('q'))
+        if nm in men: man[nm] = cut(nm, SRC / 'man', OUT / 'poses' / 'man'); print(' man', man[nm].get('mat', {}).get('q'))
     if not only:
         for s in (SRC / 'scenes').glob('*.png'):
             if s.stem == 'preview': continue
             Image.open(s).convert('RGB').save(OUT / 'scenes' / f'{s.stem}.webp', 'WEBP', quality=80, method=6)
         lg = Image.open(SRC / 'fig-logo.png').convert('RGBA'); Image.fromarray(np.asarray(lg)).save(OUT / 'logo.webp', 'WEBP', quality=85, method=6)
-    path.write_text(json.dumps({'frame': [1376, 768], 'logo': {'w': 301, 'h': 297}, 'poses': dict(sorted(idx.items()))}, separators=(',', ':')))
+    path.write_text(json.dumps({'frame': [1376, 768], 'logo': {'w': 301, 'h': 297}, 'poses': dict(sorted(idx.items())), 'man': dict(sorted(man.items()))}, separators=(',', ':')))
 
 if __name__ == '__main__':
     main(sys.argv[1:] or None)
