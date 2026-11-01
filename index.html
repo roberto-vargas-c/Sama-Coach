@@ -8865,6 +8865,14 @@ function drawEdited(g, id, mirrored, angle, pts){
   drawScene(g, R); return R;
 }
 window.__sama = {PLAN_ORDER, NEAR, AUTH, buildPlan, FOCUS, voiceTrim, voicePlay, voicePrefetch, voice, voiceEl, EASE, P3, POSE_FIX, REF_SPECS, GROUND, build3d, finishExtremities, KI, LEN, DYK, SUPPORT, drawEdited, figShift, estimate, get camPlace(){ return {camAt, camSeen, camVote, eff: effectivePlace()}; }, senseCamPlace, poseFor, placeAngle, designPlace, startTour, transitionCues, CUE_TEXT, get plan(){ return plan; }, setTestPose(k, w, h){ kp = k; mw = w; mh = h; mode = 'photo'; media = (() => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#556'; g.fillRect(0,0,w,h); return c; })(); sizeCanvas(w, h); refresh(); }, get camView(){ return camView; }, drawEnvironment, SCENES, setScene(v){ scene = v; render(); }, buildPlan, FOCUS, routeSegments, transitionPath, transitionPathBase, routeOf, thighSweep, faceFrame, POSTURE_EDGES, POSTURE_HUB, evaluate, POSE_FIX, transitionPath, segmentDuration, refFor, moveAmount, postureOf, lerpRef, POSES, drawScene, startOnboarding, RAD, blobRef, motionTest(frames){ motionStart(); const was = mode; mode = 'live'; try { for (const k of frames){ MV.lastT = 0; motionTap(k); } } finally { mode = was; } motionEnd(); return motionCount(); }, selfTest: () => selfTestResult};
+// the Pose Review asks the embedded app for a pose in a given style (Detailed, Line drawing; woman or man), drawn as the library draws it.
+// The look is put on only while drawing, so the embedded app's own figure never changes; a Line drawing waits for its still to load.
+window.__sama.lookThumb = async (id, look, size = 400) => {
+  const draw = () => { const was = avatar; avatar = {...AVATAR_DEFAULT, ...look}; try { return thumbDraw(id, size, false); } finally { avatar = was; } };
+  if (look.style !== 'line') return draw();
+  await lineLoad(); let c = draw();
+  for (let i = 0; c._wait && i < 150; i++){ await new Promise(r => setTimeout(r, 100)); c = draw(); }
+  return c; };
 function retheme(){
   applySkinBg();
   for (const k in THUMBS) delete THUMBS[k];
