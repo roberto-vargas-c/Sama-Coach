@@ -1353,7 +1353,7 @@ Savasana, 3 min"></textarea>
                     <button class="skcur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="styleMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname"></span></button>
                     <div class="skmenu" id="styleMenu" role="listbox" aria-label="Styles" hidden><div id="styleGrid"></div></div>
                   </div>
-                  <p class="hint">How the figure is drawn: the classic figure, or the hand-drawn line drawing.</p>
+                  <p class="hint">How the figure is drawn: the classic figure, the detailed body, or the hand-drawn line drawing. Every costume works in Classic and Detailed.</p>
                 </div>
                 <div class="lspick">
                   <div class="skhead"><h3>Costumes</h3><button class="btn small" id="skinGen" type="button">Generate new costumes</button></div>
@@ -1364,7 +1364,7 @@ Savasana, 3 min"></textarea>
                       <div id="skinNew" hidden></div>
                     </div>
                   </div>
-                  <p class="hint">A costume changes your clothes and your mat, with a more detailed body. Your build, height, skin tone and hair stay yours.</p>
+                  <p class="hint">A costume changes your clothes and your mat. Your build, height, skin tone and hair stay yours.</p>
                 </div>
                 <div class="lspick">
                   <div class="skhead skcost"><h3>Backgrounds</h3></div>
@@ -4195,6 +4195,7 @@ function outfitParts(parts, R, sil, av, O){ // the extras that are shapes of the
   if (av.kerchief){ const k = .45 + .55*fc, base = F(0, H + rS*.75), tip = F(0, H - rS*(front ? .9 : 1.3)); // a red neckerchief: knotted at the throat, its point down the chest (down the back from behind)
     add(g => { g.beginPath(); const l = F(-nw*1.9*k, H + rS*1.0), r = F(nw*1.9*k, H + rS*1.0); g.moveTo(l.x, l.y); g.lineTo(r.x, r.y); g.lineTo(tip.x, tip.y); g.closePath(); if (front){ g.moveTo(base.x + rS*.28, base.y); g.arc(base.x, base.y, rS*.28, 0, Math.PI*2); } }, 'kerchief', 9.2, {color: av.kerchief}); }
   if (O.front) add(g => g.beginPath(), 'shirtfront', 2.55); // over the neckline's scoop
+  if (O.front && av.body !== 'detailed') for (const p of out) if (p.neckPart) p.z = 2.5; // the classic neck comes down over the shirt: under the collar and bow tie instead
   if (O.pumpkin){ let c = F(0, H*.36); const up = F(0, H*.36 + 1), a = Math.atan2(up.y - c.y, up.x - c.x) - Math.PI/2, ry = H*.6, rx = Math.max((hw + rS*.9)*1.2, ry*.95); // round from every side
     { const fx = (K[25].x - K[23].x) + (K[26].x - K[24].x), fy = (K[25].y - K[23].y) + (K[26].y - K[24].y), fl = Math.hypot(fx, fy) || 1, k = (rx - fr.rH*1.05)*(1 - fc); c.x += fx/fl*k; c.y += fy/fl*k; } // turned sideways it sits on the chest: its back edge at the body's back, nothing sticking out behind
     add(g => { g.beginPath(); g.ellipse(c.x, c.y, rx, ry, a, 0, Math.PI*2); }, 'pumpkin', front ? 4.55 : 1.5, {c, a, rx, ry}); } // (from behind it is on the far side of the body) // worn over the chest: in front of the torso and arms, the hands come out beside it
@@ -4255,7 +4256,7 @@ function outfitOver(g, p, R, sil, av, O, dim = 1){ // prints over the body's own
   if (!O.bones) return; g.save(); p(g); g.clip(); outfitSkeleton(g, p, R, sil); g.restore();
 }
 function drawFlatFigure(g, R, av){
-  const O = av.outfit && OUTFITS[av.outfit]; if (O){ av = {...av, body:'detailed', ...O.base, ...O.wear(av)}; if ((O.hat || av.hat) && ['bun', 'afro', 'manbun'].includes(av.hair) && (O.hat || av.hat) !== 'flower') av.hair = 'short'; } // an outfit dresses the body: its clothes over the person's own
+  const O = av.outfit && OUTFITS[av.outfit]; if (O){ av = {...av, ...O.base, ...O.wear(av)}; if ((O.hat || av.hat) && ['bun', 'afro', 'manbun'].includes(av.hair) && (O.hat || av.hat) !== 'flower') av.hair = 'short'; } // an outfit dresses the body: its clothes over the person's own
   const sil = silFor(av); for (const k of ['thigh','shin','upper','fore']) sil[k] = sil[k].map(v => v*1.22); sil.hand *= 1.15; sil.foot *= 1.1; sil.neck *= 1.3;
   if (O && O.bulk) for (const k of ['upper', 'fore']) sil[k] = sil[k].map(v => v*O.bulk); // a padded jacket: fuller sleeves
   // trouser fit: fuller legs, the feet untouched (shorts only widen the thigh)
@@ -4288,7 +4289,7 @@ function drawFlatFigure(g, R, av){
     const waist = bandOf(K[11], K[12], sc, Math.max(sil.hip, sil.thigh[0])*s0*.98); waist.part = 'hips'; waist.waistBand = true; parts.push(waist);
     if (av.sleeves !== 'none'){ const yoke = bandOf(K[5], K[6], R.head, Math.max(sil.shoulder, sil.upper[0]*1.42)*s0*.98); yoke.part = 'shoulders'; yoke.yoke = true; parts.push(yoke); }
   }
-  const detailed = av.body === 'detailed' && !(R.blob > 0); SHAPE = weightShape(av.figure === 'man' ? SHAPE_MAN : SHAPE_WOMAN, av); if (O && O.bulk) SHAPE = {...SHAPE, girth: (SHAPE.girth || 1)*O.bulk}; if (detailed) parts = detailParts(parts, R, sil, av); if (O && detailed) parts = outfitParts(parts, R, sil, av, O); if (av.__noArms || av.__skip) parts = parts.filter(p => ![...(av.__noArms ? ['upper','fore','hand','sleeve'] : []), ...(av.__skip || [])].includes(p.part));
+  const detailed = av.body === 'detailed' && !(R.blob > 0); SHAPE = weightShape(av.figure === 'man' ? SHAPE_MAN : SHAPE_WOMAN, av); if (O && O.bulk) SHAPE = {...SHAPE, girth: (SHAPE.girth || 1)*O.bulk}; if (detailed) parts = detailParts(parts, R, sil, av); if (O && !(R.blob > 0)) parts = outfitParts(parts, R, sil, av, O); if (av.__noArms || av.__skip) parts = parts.filter(p => ![...(av.__noArms ? ['upper','fore','hand','sleeve'] : []), ...(av.__skip || [])].includes(p.part));
   const zs = R.kp[5].w ? R.kp[5].w[2] : 0, zr = R.kp[6].w ? R.kp[6].w[2] : 0, far = zs > zr + .02 ? 'l' : zr > zs + .02 ? 'r' : null;
   // the far side is drawn a shade darker, more so the further back it is, so it does not flick dark the frame the body turns past side-on
   const farDim = 1 - .14*Math.max(0, Math.min(1, (Math.abs(zs - zr) - .02)/.05));
@@ -4355,7 +4356,7 @@ function drawFlatFigure(g, R, av){
     const clothed = p.part === 'torso' || (p.part === 'shoulders' && !(detailed && av.sleeves === 'none')) || (p.part === 'fore' && av.sleeves === 'long') || (av.bottomPattern && (p.part === 'thigh' || p.part === 'shin' || p.part === 'hips' || p.part === 'seat')); // (pyjama trousers wear the print too)
     const K = R.kp, frameOf = q => q.ks && q.ks.length > 1 ? {x: K[q.ks[0]].x, y: K[q.ks[0]].y, a: Math.atan2(K[q.ks[1]].y - K[q.ks[0]].y, K[q.ks[1]].x - K[q.ks[0]].x) - Math.PI/2} : torsoFrame;
     const strapClip = clothed && p.hem; if (strapClip){ const {F, H, rS} = torsoFrame3(R, sil), q = [F(-9e3, -9e3), F(9e3, -9e3), F(9e3, H - rS*.15), F(-9e3, H - rS*.15)]; g.save(); g.beginPath(); g.moveTo(q[0].x, q[0].y); q.slice(1).forEach(v => g.lineTo(v.x, v.y)); g.closePath(); g.clip(); } // the straps stay plain: a pattern's motif cut to a sliver there reads as specks
-    if (clothed) flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, p, torsoFrame); // one direction across the whole shirt
+    if (clothed) flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, p, av.pattern === 'inkstripes' && p.part === 'fore' && p.ks ? frameOf(p) : torsoFrame); // one direction across the whole shirt (a knit's stripes wrap round the forearm)
     if (strapClip) g.restore();
     if (av.legs && (['thigh', 'hips', 'seat', 'glute'].includes(p.part) || (p.part === 'shin' && av.bottom !== 'shorts'))) // a print of its own on the trousers, running down each leg
       flatPattern(g, av.legs, isFar ? shade(av.legsColor || av.patternColor, farDim) : av.legsColor || av.patternColor, s, p, (p.part === 'thigh' || p.part === 'shin') && p.ks ? frameOf(p) : torsoFrame);
@@ -4375,11 +4376,12 @@ function drawFlatFigure(g, R, av){
       const long = av.sleeves === 'long', f = long ? 1 : .58, e = {x: a.x + (b.x - a.x)*f, y: a.y + (b.y - a.y)*f}, r = sil.upper[0]*s;
       const sleeve = gg => taperPath(gg, a, e, r*(detailed ? 1.18 : 1.42), r*(long ? 1.04 : detailed ? 1.12 : 1.3));
       const sc = isFar ? shade(av.topColor, farDim) : av.topColor; g.fillStyle = sc; sleeve(g); g.fill();
+      if (av.sleeveColor){ const m = {x: a.x + (e.x - a.x)*.4, y: a.y + (e.y - a.y)*.4}, m2 = {x: e.x + (e.x - a.x)*.3, y: e.y + (e.y - a.y)*.3}; g.save(); sleeve(g); g.clip(); g.fillStyle = isFar ? shade(av.sleeveColor, farDim) : av.sleeveColor; taperPath(g, m, m2, r*2, r*2); g.fill(); g.restore(); } // a ringer tee's band round the sleeve's end
       if (!(R.blob > .3)){ // the sleeve's shade stays off the shirt front, where it would read as a notch cut into the shoulder
         const tp = new Path2D(), pp = {beginPath(){}, moveTo: (...a) => tp.moveTo(...a), lineTo: (...a) => tp.lineTo(...a), quadraticCurveTo: (...a) => tp.quadraticCurveTo(...a), closePath: () => tp.closePath()};
         silTorso(pp, R, sil); const clip = new Path2D(); clip.rect(-4000, -4000, 9000, 9000); clip.addPath(tp);
         g.save(); g.clip(clip, 'evenodd'); flatShade(g, sleeve, sc, s); g.restore(); }
-      flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, sleeve, torsoFrame);
+      flatPattern(g, av.pattern, isFar ? shade(av.patternColor, farDim) : av.patternColor, s, sleeve, av.pattern === 'inkstripes' ? frameOf(p) : torsoFrame);
     }
     if (O) outfitOver(g, p, R, sil, av, O, isFar ? farDim : 1);
     if (unseen) g.globalAlpha /= .35;
@@ -8906,10 +8908,10 @@ new MutationObserver(retheme).observe(document.documentElement, {attributes:true
 // ---------- skins: ready-made outfits for the figure, like a game's character skins, plus a generator for new ones ----------
 // A skin changes only the clothes and the mat; skin tone, hair, build and height stay the person's own.
 // Ocean, Forest, Sunrise and Night sky are redrawn in vector from AI concept sheets (the waves, leaves, rays and stars prints).
-const SKIN_KEYS = ['body', 'outfit', 'topColor', 'sleeves', 'pattern', 'patternColor', 'bottom', 'bottomColor', 'fit', 'mat'];
-const skinOf = (look, body = 'detailed') => ({body, outfit:null, ...look}); // every skin but the classic one brings the detailed body (and takes off any costume)
+const SKIN_KEYS = ['outfit', 'topColor', 'sleeves', 'pattern', 'patternColor', 'bottom', 'bottomColor', 'fit', 'mat'];
+const skinOf = look => ({outfit:null, ...look}); // a skin takes off any costume; the body (Classic or Detailed) is the style's
 const SKINS = [
-  {name:'Sama', look:skinOf({...NEW_LOOK, sleeves:'short', fit:'fitted'}, 'simple')},
+  {name:'Sama', look:skinOf({...NEW_LOOK, sleeves:'short', fit:'fitted'})},
   {name:'Ocean', look:skinOf({topColor:'#6E8FAE', sleeves:'none', pattern:'waves', patternColor:'#F3EEE2', bottom:'leggings', bottomColor:'#2B3A5C', fit:'fitted', mat:'#5F7FA0'})},
   {name:'Forest', look:skinOf({topColor:'#6F8A55', sleeves:'short', pattern:'leaves', patternColor:'#E9E2C8', bottom:'leggings', bottomColor:'#34502F', fit:'fitted', mat:'#7B9E73'})},
   {name:'Sunrise', look:skinOf({topColor:'#C8673E', sleeves:'none', pattern:'rays', patternColor:'#F0B35A', bottom:'leggings', bottomColor:'#A9472C', fit:'fitted', mat:'#D9963A'})},
@@ -8924,23 +8926,24 @@ const SKINS = [
   {name:'Aurora', look:skinOf({topColor:'#1F5B5E', sleeves:'none', pattern:'aurora', patternColor:'#A07BDC', bottom:'leggings', bottomColor:'#3C2A5C', fit:'fitted', mat:'#2E6E70'})}];
 // Costumes: an outfit (see OUTFITS) worn over the body and the person's own clothes, which come back when a skin is picked
 const COSTUMES = [
-  {name:'Pyjamas', look:{body:'detailed', outfit:'pyjamas', mat:'#9FB4D3'}},
-  {name:'Winter', look:{body:'detailed', outfit:'winter', mat:'#E4EAF0'}},
-  {name:'Skeleton', look:{body:'detailed', outfit:'skeleton', mat:'#2A2930'}},
-  {name:'Pumpkin', look:{body:'detailed', outfit:'pumpkin', mat:'#3A2F45'}},
-  {name:'Vampire', look:{body:'detailed', outfit:'vampire', mat:'#5B3A78'}},
-  {name:'Costa Rica', look:{body:'detailed', outfit:'tipico', mat:'#2B4C9B'}},
-  {name:'Retro', look:{body:'detailed', outfit:'retro', mat:'#B5574B'}},
-  {name:'Aerobics', look:{body:'detailed', outfit:'aerobics', mat:'#E9A1C4'}},
+  {name:'Pyjamas', look:{outfit:'pyjamas', mat:'#9FB4D3'}},
+  {name:'Winter', look:{outfit:'winter', mat:'#E4EAF0'}},
+  {name:'Skeleton', look:{outfit:'skeleton', mat:'#2A2930'}},
+  {name:'Pumpkin', look:{outfit:'pumpkin', mat:'#3A2F45'}},
+  {name:'Vampire', look:{outfit:'vampire', mat:'#5B3A78'}},
+  {name:'Costa Rica', look:{outfit:'tipico', mat:'#2B4C9B'}},
+  {name:'Retro', look:{outfit:'retro', mat:'#B5574B'}},
+  {name:'Aerobics', look:{outfit:'aerobics', mat:'#E9A1C4'}},
   // Doodle: redrawn from a hand-drawn vector character set
-  {name:'Breton', look:{body:'detailed', outfit:'breton', mat:'#E2783F'}},
-  {name:'Cat ears', look:{body:'detailed', outfit:'moss', mat:'#5E9A94'}},
-  {name:'Red cat', look:{body:'detailed', outfit:'redcat', mat:'#E0413A'}},
-  {name:'Fox', look:{body:'detailed', outfit:'fox', mat:'#CFC6BC'}},
-  {name:'Onesie', look:{body:'detailed', outfit:'onesie', mat:'#3D4B6A'}},
-  {name:'Stripes', look:{body:'detailed', outfit:'sailor', mat:'#EDE15A'}}];
-// Styles: how the figure is drawn. Line drawing puts the hand-drawn stills (see LINE) in place of the drawn figure; the clothes underneath stay as they were
-const STYLES = [{name:'Classic', look:{style:''}}, {name:'Line drawing', look:{style:'line'}}];
+  {name:'Breton', look:{outfit:'breton', mat:'#E2783F'}},
+  {name:'Cat ears', look:{outfit:'moss', mat:'#5E9A94'}},
+  {name:'Red cat', look:{outfit:'redcat', mat:'#E0413A'}},
+  {name:'Fox', look:{outfit:'fox', mat:'#CFC6BC'}},
+  {name:'Onesie', look:{outfit:'onesie', mat:'#3D4B6A'}},
+  {name:'Stripes', look:{outfit:'sailor', mat:'#EDE15A'}}];
+// Styles: how the figure is drawn. Classic is the simple figure, Detailed the detailed body (muscles, hands, feet); every costume dresses either.
+// Line drawing puts the hand-drawn stills (see LINE) in place of the drawn figure; the body and clothes underneath stay as they were
+const STYLES = [{name:'Classic', look:{style:'', body:'simple'}}, {name:'Detailed', look:{style:'', body:'detailed'}}, {name:'Line drawing', look:{style:'line'}}];
 // The generator: a random base hue, then a palette that holds together (an analogous, complementary or single-hue scheme),
 // muted the way the brand is: a mid-tone top, a print that contrasts with it, dark trousers and a mat that answers the top.
 function genSkin(rnd = Math.random){
@@ -8950,13 +8953,13 @@ function genSkin(rnd = Math.random){
   const h = span(0, 360), scheme = pick(['analogous', 'complementary', 'mono']), h2 = scheme === 'complementary' ? h + 180 : scheme === 'analogous' ? h + pick([-35, 35]) : h;
   const lightTop = rnd() < .45, top = lightTop ? hsl(h, span(30, 55), span(72, 84)) : hsl(h, span(30, 55), span(38, 52));
   const print = lightTop ? hsl(h2, span(35, 55), span(28, 40)) : rnd() < .5 ? hsl(h2, span(55, 75), span(62, 72)) : hsl(h + 10, span(25, 40), span(90, 95));
-  return {body:'detailed', outfit:null, topColor:top, sleeves:pick(['none', 'short', 'short', 'long']), pattern:pick(['waves', 'leaves', 'rays', 'stars', 'dots', 'stripes', 'zigzag', 'checks', 'none']), patternColor:print,
+  return {outfit:null, topColor:top, sleeves:pick(['none', 'short', 'short', 'long']), pattern:pick(['waves', 'leaves', 'rays', 'stars', 'dots', 'stripes', 'zigzag', 'checks', 'none']), patternColor:print,
     bottom:rnd() < .8 ? 'leggings' : 'shorts', bottomColor:hsl(pick([h, h2, h + 15]), span(20, 40), span(16, 28)), fit:pick(['fitted', 'fitted', 'relaxed', 'wide']), mat:hsl(h2, span(25, 45), span(50, 66))};
 }
 (function(){
   const grid = $('skinGrid'), fresh = $('skinNew'); if (!grid) return;
   // a style is on when the figure is drawn that way; a costume (a skin or an outfit) when its clothes are on, whichever style draws them
-  const wearing = look => 'style' in look && !look.body ? (look.style === 'line') === lineOn() : (look.outfit ? ['outfit'] : SKIN_KEYS).every(k => String(look[k] ?? '') === String(avatar[k] ?? (k === 'body' ? 'simple' : '')));
+  const wearing = look => 'style' in look ? (look.style === 'line' ? lineOn() : !lineOn() && look.body === (avatar.body === 'detailed' ? 'detailed' : 'simple')) : (look.outfit ? ['outfit'] : SKIN_KEYS).every(k => String(look[k] ?? '') === String(avatar[k] ?? ''));
   const card = (look, name) => {
     const b = document.createElement('button'), c = document.createElement('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1), W = 92, H = 120;
     b.type = 'button'; b.className = 'skin'; b._look = look; c.width = W*dpr; c.height = H*dpr; b.appendChild(c);
@@ -9028,7 +9031,7 @@ function genSkin(rnd = Math.random){
   const sgrid = $('sceneGrid'); for (const [k, name] of Object.entries(SCENES)){ const b = opt(card(null, name)); b._scene = k; sgrid.appendChild(b); }
   $('skinGen').addEventListener('click', () => { fresh.replaceChildren(...Array.from({length:4}, (_, i) => opt(card(genSkin(), `New skin ${i + 1}`)))); fresh.hidden = false; for (const b of fresh.children) paint(b); mark(); skinD.show(true); fresh.scrollIntoView({block:'nearest'}); });
   for (const h of [grid, fresh]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear(b._look); });
-  tgrid.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear({style:b._look.style}); });
+  tgrid.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear(b._look); }); // Line drawing keeps the body under it, so Classic or Detailed comes back as it was
   sgrid.addEventListener('click', e => { const b = e.target.closest('.skin'); if (!b) return; scene = b._scene; try { localStorage.setItem('sama.scene', scene); } catch {} mark(); try { render(); } catch {} });
   window.__shapes = {woman: SHAPE_WOMAN, man: SHAPE_MAN}; window.__torso = (R, fig, kind) => { SHAPE = fig === 'man' ? SHAPE_MAN : SHAPE_WOMAN; return {pts: torsoOutline(R, SIL_BASE, kind), fr: torsoFrame3(R, SIL_BASE)}; }; window.__setSkinArms = (la, ra, id = 'x_skin') => { MOTION_SPECS[id].la = la; MOTION_SPECS[id].ra = ra; for (const k of Object.keys(P3)) if (k.startsWith('x_skin')) delete P3[k]; }; window.__skins = {repaint, genSkin, SKINS, drawSkin, drawFig(g, R, look, noMat){ g.save(); g.translate(-figShift(R), 0); const av = {...avatar, ...look}; if (!noMat) drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av); g.restore(); }};
   LINE.subs.add(repaint); repaint(); new MutationObserver(repaint).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
