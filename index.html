@@ -286,7 +286,18 @@ body.practice .stage.sample #cvBg{display:block} /* full screen: the scene carri
 .skmenu .skin[aria-pressed="true"]{border-color:var(--accent);box-shadow:none}
 .skmenu .skin[aria-pressed="true"]::after{content:"";margin-left:auto;width:5px;height:10px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:translateY(-2px) rotate(45deg)}
 #skinNew{margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
-.alook .aonly{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+.sksub[hidden]{display:none}
+.skgo,.skback{display:flex;align-items:center;gap:12px;width:100%;padding:4px 10px 4px 4px;border:1.5px solid transparent;border-radius:10px;background:none;color:var(--ink);font:inherit;font-size:14px;text-align:left;cursor:pointer}
+.skgo+.skgo{margin-top:2px}
+.skmenu .skgo canvas{width:34px;height:auto;aspect-ratio:92/120;border-radius:6px;flex:none;display:block}
+.skgo>span{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.skgo b{font-weight:600}.skmenu .skgo i{font-style:normal;font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.skgo::after{content:"";flex:none;width:7px;height:7px;margin-right:4px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg)}
+.skgo:hover,.skgo:focus-visible,.skback:hover,.skback:focus-visible{background:var(--accent-soft);outline:none}
+.skback{min-height:40px;padding:6px 10px;font-weight:600;font-size:15px;border-bottom:1px solid var(--line);border-radius:10px 10px 0 0;margin-bottom:4px}
+.skback::before{content:"";flex:none;width:7px;height:7px;margin:0 2px 0 6px;border-left:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg)}
+.sksep{margin:8px 4px 4px;padding-top:8px;border-top:1px solid var(--line);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.sksubhint{margin:0 6px 6px;font-size:12.5px;line-height:1.4;color:var(--muted)}
+.alook.aonly{display:flex;flex-direction:column;gap:14px}
 .swatches{display:flex;flex-wrap:wrap;gap:8px}
 .swatches button{width:30px;height:30px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
 .swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--accent)}
@@ -811,6 +822,53 @@ body.practice .backlib,body.tv .backlib{display:none}
 .fold .chev{width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0;flex:0 0 auto}
 .fold[open] .chev{transform:rotate(-135deg);margin-bottom:-4px}
 .fold[open]>summary{margin-bottom:4px}
+/* Your figure: a card in the profile that opens full screen, the figure large on the left and every option on the right; a pick shows on the figure at once */
+.lookstudio .lsdone{display:none;flex:none}
+.lookstudio:not([open]) .lsbody{display:none}
+.lookstudio[open]{position:fixed;inset:0;z-index:100;margin:0;padding:0;gap:0;border:none;border-radius:0;box-shadow:none;background:var(--bg);display:flex;flex-direction:column;animation:lsin .22s ease-out}
+@keyframes lsin{from{opacity:0}}
+html.lsopen,html.lsopen body{overflow:hidden}
+.lookstudio[open]>summary{flex:none;margin:0;padding:max(12px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 12px max(20px, env(safe-area-inset-left));border-bottom:1px solid var(--line);background:var(--surface)}
+.lookstudio[open]>summary::after{display:none}
+.lookstudio[open] .lsdone{display:inline-flex;flex-direction:row;justify-content:center;align-items:center;min-height:40px;line-height:1;padding:0 20px;border-radius:999px;background:var(--accent);color:#fff;font-weight:600;font-size:14.5px}
+.lookstudio[open]>summary:hover .lsdone{filter:brightness(.95)}
+.lookstudio[open] .lsbody{position:absolute;top:var(--lsh,72px);left:0;right:0;bottom:0;margin:0}
+.lsbody{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,440px);grid-template-rows:minmax(0,1fr)}
+.lsstage{position:relative;min-height:0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;background:var(--figbg);overflow:hidden}
+.lsstage canvas{width:var(--lsz,300px);height:var(--lsz,300px);flex:none;border-radius:24px;display:block}
+.lsposes{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;flex:none}
+.lsposes button{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.lsposes button:hover{border-color:var(--accent)}
+.lsposes button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.lsopts{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:18px 20px max(28px, env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px;border-left:1px solid var(--line);background:var(--bg)}
+.lsopts .lsintro{margin:0}
+.lsgroup{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.lsgroup>h3{margin:0;font-family:var(--f-display);font-weight:400;font-size:19px;letter-spacing:0;text-transform:none;color:var(--ink)}
+.lsgroup.skins{margin:0}
+.lspick{display:flex;flex-direction:column;gap:6px}
+.lspick .skhead{margin:0;min-height:30px}.lspick .skcost{margin:0}
+.lspick .skhead h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;font-family:inherit}
+.lspick .hint{font-size:12.5px;line-height:1.4}
+.lspick .skmenu{max-height:min(440px,60vh)}
+.lsgroup .arow{flex-direction:row;align-items:center;justify-content:space-between;gap:12px;min-height:36px}
+.lsgroup .arow>span{flex:none;width:112px}
+.lsgroup .arow>.swatches,.lsgroup .arow>.hrow{flex:1;justify-content:flex-end}
+.lsgroup .swatches{gap:6px}.lsgroup .swatches button{width:26px;height:26px}
+.lsgroup .hrow{display:flex;align-items:center;gap:10px;min-width:0}.lsgroup .hrow input{flex:1;min-width:0}.lsgroup .hrow b{flex:none;font-size:13px;white-space:nowrap}
+.lsgroup .arow:has(>.dd+.swatches){flex-wrap:wrap}.lsgroup .arow>.dd+.swatches{flex:1 1 100%;justify-content:flex-end}
+.lsgroup>.hint{font-size:12.5px;line-height:1.4}
+@media (max-width:760px){
+  .lsbody{display:flex;flex-direction:column}
+  .lsstage{flex:none;height:min(44svh,440px);padding:10px 12px 12px;gap:8px}
+  .lsstage canvas{border-radius:18px}
+  .lsposes{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;max-width:100%;padding:0 2px;scrollbar-width:none}.lsposes::-webkit-scrollbar{display:none}
+  .lsposes button{flex:none;min-height:32px;font-size:13px}
+  .lsopts{flex:1;border-left:none;border-top:1px solid var(--line);padding:14px 14px max(24px, env(safe-area-inset-bottom))}
+  .lookstudio[open]>summary .hint{display:none}
+  .lsgroup .arow:has(>.swatches:first-of-type),.lsgroup .arow:has(>.hrow){flex-direction:column;align-items:stretch;gap:6px}
+  .lsgroup .arow>span{width:auto}
+  .lsgroup .arow>.swatches,.lsgroup .arow>.hrow,.lsgroup .arow>.dd+.swatches{justify-content:flex-start}
+}
 #cmCalendar .pcard{max-width:680px;margin:0 auto;cursor:default}
 .btn.kofi{background:var(--accent);color:#fff;border-color:transparent;font-weight:600;gap:8px}.btn.kofi:hover{filter:brightness(.95)}
 .cal{display:flex;flex-direction:column;gap:8px}
@@ -1289,58 +1347,77 @@ Savasana, 3 min"></textarea>
             <div class="crow"><button class="btn small" id="pfLook" type="button">Change my look</button><button class="btn small" id="pfWelcome" type="button">Replay the welcome</button></div>
           </div>
         </div>
-        <details class="pcard fold" id="lookCard">
-          <summary><span><h2>Your figure</h2><span class="hint">Skin, hair, build, clothes and mat</span></span><canvas class="foldfig" width="96" height="96" data-pose="mountain" data-size="96" aria-hidden="true"></canvas></summary>
-          <p class="hint">How you look everywhere in the app: the reference, practices, the camera view and the guide.</p>
-          <div class="skins">
-            <div class="skhead"><h3>Skins</h3><button class="btn small" id="skinGen" type="button">Generate new skins</button></div>
-            <div class="skdrop" id="skinDrop">
-              <button class="skcur" id="skinCur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="skinMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname" id="skinCurName">Sama</span></button>
-              <div class="skmenu" id="skinMenu" role="listbox" aria-label="Skins" hidden>
-                <div id="skinGrid"></div>
-                <div id="skinNew" hidden></div>
+        <details class="pcard fold lookstudio" id="lookCard">
+          <summary><span><h2>Your figure</h2><span class="hint">Skin, hair, build, clothes and mat</span></span><canvas class="foldfig" width="96" height="96" data-pose="mountain" data-size="96" aria-hidden="true"></canvas><span class="lsdone">Done</span></summary>
+          <div class="lsbody">
+            <div class="lsstage">
+              <canvas id="lookFig" width="900" height="900" role="img" aria-label="Your figure"></canvas>
+              <div class="lsposes" id="lookPoses" role="group" aria-label="Pose"></div>
+            </div>
+            <div class="lsopts">
+              <p class="hint lsintro">How you look everywhere in the app: the reference, practices, the camera view and the guide.</p>
+              <section class="lsgroup skins"><h3>Ready-made looks</h3>
+                <div class="lspick">
+                  <div class="skhead"><h3>Skins</h3><button class="btn small" id="skinGen" type="button">Generate new skins</button></div>
+                  <div class="skdrop" id="skinDrop">
+                    <button class="skcur" id="skinCur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="skinMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname" id="skinCurName">Sama</span></button>
+                    <div class="skmenu" id="skinMenu" hidden>
+                      <div class="sksub" data-sub="main">
+                        <button class="skgo" type="button" data-go="char"><canvas width="92" height="120" aria-hidden="true"></canvas><span><b>Characters</b><i class="skgonow"></i></span></button>
+                        <button class="skgo" type="button" data-go="cost"><canvas width="92" height="120" aria-hidden="true"></canvas><span><b>Costumes</b><i class="skgonow"></i></span></button>
+                        <p class="sksep">Skins</p>
+                        <div id="skinGrid" role="listbox" aria-label="Skins"></div>
+                        <div id="skinNew" role="listbox" aria-label="Skins" hidden></div>
+                      </div>
+                      <div class="sksub" data-sub="char" hidden>
+                        <button class="skback" type="button">Characters</button>
+                        <p class="sksubhint">A character changes who the figure is: body, skin tone and hair. Your clothes stay as they are.</p>
+                        <div id="charGrid" role="listbox" aria-label="Characters"></div>
+                      </div>
+                      <div class="sksub" data-sub="cost" hidden>
+                        <button class="skback" type="button">Costumes</button>
+                        <p class="sksubhint">A costume goes on over your body and your own clothes, for fun: pick No costume or any skin to take it off.</p>
+                        <div id="costumeGrid" role="listbox" aria-label="Costumes"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="hint">A skin changes your whole figure: a more detailed body with fingers and toes, the clothes and the mat. Characters and costumes are inside the menu.</p>
+                </div>
+                <div class="lspick">
+                  <div class="skhead skcost"><h3>Backgrounds</h3></div>
+                  <div class="skdrop" id="sceneDrop">
+                    <button class="skcur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="sceneMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname"></span></button>
+                    <div class="skmenu" id="sceneMenu" role="listbox" aria-label="Backgrounds" hidden><div id="sceneGrid"></div></div>
+                  </div>
+                  <p class="hint">Where your mat is: in practices, on the camera view and behind the reference.</p>
+                </div>
+              </section>
+              <div class="alook aonly alook-rows">
+              <section class="lsgroup"><h3>Body</h3>
+                <div class="arow"><span>Body</span><div class="segs" data-k="figure"><button type="button" class="seg" data-v="woman">Woman</button><button type="button" class="seg" data-v="man">Man</button></div></div>
+                <div class="arow"><span>Build</span><div class="segs" data-k="build"><button type="button" class="seg" data-v="slim">Slim</button><button type="button" class="seg" data-v="regular">Regular</button><button type="button" class="seg" data-v="soft">Soft</button><button type="button" class="seg" data-v="strong">Strong</button></div></div>
+                <div class="arow"><span>Skin</span><div class="swatches" data-k="skin"></div></div>
+                <div class="arow"><span>Hair</span><div class="segs" data-k="hair"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="bun">Bun</button><button type="button" class="seg" data-v="ponytail">Ponytail</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="curly">Curly</button><button type="button" class="seg" data-v="afro">Afro puffs</button><button type="button" class="seg" data-v="bob">Bob</button><button type="button" class="seg" data-v="manbun">Man bun</button><button type="button" class="seg" data-v="none">None</button></div></div>
+                <div class="arow"><span>Hair colour</span><div class="swatches" data-k="hairColor"></div></div>
+                <div class="arow flatonly"><span>Beard</span><div class="segs" data-k="beard"><button type="button" class="seg" data-v="no">No</button><button type="button" class="seg" data-v="yes">Yes</button></div></div>
+              </section>
+              <section class="lsgroup"><h3>Clothes</h3>
+                <div class="arow flatonly"><span>Sleeves</span><div class="segs" data-k="sleeves"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="none">Sleeveless</button></div></div>
+                <div class="arow"><span>Top colour</span><div class="swatches" data-k="topColor"></div></div>
+                <div class="arow flatonly"><span>Pattern</span><div class="segs" data-k="pattern"><button type="button" class="seg" data-v="none">Plain</button><button type="button" class="seg" data-v="dots">Dots</button><button type="button" class="seg" data-v="stripes">Stripes</button><button type="button" class="seg" data-v="zigzag">Zigzag</button><button type="button" class="seg" data-v="checks">Checks</button><button type="button" class="seg" data-v="waves">Waves</button><button type="button" class="seg" data-v="leaves">Leaves</button><button type="button" class="seg" data-v="rays">Sunrise</button><button type="button" class="seg" data-v="stars">Stars</button></div></div>
+                <div class="arow flatonly"><span>Pattern colour</span><div class="swatches" data-k="patternColor"></div></div>
+                <div class="arow"><span>Bottom</span><div class="segs" data-k="bottom"><button type="button" class="seg" data-v="leggings">Trousers</button><button type="button" class="seg" data-v="shorts">Shorts</button></div><div class="swatches" data-k="bottomColor"></div></div>
+                <div class="arow"><span>Trouser fit</span><div class="segs" data-k="fit"><button type="button" class="seg" data-v="fitted">Fitted</button><button type="button" class="seg" data-v="relaxed">Relaxed</button><button type="button" class="seg" data-v="wide">Wide</button></div></div>
+              </section>
+              <section class="lsgroup"><h3>Mat and size</h3>
+                <div class="arow flatonly"><span>Mat</span><div class="swatches" data-k="mat"></div></div>
+                <div class="arow"><span>Mat length</span><div class="segs" data-k="matLen"><button type="button" class="seg" data-v="183">Standard · 183 cm</button><button type="button" class="seg" data-v="213">XL · 213 cm</button></div></div>
+                <div class="arow"><span>Your height</span><div class="hrow"><input type="range" id="heightIn" min="140" max="205" step="1" aria-label="Your height in centimetres"><b id="heightOut"></b></div></div>
+                <div class="arow"><span>Your weight</span><div class="hrow"><input type="range" id="weightIn" min="40" max="150" step="1" aria-label="Your weight in kilograms"><b id="weightOut"></b></div></div>
+                <p class="hint">Height and mat length set how much of the mat your body covers in each pose, so you can see where to place your hands and feet.</p>
+              </section>
               </div>
             </div>
-            <p class="hint">A skin changes your whole figure: a more detailed body with fingers and toes, the clothes and the mat. Your build and height stay yours.</p>
-            <div class="skhead skcost"><h3>Characters</h3></div>
-            <div class="skdrop" id="charDrop">
-              <button class="skcur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="charMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname"></span></button>
-              <div class="skmenu" id="charMenu" role="listbox" aria-label="Characters" hidden><div id="charGrid"></div></div>
-            </div>
-            <p class="hint">A character changes who the figure is: body, skin tone and hair. Your clothes stay as they are.</p>
-            <div class="skhead skcost"><h3>Costumes</h3></div>
-            <div class="skdrop" id="costumeDrop">
-              <button class="skcur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="costumeMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname"></span></button>
-              <div class="skmenu" id="costumeMenu" role="listbox" aria-label="Costumes" hidden><div id="costumeGrid"></div></div>
-            </div>
-            <p class="hint">A costume goes on over your body and your own clothes, for fun: pick No costume or any skin to take it off.</p>
-            <div class="skhead skcost"><h3>Backgrounds</h3></div>
-            <div class="skdrop" id="sceneDrop">
-              <button class="skcur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="sceneMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname"></span></button>
-              <div class="skmenu" id="sceneMenu" role="listbox" aria-label="Backgrounds" hidden><div id="sceneGrid"></div></div>
-            </div>
-            <p class="hint">Where your mat is: in practices, on the camera view and behind the reference.</p>
-          </div>
-          <div class="alook">
-          <div class="aonly alook-rows">
-            <div class="arow"><span>Skin</span><div class="swatches" data-k="skin"></div></div>
-            <div class="arow"><span>Hair</span><div class="segs" data-k="hair"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="bun">Bun</button><button type="button" class="seg" data-v="ponytail">Ponytail</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="curly">Curly</button><button type="button" class="seg" data-v="afro">Afro puffs</button><button type="button" class="seg" data-v="bob">Bob</button><button type="button" class="seg" data-v="manbun">Man bun</button><button type="button" class="seg" data-v="none">None</button></div></div>
-            <div class="arow"><span>Hair colour</span><div class="swatches" data-k="hairColor"></div></div>
-            <div class="arow"><span>Build</span><div class="segs" data-k="build"><button type="button" class="seg" data-v="slim">Slim</button><button type="button" class="seg" data-v="regular">Regular</button><button type="button" class="seg" data-v="soft">Soft</button><button type="button" class="seg" data-v="strong">Strong</button></div></div>
-            <div class="arow"><span>Body</span><div class="segs" data-k="figure"><button type="button" class="seg" data-v="woman">Woman</button><button type="button" class="seg" data-v="man">Man</button></div></div>
-            <div class="arow flatonly"><span>Sleeves</span><div class="segs" data-k="sleeves"><button type="button" class="seg" data-v="short">Short</button><button type="button" class="seg" data-v="long">Long</button><button type="button" class="seg" data-v="none">Sleeveless</button></div></div>
-            <div class="arow"><span>Top colour</span><div class="swatches" data-k="topColor"></div></div>
-            <div class="arow flatonly"><span>Pattern</span><div class="segs" data-k="pattern"><button type="button" class="seg" data-v="none">Plain</button><button type="button" class="seg" data-v="dots">Dots</button><button type="button" class="seg" data-v="stripes">Stripes</button><button type="button" class="seg" data-v="zigzag">Zigzag</button><button type="button" class="seg" data-v="checks">Checks</button><button type="button" class="seg" data-v="waves">Waves</button><button type="button" class="seg" data-v="leaves">Leaves</button><button type="button" class="seg" data-v="rays">Sunrise</button><button type="button" class="seg" data-v="stars">Stars</button></div></div>
-            <div class="arow flatonly"><span>Pattern colour</span><div class="swatches" data-k="patternColor"></div></div>
-            <div class="arow"><span>Bottom</span><div class="segs" data-k="bottom"><button type="button" class="seg" data-v="leggings">Trousers</button><button type="button" class="seg" data-v="shorts">Shorts</button></div><div class="swatches" data-k="bottomColor"></div></div>
-            <div class="arow"><span>Trouser fit</span><div class="segs" data-k="fit"><button type="button" class="seg" data-v="fitted">Fitted</button><button type="button" class="seg" data-v="relaxed">Relaxed</button><button type="button" class="seg" data-v="wide">Wide</button></div></div>
-            <div class="arow flatonly"><span>Beard</span><div class="segs" data-k="beard"><button type="button" class="seg" data-v="no">No</button><button type="button" class="seg" data-v="yes">Yes</button></div></div>
-            <div class="arow flatonly"><span>Mat</span><div class="swatches" data-k="mat"></div></div>
-            <div class="arow"><span>Your height</span><div class="hrow"><input type="range" id="heightIn" min="140" max="205" step="1" aria-label="Your height in centimetres"><b id="heightOut"></b></div></div>
-            <div class="arow"><span>Your weight</span><div class="hrow"><input type="range" id="weightIn" min="40" max="150" step="1" aria-label="Your weight in kilograms"><b id="weightOut"></b></div></div>
-            <div class="arow"><span>Mat length</span><div class="segs" data-k="matLen"><button type="button" class="seg" data-v="183">Standard · 183 cm</button><button type="button" class="seg" data-v="213">XL · 213 cm</button></div></div>
-            <p class="hint">Height and mat length set how much of the mat your body covers in each pose, so you can see where to place your hands and feet.</p>
-          </div>
           </div>
         </details>
         <div class="pcard" id="coffeeCard" hidden>
@@ -8916,18 +8993,21 @@ function genSkin(rnd = Math.random){
     g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = css('--figbg'); g.fillRect(0, 0, c.width, c.height);
     g.setTransform(k, 0, 0, k, c.width/2 - cx*k, -top*k); g.translate(-figShift(R), 0); drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av);
   };
-  // Skins, Characters, Costumes and Backgrounds each sit in a dropdown: the button shows how it is now with the pick's name; the menu lists every option
+  // Skins and Backgrounds each sit in a dropdown: the button shows how it is now with the pick's name; the menu lists every option.
+  // The Skins menu also holds Characters and Costumes, each a sub menu of its own (a row that opens it, a back row that returns).
   const dpr0 = Math.min(2, window.devicePixelRatio || 1), DROPS = [];
-  const dropdown = (root, getOpts) => {
+  const dropdown = (root, getOpts, getOn) => {
     const cur = root.querySelector('.skcur'), menu = root.querySelector('.skmenu'), c = cur.querySelector('canvas');
     c.width = 92*dpr0; c.height = 120*dpr0;
     const opts = getOpts || (() => [...menu.querySelectorAll('.skin')]);
-    const on = () => opts().find(b => b.getAttribute('aria-pressed') === 'true');
-    const show = (open, focus) => {
-      if (open) for (const d of DROPS) if (d.menu !== menu && !d.menu.hidden) d.show(false);
+    const on = getOn || (() => opts().find(b => b.getAttribute('aria-pressed') === 'true'));
+    const d = {root, cur, menu, c, opts, on, onOpen:null, set:name => { cur.querySelector('.skcurname').textContent = name; }};
+    const show = d.show = (open, focus) => {
+      if (open) for (const x of DROPS) if (x.menu !== menu && !x.menu.hidden) x.show(false);
+      if (open && menu.hidden && d.onOpen) d.onOpen();
       menu.hidden = !open; cur.setAttribute('aria-expanded', String(open));
-      if (open && focus){ const o = opts(); (on() || o[0]).focus(); }
-      if (open){ const sel = on(); if (sel) sel.scrollIntoView({block:'nearest'}); menu.scrollIntoView({block:'nearest', behavior:'smooth'}); } // the whole menu on screen, clear of the tab bar
+      if (open && focus){ const o = opts(); (o.find(b => b.getAttribute('aria-pressed') === 'true') || o[0]).focus(); }
+      if (open){ const sel = opts().find(b => b.getAttribute('aria-pressed') === 'true'); if (sel) sel.scrollIntoView({block:'nearest'}); menu.scrollIntoView({block:'nearest', behavior:'smooth'}); } // the whole menu on screen, clear of the tab bar
     };
     cur.addEventListener('click', () => show(menu.hidden, false));
     cur.addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); show(true, true); } });
@@ -8940,11 +9020,30 @@ function genSkin(rnd = Math.random){
     });
     menu.addEventListener('click', e => { if (e.target.closest('.skin')){ show(false); cur.focus(); } });
     document.addEventListener('click', e => { if (!menu.hidden && !root.contains(e.target) && e.target.id !== 'skinGen') show(false); });
-    const d = {root, cur, menu, c, opts, on, show, set:name => { cur.querySelector('.skcurname').textContent = name; }};
     DROPS.push(d); return d;
   };
-  const skinD = dropdown($('skinDrop'), () => [...$('skinMenu').querySelectorAll('.skin')].filter(b => !(fresh.hidden && fresh.contains(b)))); // the generated ones only once there are some
-  const charD = dropdown($('charDrop')), costD = dropdown($('costumeDrop')), sceneD = dropdown($('sceneDrop'));
+  const skinMenu = $('skinMenu'), subs = [...skinMenu.querySelectorAll('.sksub')];
+  const subOn = () => subs.find(x => !x.hidden);
+  const skinD = dropdown($('skinDrop'),
+    () => [...subOn().querySelectorAll('.skgo, .skback, .skin')].filter(b => !(fresh.hidden && fresh.contains(b))), // the rows of the open sub menu; the generated skins only once there are some
+    () => [...grid.children, ...(fresh.hidden ? [] : fresh.children)].find(b => b.getAttribute('aria-pressed') === 'true'));
+  const goSub = (name, focus) => {
+    for (const x of subs) x.hidden = x.dataset.sub !== name;
+    skinMenu.scrollTop = 0;
+    const sel = subOn().querySelector('.skin[aria-pressed="true"]'); if (sel) sel.scrollIntoView({block:'nearest'});
+    if (focus){ const back = subOn().querySelector('.skback'); (back || subOn().querySelector(`.skgo[data-go="${focus}"]`) || skinD.opts()[0]).focus(); }
+  };
+  skinD.onOpen = () => goSub('main');
+  skinMenu.addEventListener('click', e => {
+    const go = e.target.closest('.skgo'); if (go){ goSub(go.dataset.go, true); return; }
+    const back = e.target.closest('.skback'); if (back){ const from = subOn().dataset.sub; goSub('main', from); }
+  });
+  skinMenu.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' && document.activeElement.matches('.skgo')){ e.preventDefault(); goSub(document.activeElement.dataset.go, true); }
+    else if ((e.key === 'ArrowLeft' || e.key === 'Backspace') && subOn().dataset.sub !== 'main'){ e.preventDefault(); goSub('main', subOn().dataset.sub); }
+  });
+  const sceneD = dropdown($('sceneDrop'));
+  const goC = skinMenu.querySelectorAll('.skgo canvas'); for (const c of goC){ c.width = 92*dpr0; c.height = 120*dpr0; }
   // a background's preview: the scene with your figure standing on its mat, cropped to the card like the costume cards
   const drawBg = (c, kind) => {
     const g = c.getContext('2d'), W = c.width, H = c.height;
@@ -8957,10 +9056,12 @@ function genSkin(rnd = Math.random){
   const look0 = () => lineOn() ? {style:'line'} : {};
   const mark = () => {
     for (const b of document.querySelectorAll('.skins .skin')){ const on = b._scene ? b._scene === scene : wearing(b._look); b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-selected', String(on)); }
-    const now = skinD.on() || costD.opts().find(b => !b._none && b.getAttribute('aria-pressed') === 'true'); // a costume over the clothes: its name
-    skinD.set(now ? now._name : 'Custom'); drawSkin(skinD.c, look0());
-    charD.set(charD.on()?._name || 'Your own'); drawSkin(charD.c, look0());
-    costD.set(costD.on()?._name || 'No costume'); drawSkin(costD.c, look0());
+    const pressed = h => [...h.children].find(b => b.getAttribute('aria-pressed') === 'true');
+    const ch = pressed(hgrid), co = pressed(cgrid), costume = co && !co._none ? co : null;
+    skinD.set([costume ? costume._name : skinD.on()?._name || 'Custom', ch && ch._name].filter(Boolean).join(' · ')); drawSkin(skinD.c, look0()); // the skin (or the costume over it), and the character when there is one
+    const [gc, gk] = skinMenu.querySelectorAll('.skgo');
+    gc.querySelector('.skgonow').textContent = ch ? ch._name : 'Your own'; drawSkin(goC[0], ch ? ch._look : look0());
+    gk.querySelector('.skgonow').textContent = co ? co._name : 'No costume'; drawSkin(goC[1], costume ? costume._look : look0());
     sceneD.set(SCENES[scene]); drawBg(sceneD.c, scene);
   };
   const wear = look => { Object.assign(avatar, {style:''}, look); saveAvatar(); try { window.__syncLook && window.__syncLook(); } catch {} retheme(); };
@@ -8979,6 +9080,37 @@ function genSkin(rnd = Math.random){
   window.__shapes = {woman: SHAPE_WOMAN, man: SHAPE_MAN}; window.__torso = (R, fig, kind) => { SHAPE = fig === 'man' ? SHAPE_MAN : SHAPE_WOMAN; return {pts: torsoOutline(R, SIL_BASE, kind), fr: torsoFrame3(R, SIL_BASE)}; }; window.__setSkinArms = (la, ra, id = 'x_skin') => { MOTION_SPECS[id].la = la; MOTION_SPECS[id].ra = ra; for (const k of Object.keys(P3)) if (k.startsWith('x_skin')) delete P3[k]; }; window.__skins = {repaint, genSkin, SKINS, drawSkin, drawFig(g, R, look, noMat){ g.save(); g.translate(-figShift(R), 0); const av = {...avatar, ...look}; if (!noMat) drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av); g.restore(); }};
   LINE.subs.add(repaint); repaint(); new MutationObserver(repaint).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
   for (const h of [$('avatarBox'), $('lookCard')]) h.addEventListener('click', () => setTimeout(() => { repaint(); }, 0)); // a hand-picked colour or skin tone shows on every card
+})();
+// ---------- Your figure, full screen: the figure large in its background on the left, the options on the right (stacked on a phone) ----------
+// The figure is drawn live every frame from the avatar and the background, so every pick shows on it at once; the pose buttons try the look in other poses.
+(function(){
+  const card = $('lookCard'), cv = $('lookFig'), bar = $('lookPoses'); if (!card || !cv) return;
+  const POSES_TRY = ['mountain', 'tree', 'warrior2', 'triangle', 'dog', 'dancer'].filter(id => REF_SPECS[id]);
+  let fig = null, at = POSES_TRY[0];
+  const mark = () => { for (const b of bar.children) b.setAttribute('aria-pressed', String(b.dataset.pose === at)); };
+  for (const id of POSES_TRY){ const b = document.createElement('button'); b.type = 'button'; b.dataset.pose = id; b.textContent = poseName(id); bar.appendChild(b); }
+  bar.addEventListener('click', e => { const b = e.target.closest('button[data-pose]'); if (!b || !fig) return; at = b.dataset.pose; fig.setPose(at); mark(); });
+  // the figure as large as the stage allows (a square, above the pose buttons), drawn at the screen's resolution
+  const stage = cv.parentElement, size = () => {
+    const cs = getComputedStyle(stage), w = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), h = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - bar.offsetHeight - parseFloat(cs.rowGap || 0);
+    const side = Math.max(120, Math.floor(Math.min(w, h))); stage.style.setProperty('--lsz', side + 'px');
+    const px = Math.min(1600, Math.round(side*Math.min(2, window.devicePixelRatio || 1))); if (Math.abs(px - cv.width) > 4) cv.width = cv.height = px;
+  };
+  const head = () => card.style.setProperty('--lsh', card.querySelector('summary').offsetHeight + 'px'); // the options and the stage fill the screen under the title bar
+  try { new ResizeObserver(() => { if (card.open){ head(); size(); } }).observe(stage); } catch {}
+  addEventListener('resize', () => { if (card.open) head(); });
+  card.addEventListener('toggle', () => {
+    document.documentElement.classList.toggle('lsopen', card.open);
+    if (!card.open) return;
+    if (!fig){ fig = figureAnimator(cv); fig.setPose(at); mark(); }
+    head(); requestAnimationFrame(size);
+  });
+  // Escape closes the full screen (after any open menu)
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape' || !card.open || e.defaultPrevented) return;
+    if (card.querySelector('.skmenu:not([hidden]), .dd.open')){ if (typeof closeMenus === 'function') closeMenus(); return; }
+    card.open = false; card.querySelector('summary').focus();
+  });
 })();
 const themeBtns = [...document.querySelectorAll('.theme button')];
 function setTheme(t, save = true){

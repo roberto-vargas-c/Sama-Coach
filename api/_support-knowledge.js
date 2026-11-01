@@ -41,7 +41,7 @@ STUDIOS
 - Teachers and studios can add their own weekly class with "Add your class" (needs sign-in): class name, studio or address, days, time, length, style, level, language, price, booking link, note. Their classes show to people searching nearby and on the studio's card; they can edit or remove them under "Your classes". Anyone can report a class that looks wrong.
 
 PROFILE
-- Name, "Change my look" (skin, hair, build, clothes, beard, mat colour, height, standard or XL mat), and under Your figure four dropdowns: Skins, Characters, Costumes and Backgrounds (the scene behind the figure: plain, studio, living room, park, beach, mountains, night rooftop), replay the welcome, the app tour ("Show the app tour").
+- Name, "Change my look" (skin, hair, build, clothes, beard, mat colour, height, standard or XL mat), and Your figure, which opens full screen with the figure large on the left (it changes as you pick, and pose buttons show it in Mountain, Tree, Warrior II, Triangle, Downward Dog and Dancer) and the options on the right (on a phone the figure is on top): two dropdowns, Skins (its menu also opens Characters and Costumes, each a sub menu of its own) and Backgrounds (the scene behind the figure: plain, studio, living room, park, beach, mountains, night rooftop), replay the welcome, the app tour ("Show the app tour").
 - My practice: gender, experience, body areas to be gentle with, goal pose, days a week, notes for the coach.
 - Optional cycle tracking (stays on the device only): practices adapt on the period and when energy is up; predicted days in the calendar.
 - Practice days and a time, with Google Calendar and a reminder.
