@@ -3972,7 +3972,7 @@ function detailParts(parts, R, sil, av){
       chainPath(g, [lerp(P(11 + o), hc, SHAPE.legIn), kn, lerp(kn, ankleAt(o), SHAPE.hem)], [[0, T0], [.4, T0*SHAPE.thighMid], [.82, K*1.1], [1, K*1.01], [SHAPE.calfAt - .1, K*SHAPE.calf], [1.82, A*1.16], [2, A]], back, .5, inThigh); }; // the calf eases down into the ankle over the whole lower shin (no corner under the calf)
     const thighOnly = g => { const T0 = sil.thigh[0]*s, K = sil.thigh[1]*s; g.beginPath(); chainPath(g, [P(11 + o), P(13 + o)], [[0, T0], [.3, T0*1.02], [1, K]], back, .5, inThigh); };
     const shinOnly = g => { const K = sil.shin[0]*s*.9, A = sil.shin[1]*s*.9; g.beginPath(); chainPath(g, [P(13 + o), P(15 + o)], [[0, K], [.28, K*1.13], [.6, A*1.25], [1, A]], back, .5); };
-    const looseLeg = g => { const T0 = sil.thigh[0]*s, K = Math.max(sil.thigh[1], sil.shin[0])*s, H = sil.shin[1]*s; g.beginPath(); // relaxed and wide trousers: one shape from the hip to the hem as well, at the fit's own widths
+    const looseLeg = g => { const T0 = sil.thigh[0]*s*SHAPE.thigh0, K = Math.max(sil.thigh[1], sil.shin[0])*s, H = sil.shin[1]*s; g.beginPath(); // relaxed and wide trousers: one shape from the hip to the hem as well, at the fit's own widths
       chainPath(g, [lerp(P(11 + o), hc, SHAPE.legIn), kn, lerp(kn, P(15 + o), av.fit === 'wide' ? .88 : .93)], [[0, T0], [1, K], [2, H]], back, .5); }; // (straight cloth: no thigh muscle, no inner-thigh fill; the seat joins the tops)
     if (p.part === 'thigh' && loose) return tag(looseLeg, p); // (a thigh and a shin drawn apart left the thigh's round end and its shade as a band across the knee)
     if (p.part === 'shin' && p.ks[1] === 15 + o && loose) return null;
@@ -4300,7 +4300,7 @@ function drawFlatFigure(g, R, av){
   // back to front: far limbs; the near upper arm (its shoulder end hides behind the shirt); the shirt; the trousers over it
   // (shin under thigh, so the knee reads as the end of the thigh); the near arm again minus its shoulder; the head
   const SUB = {foot:.05, shin:.1, thigh:.3, upper:.4, fore:.5, hand:.6}; // feet first, so the trouser hems fall over them
-  const order = p => p.zf ? p.zf(!!(p.side && p.side === far)) : p.z != null ? p.z : p.lifted ? 3.72 : p.under ? 1.95 : p.part==='head' || p.part==='neck' ? 9 : p.hem ? 3.7 : p.part==='glute' ? (R.face3 && R.face3[2] > .35 ? 3.6 : 3.45) : p.part==='seatlines' ? 3.65 : p.part==='band' ? 3.62 : p.part==='neckline' ? 2.5 : p.bare ? 1.9 : p.front ? 4 : (p.side && p.side===far) ? SUB[p.part] || 0
+  const order = p => p.zf ? p.zf(!!(p.side && p.side === far)) : p.z != null ? p.z : p.lifted ? 3.72 : p.under ? 1.95 : p.part==='head' || p.part==='neck' ? 9 : p.hem ? 3.7 : p.part==='glute' ? (R.face3 && R.face3[2] > .35 ? 3.6 : 3.45) - (p.side && p.side === far ? .01 : 0) : p.part==='seatlines' ? 3.65 : p.part==='band' ? 3.62 : p.part==='neckline' ? 2.5 : p.bare ? 1.9 : p.front ? 4 : (p.side && p.side===far) ? SUB[p.part] || 0
     : p.part==='upper' ? 1 : p.part==='torso' || p.part==='shoulders' ? 2 : p.part==='shin' || p.part==='foot' || p.part==='thigh' ? 3 + SUB[p.part] : p.part==='hips' || p.part==='seat' ? 3.5 : 4 + (SUB[p.part] || 0);
   const Kw = R.kp, hz = Kw[0] && Kw[0].w ? Kw[0].w[2] : null, nearSide = far === 'l' ? 'r' : far === 'r' ? 'l' : null;
   // an arm reaching up past the ear (Low Lunge, Chair, Warrior I) is the near one, so it lies over the side of the head as well
