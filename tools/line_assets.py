@@ -70,12 +70,27 @@ def cut(name, src=SRC / 'poses', out=OUT / 'poses'):
         quad, matpx = q
         poly = np.zeros((H, W), np.uint8); cv2.fillPoly(poly, [quad.round().astype(np.int32)], 1)
         border = np.zeros((H, W), np.uint8); cv2.polylines(border, [quad.round().astype(np.int32)], True, 1, 11)
-        near_teal = cv2.dilate(teal.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0
         dark = a.max(2) < 120
         # the teal itself, softened edge pixels between teal and ink, and the mat's ink outline next to the teal
         tealish = (hsv[..., 0] >= 70) & (hsv[..., 0] <= 105) & (hsv[..., 1] > 20) & (a.max(2) > 110)
-        drop = teal | (tealish & (poly > 0)) | (dark & (border > 0) & near_teal)
-        drop |= (border > 0) & ~dark & ~(a.min(2) < 200)  # light anti-aliasing round the outline
+        # the mat's ink outline where it shows: dark pixels along an edge with the mat's teal just inside it (looking across
+        # the edge, towards the middle). A limb or sock crossing the edge has its own ink there, not teal, so it stays whole.
+        outline = np.zeros((H, W), bool); qi = quad.round().astype(np.int32); mid = quad.mean(0)
+        for i in range(4):
+            p0, p1 = quad[i], quad[(i + 1) % 4]
+            band = np.zeros((H, W), np.uint8); cv2.line(band, tuple(map(int, qi[i])), tuple(map(int, qi[(i + 1) % 4])), 1, 11)
+            d = p1 - p0; nrm = np.array([-d[1], d[0]]) / np.hypot(*d)
+            if np.dot(mid - (p0 + p1) / 2, nrm) < 0: nrm = -nrm
+            inside = np.zeros((H, W), bool)
+            for k in range(1, 9):
+                M = np.float32([[1, 0, -nrm[0] * k], [0, 1, -nrm[1] * k]])
+                inside |= cv2.warpAffine(teal.astype(np.uint8), M, (W, H), flags=cv2.INTER_NEAREST) > 0
+            outline |= dark & (band > 0) & inside
+        drop = teal | (tealish & (poly > 0)) | outline
+        # light anti-aliasing round that outline only: a light pixel elsewhere in the band is the figure crossing the mat's edge
+        # (a face, a hand), and dropping it cut a stripe through the figure
+        by_line = cv2.dilate((outline | teal).astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+        drop |= (border > 0) & ~dark & ~(a.min(2) < 200) & by_line
         alpha &= ~drop
         col = np.median(a[teal], 0).astype(int).tolist()
         mat = {'q': [[round(x, 1), round(y, 1)] for x, y in quad], 'c': '#%02X%02X%02X' % tuple(col)}
