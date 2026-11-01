@@ -814,6 +814,7 @@ body.practice .backlib,body.tv .backlib{display:none}
 /* Your figure: a card in the profile that opens full screen, the figure large on the left and every option on the right; a pick shows on the figure at once */
 .lookstudio .lsdone{display:none;flex:none}
 .lookstudio:not([open]) .lsbody{display:none}
+.lookstudio:not([open]){gap:0} /* the closed card: no gap for the hidden contents */
 .lookstudio[open]{position:fixed;inset:0;z-index:100;margin:0;padding:0;gap:0;border:none;border-radius:0;box-shadow:none;background:var(--bg);display:flex;flex-direction:column;animation:lsin .22s ease-out}
 @keyframes lsin{from{opacity:0}}
 html.lsopen,html.lsopen body{overflow:hidden}
