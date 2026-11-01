@@ -286,17 +286,6 @@ body.practice .stage.sample #cvBg{display:block} /* full screen: the scene carri
 .skmenu .skin[aria-pressed="true"]{border-color:var(--accent);box-shadow:none}
 .skmenu .skin[aria-pressed="true"]::after{content:"";margin-left:auto;width:5px;height:10px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:translateY(-2px) rotate(45deg)}
 #skinNew{margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
-.sksub[hidden]{display:none}
-.skgo,.skback{display:flex;align-items:center;gap:12px;width:100%;padding:4px 10px 4px 4px;border:1.5px solid transparent;border-radius:10px;background:none;color:var(--ink);font:inherit;font-size:14px;text-align:left;cursor:pointer}
-.skgo+.skgo{margin-top:2px}
-.skmenu .skgo canvas{width:34px;height:auto;aspect-ratio:92/120;border-radius:6px;flex:none;display:block}
-.skgo>span{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.skgo b{font-weight:600}.skmenu .skgo i{font-style:normal;font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.skgo::after{content:"";flex:none;width:7px;height:7px;margin-right:4px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg)}
-.skgo:hover,.skgo:focus-visible,.skback:hover,.skback:focus-visible{background:var(--accent-soft);outline:none}
-.skback{min-height:40px;padding:6px 10px;font-weight:600;font-size:15px;border-bottom:1px solid var(--line);border-radius:10px 10px 0 0;margin-bottom:4px}
-.skback::before{content:"";flex:none;width:7px;height:7px;margin:0 2px 0 6px;border-left:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg)}
-.sksep{margin:8px 4px 4px;padding-top:8px;border-top:1px solid var(--line);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.sksubhint{margin:0 6px 6px;font-size:12.5px;line-height:1.4;color:var(--muted)}
 .alook.aonly{display:flex;flex-direction:column;gap:14px}
 .swatches{display:flex;flex-wrap:wrap;gap:8px}
 .swatches button{width:30px;height:30px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
@@ -825,6 +814,7 @@ body.practice .backlib,body.tv .backlib{display:none}
 /* Your figure: a card in the profile that opens full screen, the figure large on the left and every option on the right; a pick shows on the figure at once */
 .lookstudio .lsdone{display:none;flex:none}
 .lookstudio:not([open]) .lsbody{display:none}
+.lookstudio:not([open]){gap:0} /* the closed card: no gap for the hidden contents */
 .lookstudio[open]{position:fixed;inset:0;z-index:100;margin:0;padding:0;gap:0;border:none;border-radius:0;box-shadow:none;background:var(--bg);display:flex;flex-direction:column;animation:lsin .22s ease-out}
 @keyframes lsin{from{opacity:0}}
 html.lsopen,html.lsopen body{overflow:hidden}
@@ -1358,30 +1348,23 @@ Savasana, 3 min"></textarea>
               <p class="hint lsintro">How you look everywhere in the app: the reference, practices, the camera view and the guide.</p>
               <section class="lsgroup skins"><h3>Ready-made looks</h3>
                 <div class="lspick">
-                  <div class="skhead"><h3>Skins</h3><button class="btn small" id="skinGen" type="button">Generate new skins</button></div>
+                  <div class="skhead"><h3>Styles</h3></div>
+                  <div class="skdrop" id="styleDrop">
+                    <button class="skcur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="styleMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname"></span></button>
+                    <div class="skmenu" id="styleMenu" role="listbox" aria-label="Styles" hidden><div id="styleGrid"></div></div>
+                  </div>
+                  <p class="hint">How the figure is drawn: the classic figure, or the hand-drawn line drawing.</p>
+                </div>
+                <div class="lspick">
+                  <div class="skhead"><h3>Costumes</h3><button class="btn small" id="skinGen" type="button">Generate new costumes</button></div>
                   <div class="skdrop" id="skinDrop">
                     <button class="skcur" id="skinCur" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="skinMenu"><canvas width="92" height="120" aria-hidden="true"></canvas><span class="skcurname" id="skinCurName">Sama</span></button>
-                    <div class="skmenu" id="skinMenu" hidden>
-                      <div class="sksub" data-sub="main">
-                        <button class="skgo" type="button" data-go="char"><canvas width="92" height="120" aria-hidden="true"></canvas><span><b>Characters</b><i class="skgonow"></i></span></button>
-                        <button class="skgo" type="button" data-go="cost"><canvas width="92" height="120" aria-hidden="true"></canvas><span><b>Costumes</b><i class="skgonow"></i></span></button>
-                        <p class="sksep">Skins</p>
-                        <div id="skinGrid" role="listbox" aria-label="Skins"></div>
-                        <div id="skinNew" role="listbox" aria-label="Skins" hidden></div>
-                      </div>
-                      <div class="sksub" data-sub="char" hidden>
-                        <button class="skback" type="button">Characters</button>
-                        <p class="sksubhint">A character changes who the figure is: body, skin tone and hair. Your clothes stay as they are.</p>
-                        <div id="charGrid" role="listbox" aria-label="Characters"></div>
-                      </div>
-                      <div class="sksub" data-sub="cost" hidden>
-                        <button class="skback" type="button">Costumes</button>
-                        <p class="sksubhint">A costume goes on over your body and your own clothes, for fun: pick No costume or any skin to take it off.</p>
-                        <div id="costumeGrid" role="listbox" aria-label="Costumes"></div>
-                      </div>
+                    <div class="skmenu" id="skinMenu" role="listbox" aria-label="Costumes" hidden>
+                      <div id="skinGrid"></div>
+                      <div id="skinNew" hidden></div>
                     </div>
                   </div>
-                  <p class="hint">A skin changes your whole figure: a more detailed body with fingers and toes, the clothes and the mat. Characters and costumes are inside the menu.</p>
+                  <p class="hint">A costume changes your clothes and your mat, with a more detailed body. Your build, height, skin tone and hair stay yours.</p>
                 </div>
                 <div class="lspick">
                   <div class="skhead skcost"><h3>Backgrounds</h3></div>
@@ -8939,12 +8922,6 @@ const SKINS = [
   {name:'Peaks', look:skinOf({topColor:'#6F7C8E', sleeves:'none', pattern:'peaks', patternColor:'#EDE6D6', bottom:'leggings', bottomColor:'#3B3F45', fit:'fitted', mat:'#6F7C8E'})},
   {name:'Mesa', look:skinOf({topColor:'#E8D2AE', sleeves:'none', pattern:'chevrons', patternColor:'#B8522F', bottom:'leggings', bottomColor:'#B5502E', fit:'fitted', mat:'#D9B98A'})},
   {name:'Aurora', look:skinOf({topColor:'#1F5B5E', sleeves:'none', pattern:'aurora', patternColor:'#A07BDC', bottom:'leggings', bottomColor:'#3C2A5C', fit:'fitted', mat:'#2E6E70'})}];
-// Characters: who the figure is (body, skin tone, hair), worn with whatever skin or clothes are on
-const CHAR_KEYS = ['figure', 'skin', 'hair', 'hairColor', 'beard'];
-const CHARACTERS = [
-  {name:'Afro puffs', look:{figure:'woman', skin:'#6E4330', hair:'afro', hairColor:'#2B1D16', beard:'no'}},
-  {name:'Bob', look:{figure:'woman', skin:'#F6D7C3', hair:'bob', hairColor:'#5A3825', beard:'no'}},
-  {name:'Man bun', look:{figure:'man', skin:'#C68B62', hair:'manbun', hairColor:'#2B1D16', beard:'yes'}}];
 // Costumes: an outfit (see OUTFITS) worn over the body and the person's own clothes, which come back when a skin is picked
 const COSTUMES = [
   {name:'Pyjamas', look:{body:'detailed', outfit:'pyjamas', mat:'#9FB4D3'}},
@@ -8962,8 +8939,8 @@ const COSTUMES = [
   {name:'Fox', look:{body:'detailed', outfit:'fox', mat:'#CFC6BC'}},
   {name:'Onesie', look:{body:'detailed', outfit:'onesie', mat:'#3D4B6A'}},
   {name:'Stripes', look:{body:'detailed', outfit:'sailor', mat:'#EDE15A'}}];
-// Line drawing: the hand-drawn stills (see LINE) in place of the drawn figure; the clothes underneath stay as they were
-SKINS.splice(1, 0, {name:'Line drawing', look:{style:'line'}});
+// Styles: how the figure is drawn. Line drawing puts the hand-drawn stills (see LINE) in place of the drawn figure; the clothes underneath stay as they were
+const STYLES = [{name:'Classic', look:{style:''}}, {name:'Line drawing', look:{style:'line'}}];
 // The generator: a random base hue, then a palette that holds together (an analogous, complementary or single-hue scheme),
 // muted the way the brand is: a mid-tone top, a print that contrasts with it, dark trousers and a mat that answers the top.
 function genSkin(rnd = Math.random){
@@ -8978,7 +8955,8 @@ function genSkin(rnd = Math.random){
 }
 (function(){
   const grid = $('skinGrid'), fresh = $('skinNew'); if (!grid) return;
-  const wearing = look => look.outfit === null && !look.body ? !lineOn() && !avatar.outfit : look.style === 'line' ? lineOn() : !lineOn() && (look.outfit ? ['outfit'] : look.hair ? CHAR_KEYS : SKIN_KEYS).every(k => String(look[k] ?? '') === String(avatar[k] ?? (k === 'body' ? 'simple' : '')));
+  // a style is on when the figure is drawn that way; a costume (a skin or an outfit) when its clothes are on, whichever style draws them
+  const wearing = look => 'style' in look && !look.body ? (look.style === 'line') === lineOn() : (look.outfit ? ['outfit'] : SKIN_KEYS).every(k => String(look[k] ?? '') === String(avatar[k] ?? (k === 'body' ? 'simple' : '')));
   const card = (look, name) => {
     const b = document.createElement('button'), c = document.createElement('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1), W = 92, H = 120;
     b.type = 'button'; b.className = 'skin'; b._look = look; c.width = W*dpr; c.height = H*dpr; b.appendChild(c);
@@ -8993,8 +8971,7 @@ function genSkin(rnd = Math.random){
     g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = css('--figbg'); g.fillRect(0, 0, c.width, c.height);
     g.setTransform(k, 0, 0, k, c.width/2 - cx*k, -top*k); g.translate(-figShift(R), 0); drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av);
   };
-  // Skins and Backgrounds each sit in a dropdown: the button shows how it is now with the pick's name; the menu lists every option.
-  // The Skins menu also holds Characters and Costumes, each a sub menu of its own (a row that opens it, a back row that returns).
+  // Styles, Costumes and Backgrounds each sit in a dropdown: the button shows how it is now with the pick's name; the menu lists every option
   const dpr0 = Math.min(2, window.devicePixelRatio || 1), DROPS = [];
   const dropdown = (root, getOpts, getOn) => {
     const cur = root.querySelector('.skcur'), menu = root.querySelector('.skmenu'), c = cur.querySelector('canvas');
@@ -9022,28 +8999,8 @@ function genSkin(rnd = Math.random){
     document.addEventListener('click', e => { if (!menu.hidden && !root.contains(e.target) && e.target.id !== 'skinGen') show(false); });
     DROPS.push(d); return d;
   };
-  const skinMenu = $('skinMenu'), subs = [...skinMenu.querySelectorAll('.sksub')];
-  const subOn = () => subs.find(x => !x.hidden);
-  const skinD = dropdown($('skinDrop'),
-    () => [...subOn().querySelectorAll('.skgo, .skback, .skin')].filter(b => !(fresh.hidden && fresh.contains(b))), // the rows of the open sub menu; the generated skins only once there are some
-    () => [...grid.children, ...(fresh.hidden ? [] : fresh.children)].find(b => b.getAttribute('aria-pressed') === 'true'));
-  const goSub = (name, focus) => {
-    for (const x of subs) x.hidden = x.dataset.sub !== name;
-    skinMenu.scrollTop = 0;
-    const sel = subOn().querySelector('.skin[aria-pressed="true"]'); if (sel) sel.scrollIntoView({block:'nearest'});
-    if (focus){ const back = subOn().querySelector('.skback'); (back || subOn().querySelector(`.skgo[data-go="${focus}"]`) || skinD.opts()[0]).focus(); }
-  };
-  skinD.onOpen = () => goSub('main');
-  skinMenu.addEventListener('click', e => {
-    const go = e.target.closest('.skgo'); if (go){ goSub(go.dataset.go, true); return; }
-    const back = e.target.closest('.skback'); if (back){ const from = subOn().dataset.sub; goSub('main', from); }
-  });
-  skinMenu.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight' && document.activeElement.matches('.skgo')){ e.preventDefault(); goSub(document.activeElement.dataset.go, true); }
-    else if ((e.key === 'ArrowLeft' || e.key === 'Backspace') && subOn().dataset.sub !== 'main'){ e.preventDefault(); goSub('main', subOn().dataset.sub); }
-  });
-  const sceneD = dropdown($('sceneDrop'));
-  const goC = skinMenu.querySelectorAll('.skgo canvas'); for (const c of goC){ c.width = 92*dpr0; c.height = 120*dpr0; }
+  const skinD = dropdown($('skinDrop'), () => [...$('skinMenu').querySelectorAll('.skin')].filter(b => !(fresh.hidden && fresh.contains(b)))); // the generated ones only once there are some
+  const styleD = dropdown($('styleDrop')), sceneD = dropdown($('sceneDrop'));
   // a background's preview: the scene with your figure standing on its mat, cropped to the card like the costume cards
   const drawBg = (c, kind) => {
     const g = c.getContext('2d'), W = c.width, H = c.height;
@@ -9056,12 +9013,8 @@ function genSkin(rnd = Math.random){
   const look0 = () => lineOn() ? {style:'line'} : {};
   const mark = () => {
     for (const b of document.querySelectorAll('.skins .skin')){ const on = b._scene ? b._scene === scene : wearing(b._look); b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-selected', String(on)); }
-    const pressed = h => [...h.children].find(b => b.getAttribute('aria-pressed') === 'true');
-    const ch = pressed(hgrid), co = pressed(cgrid), costume = co && !co._none ? co : null;
-    skinD.set([costume ? costume._name : skinD.on()?._name || 'Custom', ch && ch._name].filter(Boolean).join(' · ')); drawSkin(skinD.c, look0()); // the skin (or the costume over it), and the character when there is one
-    const [gc, gk] = skinMenu.querySelectorAll('.skgo');
-    gc.querySelector('.skgonow').textContent = ch ? ch._name : 'Your own'; drawSkin(goC[0], ch ? ch._look : look0());
-    gk.querySelector('.skgonow').textContent = co ? co._name : 'No costume'; drawSkin(goC[1], costume ? costume._look : look0());
+    skinD.set(skinD.on()?._name || 'Custom'); drawSkin(skinD.c, {}); // the costume in the classic style, so its clothes show
+    styleD.set(styleD.on()?._name || 'Classic'); drawSkin(styleD.c, look0());
     sceneD.set(SCENES[scene]); drawBg(sceneD.c, scene);
   };
   const wear = look => { Object.assign(avatar, {style:''}, look); saveAvatar(); try { window.__syncLook && window.__syncLook(); } catch {} retheme(); };
@@ -9070,12 +9023,12 @@ function genSkin(rnd = Math.random){
   const repaint = () => { for (const b of all()) paintAny(b); mark(); };
   const opt = b => { b.setAttribute('role', 'option'); return b; };
   for (const s of SKINS) grid.appendChild(opt(card(s.look, s.name)));
-  const cgrid = $('costumeGrid'), noCost = opt(card({outfit:null}, 'No costume')); noCost._none = true; cgrid.appendChild(noCost);
-  for (const s of COSTUMES) cgrid.appendChild(opt(card(s.look, s.name)));
-  const hgrid = $('charGrid'); for (const s of CHARACTERS) hgrid.appendChild(opt(card(s.look, s.name)));
+  for (const s of COSTUMES) grid.appendChild(opt(card(s.look, s.name)));
+  const tgrid = $('styleGrid'); for (const s of STYLES) tgrid.appendChild(opt(card(s.look, s.name)));
   const sgrid = $('sceneGrid'); for (const [k, name] of Object.entries(SCENES)){ const b = opt(card(null, name)); b._scene = k; sgrid.appendChild(b); }
   $('skinGen').addEventListener('click', () => { fresh.replaceChildren(...Array.from({length:4}, (_, i) => opt(card(genSkin(), `New skin ${i + 1}`)))); fresh.hidden = false; for (const b of fresh.children) paint(b); mark(); skinD.show(true); fresh.scrollIntoView({block:'nearest'}); });
-  for (const h of [grid, fresh, cgrid, hgrid]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear(b._look); });
+  for (const h of [grid, fresh]) h.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear(b._look); });
+  tgrid.addEventListener('click', e => { const b = e.target.closest('.skin'); if (b) wear({style:b._look.style}); });
   sgrid.addEventListener('click', e => { const b = e.target.closest('.skin'); if (!b) return; scene = b._scene; try { localStorage.setItem('sama.scene', scene); } catch {} mark(); try { render(); } catch {} });
   window.__shapes = {woman: SHAPE_WOMAN, man: SHAPE_MAN}; window.__torso = (R, fig, kind) => { SHAPE = fig === 'man' ? SHAPE_MAN : SHAPE_WOMAN; return {pts: torsoOutline(R, SIL_BASE, kind), fr: torsoFrame3(R, SIL_BASE)}; }; window.__setSkinArms = (la, ra, id = 'x_skin') => { MOTION_SPECS[id].la = la; MOTION_SPECS[id].ra = ra; for (const k of Object.keys(P3)) if (k.startsWith('x_skin')) delete P3[k]; }; window.__skins = {repaint, genSkin, SKINS, drawSkin, drawFig(g, R, look, noMat){ g.save(); g.translate(-figShift(R), 0); const av = {...avatar, ...look}; if (!noMat) drawFlatMat(g, R, av.mat); drawFlatFigure(g, R, av); g.restore(); }};
   LINE.subs.add(repaint); repaint(); new MutationObserver(repaint).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
