@@ -48,6 +48,16 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px}
 .st{font-size:12px;color:var(--muted);min-height:1em}
 .empty{color:var(--muted);padding:30px 0;text-align:center}
 .views.three{grid-template-columns:1fr 1fr 1fr}
+.styles{display:flex;flex-direction:column;gap:6px}
+.styles h3{margin:0;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.sgrid{grid-template-columns:1fr 1fr}}
+.sgrid img{width:100%;height:auto;aspect-ratio:1;border-radius:10px;background:var(--stage);display:block;cursor:zoom-in}
+.sgrid img:not([src]){cursor:default;animation:pulse 1.6s infinite}
+dialog.big{border:none;padding:0;background:transparent;max-width:96vw;max-height:96vh}
+dialog.big::backdrop{background:rgba(20,14,10,.7)}
+dialog.big img{display:block;max-width:min(92vw,820px);max-height:86vh;border-radius:14px;background:var(--stage)}
+dialog.big p{margin:8px 0 0;text-align:center;color:#fff;font-size:14px}
 .ph{position:relative}.ph canvas{width:100%;aspect-ratio:1;border-radius:12px;background:var(--stage);display:block;max-width:100%}
 .phs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ph{display:flex;flex-direction:column;gap:3px;align-items:flex-start}.ph canvas{cursor:pointer}
 .phrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
@@ -88,7 +98,7 @@ dialog.ed::backdrop{background:rgba(20,14,10,.6)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 <script>try{var t=localStorage.getItem('sama.theme')||'light';if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}</script></head><body><div class="wrap">
-<header><h1>Pose review</h1><p>Every reference pose as the app draws it now, from three sides: the view the app opens with, a second view along the mat, and a three-quarter view between them, with the pose’s alignment rules measured on the reference. Click any figure to drag its joints. Mark each one <b>Looks right</b> or <b>Wrong</b>, and say what is off. For a pose that is wrong, add a photo of how it should look: the joints are found in the photo and saved with your verdict.</p></header>
+<header><h1>Pose review</h1><p>Every reference pose as the app draws it now, from three sides: the view the app opens with, a second view along the mat, and a three-quarter view between them, with the pose’s alignment rules measured on the reference. Under them, the pose in the Detailed style and as the Line drawing, woman and man, drawn live by the app. Click any figure to drag its joints. Mark each one <b>Looks right</b> or <b>Wrong</b>, and say what is off. For a pose that is wrong, add a photo of how it should look: the joints are found in the photo and saved with your verdict.</p></header>
 <div class="bar">
  <div class="row" id="sum"></div>
  <div class="authbar" id="authbar" hidden></div>
@@ -100,6 +110,7 @@ dialog.ed::backdrop{background:rgba(20,14,10,.6)}
 <p class="empty" id="empty" hidden>No poses match.</p>
 <p class="st" id="store"></p>
 </div>
+<dialog class="big" id="big"><img id="bigImg" alt=""><p id="bigCap"></p></dialog>
 <dialog class="ed" id="ed"><div class="edin">
  <div class="edhead"><h2 id="edTitle"></h2><div class="row" id="edViews"></div><button type="button" class="bt" id="edX" aria-label="Close">Close</button></div>
  <p class="edhint">Drag any joint to where it should be. Orange is the left side, teal the right. Your corrected joints are saved with the pose and marked Wrong, so it can be fixed in the app.<span id="edNoFig" hidden> The figure follows the joints on the website version of this page.</span></p>
@@ -130,17 +141,19 @@ function card(p){
   const issues = p.checks.filter(c => c.s !== 'good');
   el.innerHTML = `<div class="ttl"><h2></h2><span></span></div>
    <div class="views">${'<figure><div class="fig"><img alt="" loading="lazy" width="400" height="400"><canvas class="sk" width="400" height="400"></canvas></div><figcaption></figcaption></figure>'.repeat(NV(p))}</div>
+   <div class="styles"${WEB ? '' : ' hidden'}><h3>In each style</h3><div class="sgrid">${'<figure><img alt="" width="400" height="400"><figcaption></figcaption></figure>'.repeat(4)}</div></div>
    <div class="reps" hidden></div>
    <div class="checks"></div>
    <div class="phs"></div>
    <div class="phrow"><button type="button" class="lnk addph">Add a photo of the pose</button><input type="file" accept="image/*" multiple hidden><span class="phst"></span></div>
-   <div class="verdict"><button type="button" class="v ok">Looks right</button><button type="button" class="v no">Wrong</button><input class="note" type="text" placeholder="What is off? e.g. back heel lifts"></div><div class="st"></div>`;
+   <div class="verdict"><button type="button" class="v ok">Looks right</button><button type="button" class="v no">Wrong</button><input class="note" type="text" placeholder="What is off? e.g. Detailed man: back heel lifts"></div><div class="st"></div>`;
   el.querySelector('h2').textContent = p.name; el.querySelector('.ttl span').textContent = [p.sk, p.cat].filter(Boolean).join(' · ');
   const im = el.querySelectorAll('.fig img'), caps = el.querySelectorAll('.views figcaption'), sks = el.querySelectorAll('canvas.sk'), ed = v.edit || {};
   for (let i = 0; i < NV(p); i++){ im[i].src = IMG(p, i); im[i].alt = p.name + ', ' + LBL(p, i).toLowerCase(); caps[i].textContent = LBL(p, i); drawSkel(sks[i], ed[EK(i)] || KP(p, i), !!ed[EK(i)]); }
   el.querySelectorAll('.fig').forEach((f, i) => { f.title = 'Move the joints'; f.addEventListener('click', () => openEditor(p, i)); });
   for (let i = 0; i < NV(p); i++) if (ed[EK(i)]) figCard(im[i], p, i, ed[EK(i)]);
   if (ed.k1 || ed.k2 || ed.k3){ const tg = document.createElement('span'); tg.className = 'edtag'; tg.textContent = 'Joints corrected by you'; el.querySelector('.views').after(tg); }
+  if (WEB) styleCard(el.querySelector('.styles'), p);
   fillReports(el.querySelector('.reps'), p);
   const ch = el.querySelector('.checks');
   if (!p.checks.length) ch.innerHTML = '<div class="ck"><span class="dot"></span>No alignment rules for this pose</div>';
@@ -281,6 +294,31 @@ function figEngine(){ if (!WEB) return Promise.resolve(null); if (FIG.ready) ret
     const t0 = Date.now(), poll = () => { try { const S = f.contentWindow && f.contentWindow.__sama; if (S && S.drawEdited){ FIG.S = S; return res(S); } } catch {} if (Date.now() - t0 < 30000) setTimeout(poll, 250); else res(null); };
     f.addEventListener('load', poll); document.body.appendChild(f); });
   return FIG.ready; }
+// ---------- the pose in each style (Detailed and Line drawing, woman and man), drawn live by the embedded app as its library draws it ----------
+const LOOKS = [['Detailed · woman', {style:'', body:'detailed', figure:'woman', hair:'long', build:'slim'}], ['Detailed · man', {style:'', body:'detailed', figure:'man', hair:'short', build:'regular'}],
+  ['Line drawing · woman', {style:'line', figure:'woman'}], ['Line drawing · man', {style:'line', figure:'man'}]];
+const STY = {done:{}, queue:[], busy:false, io:null};
+// a Detailed figure is drawn on its whole stage: crop to the figure and its mat (whatever differs from the stage colour in the corner)
+function cropFig(c){ const g = c.getContext('2d'), W = c.width, H = c.height, d = g.getImageData(0, 0, W, H).data, r0 = d[0], g0 = d[1], b0 = d[2];
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for (let y = 0; y < H; y += 2) for (let x = 0; x < W; x += 2){ const i = (y*W + x)*4; if (Math.abs(d[i] - r0) + Math.abs(d[i+1] - g0) + Math.abs(d[i+2] - b0) > 40){ if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } }
+  if (x1 < 0) return c; const s = Math.min(W, Math.max(x1 - x0, y1 - y0)*1.12), l = Math.max(0, Math.min(W - s, (x0 + x1 - s)/2)), t = Math.max(0, Math.min(H - s, (y0 + y1 - s)/2));
+  const o = document.createElement('canvas'); o.width = o.height = 400; const og = o.getContext('2d'); og.imageSmoothingQuality = 'high'; og.drawImage(c, l, t, s, s, 0, 0, 400, 400); return o; }
+async function styleNext(){ if (STY.busy) return; STY.busy = true; const S = await figEngine();
+  while (STY.queue.length){ const [p, box] = STY.queue.shift(), imgs = box.querySelectorAll('img');
+    if (!S || !S.lookThumb){ box.hidden = true; continue; }
+    const got = STY.done[p.id] || (STY.done[p.id] = []);
+    for (let i = 0; i < LOOKS.length; i++){ if (!got[i]){ try { const c = await S.lookThumb(p.id, LOOKS[i][1], 400); got[i] = (i < 2 ? cropFig(c) : c).toDataURL('image/webp', .85); } catch (e){ console.warn('style', p.id, e); continue; } }
+imgs[i].src = got[i]; }
+    await new Promise(r => setTimeout(r)); }
+  STY.busy = false; }
+function styleCard(box, p){ const imgs = box.querySelectorAll('img'), caps = box.querySelectorAll('figcaption'), got = STY.done[p.id] || [];
+  LOOKS.forEach(([l], i) => { caps[i].textContent = l; imgs[i].alt = p.name + ', ' + l.toLowerCase(); if (got[i]) imgs[i].src = got[i];
+    imgs[i].addEventListener('click', () => { if (!imgs[i].src) return; $('bigImg').src = imgs[i].src; $('bigImg').alt = imgs[i].alt; $('bigCap').textContent = p.name + ' · ' + l; $('big').showModal(); }); });
+  if (got.length === LOOKS.length && got.every(Boolean)) return;
+  STY.io = STY.io || new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting){ STY.io.unobserve(e.target); STY.queue.push([e.target._pose, e.target]); styleNext(); } }, {rootMargin:'400px'});
+  box._pose = p; STY.io.observe(box); }
+document.getElementById('big').addEventListener('click', () => document.getElementById('big').close());
 const cropOf = (p, view) => CROP(p, view), angOf = (p, view) => ANG(p, view);
 // draw the edited figure into a square canvas context, with the same crop as the card images
 function figDraw(g, N, p, view, kpCrop){ if (!FIG.S || !cropOf(p, view)) return false;
