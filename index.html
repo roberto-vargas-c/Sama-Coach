@@ -4145,8 +4145,8 @@ const OUTFITS = { // wear: the clothes it sets; the rest are the extras it draws
   winter:{wear: av => av.figure === 'man' ? {topColor:'#4F8A57', patternColor:'#3E7046', bottomColor:'#4C8253', hatColor:'#4F8A57', hatTrim:'#3E7046', scarf:['#C9353A', '#F4F0E8'], handColor:'#3F7347', footColor:'#7A5233'}
       : {topColor:'#C8413A', patternColor:'#A8322D', bottomColor:'#4E6C8C', hatColor:'#4E6C8C', hatTrim:'#DCE3EA', scarf:['#4E6C8C', '#A9BCD0'], handColor:'#4E6C8C', footColor:'#3E5168'},
     base:{sleeves:'long', pattern:'quilt', bottom:'leggings', fit:'relaxed'}, bulk:1.16, jacket:true, hat:'beanie', boots:true, mittens:true},
-  skeleton:{wear: () => ({}), base:{topColor:'#1E1D22', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1E1D22', fit:'fitted'}, bones:true},
-  pumpkin:{wear: () => ({}), base:{topColor:'#1E1D22', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1E1D22', fit:'fitted'}, hat:'pumpkin', pumpkin:true},
+  skeleton:{wear: () => ({}), base:{topColor:'#1E1D22', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1E1D22', fit:'fitted'}, bones:true, ball:['#1E1D22', '#B9B2A3']},
+  pumpkin:{wear: () => ({}), base:{topColor:'#1E1D22', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1E1D22', fit:'fitted'}, hat:'pumpkin', pumpkin:true, ball:['#E8782A', '#1E1D22']},
   tipico:{wear: av => av.figure === 'man' ? {topColor:'#F4F1EA', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#24304F', fit:'relaxed', hat:'straw', kerchief:'#C8262E', sash:'#C8262E'}
       : {topColor:'#EDE6DA', sleeves:'none', pattern:'none', bottom:'leggings', bottomColor:'#C8262E', fit:'fitted', hat:'flower', skirt:'#C8262E', ruffle:['#FAF8F3', '#2B4C9B', '#C8262E'], sash:'#2B4C9B'}, base:{}}, // Costa Rica's traje tipico, as danced: a full red skirt with ribbon bands and an off-shoulder blouse; a white shirt, red neckerchief and sash, a straw hat
   retro:{wear: av => av.figure === 'man' ? {topColor:'#2A9D9A', sleeves:'long', pattern:'colorblock', patternColor:'#6E4AA8', bottomColor:'#1E1D22', fit:'relaxed', legStripe:'#2A9D9A', socks:{color:'#F6F3EE', stripes:['#D8443A', '#2B4C9B']}, footColor:'#F2F0EA'}
@@ -4160,7 +4160,7 @@ const OUTFITS = { // wear: the clothes it sets; the rest are the extras it draws
   fox:{wear: () => ({topColor:'#E86A3A', sleeves:'long', pattern:'dashes', patternColor:'#9E3F1E', bottom:'leggings', bottomColor:'#A69C94', fit:'fitted', footColor:'#1F1F24', hat:'foxhood', hatColor:'#E86A3A', skirt:'#E86A3A', skirtLen:.75, skirtFlare:.6, skirtDashes:'#9E3F1E', skirtFur:true}), base:{}},
   onesie:{wear: () => ({topColor:'#E8504A', sleeves:'long', pattern:'buttons', patternColor:'#23233A', bottom:'leggings', bottomColor:'#E8504A', fit:'relaxed', hat:'knitcap', hatColor:'#F4F1EA'}), base:{}},
   sailor:{wear: () => ({topColor:'#D2D2CE', sleeves:'long', pattern:'inkstripes', patternColor:'#3A3A40', bottom:'leggings', bottomColor:'#1F1F24', fit:'fitted', footColor:'#1F1F24', handColor:'#EDE15A', hat:'flatcap', hatColor:'#1F1F24'}), base:{}, mittens:true},
-  vampire:{wear: () => ({}), base:{topColor:'#24222B', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1D1B22', fit:'fitted', footColor:'#1A191E', hairColor:'#17151A'}, cape:true, front:'vampire'},
+  vampire:{wear: () => ({}), base:{topColor:'#24222B', sleeves:'long', pattern:'none', bottom:'leggings', bottomColor:'#1D1B22', fit:'fitted', footColor:'#1A191E', hairColor:'#17151A'}, cape:true, front:'vampire', ball:['#1A1820', '#A3202B']},
 };
 function outfitParts(parts, R, sil, av, O){ // the extras that are shapes of their own, each with its place in the drawing order
   const K = R.kp, s = R.scale, fr = outfitFrame(R, sil), {F, H, hw, rS, nw, front, fc} = fr, out = [...parts];
@@ -4400,30 +4400,36 @@ function drawFlatFigure(g, R, av){
   }
   if (!headDone) headSmall(() => { if (detailed) drawEars(g, R, av); drawFlatHead(g, R, av); if (O && (O.hat || av.hat)) outfitHat(g, R, av, O.hat || av.hat); });
   if (clipBlob) g.restore();
-  if (R.blob > .5) drawBlobLogo(g, R);
+  if (R.blob > .5) drawBlobLogo(g, R, av);
 }
 // Between poses the blob turns into the Sama logo: two soft halves of a circle, the gap a standing leg, the notch a bent knee.
 const LOGO_L = new Path2D('M76.9,130.5 74.0,129.2 72.0,126.8 71.3,123.7 72.0,120.5 73.3,118.7 92.3,99.7 93.5,97.8 94.0,95.6 94.0,23.6 93.4,21.4 92.2,19.4 90.0,17.8 87.7,17.2 83.5,17.6 75.5,19.7 68.0,22.3 62.1,25.0 55.2,29.0 49.9,32.6 45.0,36.5 39.3,42.0 35.0,46.8 30.2,53.2 26.9,58.7 23.3,65.8 20.9,71.8 18.6,79.5 16.4,91.9 16.0,100.1 16.4,108.4 17.6,116.5 19.6,124.3 22.3,132.0 25.0,137.9 29.1,145.0 33.9,151.8 39.3,158.0 45.2,163.7 51.7,168.8 58.7,173.1 66.1,176.8 73.8,179.8 83.7,182.4 86.8,182.9 88.7,182.7 90.4,182.0 92.2,180.6 93.4,178.6 93.9,176.8 93.9,138.2 92.5,135.3 90.1,133.3Z'), LOGO_R = new Path2D('M114.2,17.2 111.3,17.3 108.5,18.8 106.6,21.4 106.0,24.2 106.0,176.4 106.6,178.6 108.1,180.9 110.5,182.4 112.7,182.9 118.5,181.9 126.5,179.7 134.2,176.7 141.3,173.1 146.8,169.8 153.2,165.0 158.0,160.7 163.7,154.8 168.6,148.5 172.1,143.1 175.9,136.0 178.4,130.1 181.0,122.3 182.7,114.5 183.6,108.1 184.0,100.1 183.6,91.9 182.7,85.5 181.0,77.7 179.0,71.6 176.0,64.2 173.0,58.5 168.8,51.7 163.7,45.2 158.0,39.3 153.2,35.0 146.8,30.2 141.3,26.9 134.2,23.3 128.2,20.9 120.5,18.6Z');
-// The ball wears the figure's colours: its top on one half, its trousers or shorts on the other. A top too pale to show
-// on the light background gives its pattern colour (or the skin) instead, and two halves that would look alike get the skin.
+// The ball wears the figure's colours, costume included: its top on one half, its trousers, shorts or skirt on the other.
+// A top too pale to show on the light background gives its print, sleeves, sash or other trim instead (the skin last), and two
+// halves that would look alike take the costume's next colour, then the skin. A costume whose look is not its clothes (a pumpkin
+// over a black bodysuit, a skeleton's bones, a vampire's cape) names its two colours itself (OUTFITS ball).
 const hexLum = h => { const n = parseInt(String(h || '#888888').slice(1, 7), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(v => { v /= 255; return v <= .03928 ? v/12.92 : Math.pow((v + .055)/1.055, 2.4); }); return .2126*c[0] + .7152*c[1] + .0722*c[2]; };
 const hexDist = (a, b) => { const p = h => { const n = parseInt(String(h).slice(1, 7), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }, x = p(a), y = p(b); return Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]); };
+const isHex = c => typeof c === 'string' && /^#[0-9a-f]{6}/i.test(c);
 function ballColors(av){
-  const skin = /^#[0-9a-f]{6}/i.test(av.skin || '') ? av.skin : '#C68B59';
-  let a = av.topColor || '#9C5A3C', b = av.bottomColor || '#2F4A3B';
-  if (hexLum(a) > .7) a = av.pattern && av.pattern !== 'none' && av.patternColor && hexLum(av.patternColor) < .7 ? av.patternColor : skin;
-  if (hexLum(b) > .7) b = skin;
-  if (hexDist(a, b) < 40) b = hexDist(a, skin) < 40 ? shade(a, .7) : skin;
+  const O = av.outfit && OUTFITS[av.outfit]; if (O && O.ball) return O.ball.slice(); // (av: dressed already, or the person's own look with the costume on top)
+  if (O) av = {...av, ...O.base, ...O.wear(av)};
+  const skin = isHex(av.skin) ? av.skin : '#C68B59', dark = c => isHex(c) && hexLum(c) <= .7;
+  const trims = [av.pattern && av.pattern !== 'none' ? av.patternColor : null, av.sleeveColor, av.sash, av.kerchief, ...(av.scarf || []), av.hatColor, av.skirt].filter(dark);
+  let a = av.topColor || '#9C5A3C', b = isHex(av.skirt) ? av.skirt : av.bottomColor || '#2F4A3B';
+  if (hexLum(a) > .7) a = trims[0] || skin;
+  if (hexLum(b) > .7) b = trims.find(c => hexDist(c, a) >= 40) || skin;
+  if (hexDist(a, b) < 40) b = trims.find(c => hexDist(c, a) >= 40) || (hexDist(a, skin) < 40 ? shade(a, .7) : skin);
   return [a, b];
 }
 function logoMix(R){ const t = Math.min(1, Math.max(0, ((R.blob || 0) - .55)/.4)); return t*t*(3 - 2*t); } // 0 = blob, 1 = logo
-function drawBlobLogo(g, R){
+function drawBlobLogo(g, R, av = avatar){
   const L = logoMix(R); if (L <= 0) return;
   const r = flatHeadR(R), k = r/84, slide = (1 - L)*6; // the halves start closed (a plain circle) and part into the logo
   g.save(); g.globalAlpha *= L;
   const turn = R.spin != null ? R.spin*Math.PI*2*(R.spinDir || 1) : -(1 - L)*Math.PI/2; // without a timed change (previews), it rolls in a quarter turn
   g.translate(R.head.x, R.head.y); g.rotate(turn); g.scale(k, k); g.translate(-100, -100);
-  const [cl, cr] = ballColors(avatar);
+  const [cl, cr] = ballColors(av);
   g.save(); g.translate(slide, 0); g.fillStyle = cl; g.fill(LOGO_L); g.restore();
   g.save(); g.translate(-slide, 0); g.fillStyle = cr; g.fill(LOGO_R); g.restore();
   g.restore();
